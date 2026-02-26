@@ -90,6 +90,17 @@ const nextGame = () => {
   matchStore.nextGame()
 }
 
+// Allows receiver to be designated as server mid-game (umpire correction)
+const swapServer = (side) => {
+  // side: 'left' or 'right' — the physical side clicked
+  // determine which player (1 or 2) is on that side
+  const playerOnSide = side === 'left'
+    ? (matchStore.swappedSides ? 2 : 1)
+    : (matchStore.swappedSides ? 1 : 2)
+  matchStore.setServer(playerOnSide)
+}
+
+
 // Display logic helpers
 const getScoreP1 = (g) => matchStore.scores[`g${g}`]?.p1
 const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2

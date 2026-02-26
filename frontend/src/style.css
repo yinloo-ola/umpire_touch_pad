@@ -473,6 +473,21 @@ button {
   opacity: 1;
 }
 
+.serve-indicator-tp.receiver-clickable {
+  cursor: pointer;
+  opacity: 0.6;
+  /* slightly more visible than default 0.3 — signals it's tappable */
+}
+
+.serve-indicator-tp.receiver-clickable:hover {
+  opacity: 1;
+}
+
+.serve-indicator-tp.receiver-clickable .s-circle-tp {
+  box-shadow: 0 0 0 2px rgba(245, 130, 32, 0.5);
+}
+
+
 .s-circle-tp {
   background: #444;
   color: white;
