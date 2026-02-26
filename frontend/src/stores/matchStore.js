@@ -119,7 +119,22 @@ export const useMatchStore = defineStore('match', {
 
         setServer(s) {
             this.server = s
-            this.initialServer = s
+            // Calibrate initialServer based on current serve rotation parity,
+            // so future auto-rotation (every 2 pts) continues correctly from s.
+            const totalPoints = this.p1Score + this.p2Score
+            let servesPassed = 0
+            if (this.p1Score >= 10 && this.p2Score >= 10) {
+                servesPassed = 10 + Math.max(0, totalPoints - 20)
+            } else {
+                servesPassed = Math.floor(totalPoints / 2)
+            }
+            // handleScore computes: even servesPassed → initialServer, odd → opposite.
+            // Working backwards: if we want server = s now...
+            if (servesPassed % 2 === 0) {
+                this.initialServer = s          // at even, initialServer IS the server
+            } else {
+                this.initialServer = (s === 1) ? 2 : 1  // at odd, initialServer is the OTHER player
+            }
         },
 
         startTimer(callback) {
