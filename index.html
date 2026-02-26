@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Premium Umpire Touchpad Simulator</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+  <main class="app-main">
+    <!-- Match List View -->
+    <section id="match-list-view" class="view active">
+      <h2 class="greeting">Welcome Umpire, today's matches are</h2>
+      <div class="table-container glass-panel">
+        <table class="match-table">
+          <thead>
+            <tr>
+              <th>Event</th>
+              <th>Time</th>
+              <th>Player 1</th>
+              <th>Player 2</th>
+              <th>Best Of</th>
+            </tr>
+          </thead>
+          <tbody id="match-table-body">
+            <!-- Dynamically populated by JS -->
+          </tbody>
+        </table>
+      </div>
+      <div class="footer-actions">
+        <button class="text-btn back-btn"><i class="fa-solid fa-chevron-left"></i> Back</button>
+      </div>
+    </section>
+
+    <!-- Touchpad View -->
+    <section id="touchpad-view" class="view ds-dark hidden">
+      <div class="touchpad-container ds-dark">
+        <!-- Touchpad Header bar -->
+        <div class="tp-header">
+          <div class="tp-time"><span id="tp-date">10/8/2024</span> <span id="tp-clock" class="accent-text">09:00</span>
+          </div>
+          <button class="icon-btn power-btn tp-power-btn"><i class="fa-solid fa-power-off"></i></button>
+        </div>
+
+        <!-- Score Summary -->
+        <div class="score-summary-container">
+          <table class="score-summary-table">
+            <thead>
+              <tr>
+                <th class="tools-col">
+                  <button class="text-btn edit-score-btn"><i class="fa-solid fa-pen-to-square"></i> Edit Score</button>
+                  <span class="ssq" title="Service Sequence">SSQ</span>
+                </th>
+                <th>G1</th>
+                <th>G2</th>
+                <th>G3</th>
+                <th>G4</th>
+                <th>G5</th>
+                <th rowspan="4" class="let-col">
+                  <button class="let-btn">Let</button>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="summary-row-p1">
+                <td class="player-name-cell">
+                  <span class="player-name" id="tp-player1-name">JEOUNG Youngsik</span>
+                  <span class="player-country" id="tp-player1-country">KOR</span>
+                </td>
+                <td class="game-score active-game" id="p1-g1">0</td>
+                <td class="game-score" id="p1-g2"></td>
+                <td class="game-score" id="p1-g3"></td>
+                <td class="game-score" id="p1-g4"></td>
+                <td class="game-score" id="p1-g5"></td>
+              </tr>
+              <tr class="summary-row-p2">
+                <td class="player-name-cell">
+                  <span class="player-name" id="tp-player2-name">SAMSONOV Vladimir</span>
+                  <span class="player-country" id="tp-player2-country">BLR</span>
+                </td>
+                <td class="game-score active-game" id="p2-g1">0</td>
+                <td class="game-score" id="p2-g2"></td>
+                <td class="game-score" id="p2-g3"></td>
+                <td class="game-score" id="p2-g4"></td>
+                <td class="game-score" id="p2-g5"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Main Interaction Area -->
+        <!-- Score Grid (Top Row / Center) -->
+        <div class="interaction-grid">
+          <!-- Top Row: Cards and Serve -->
+          <div class="grid-row top-row">
+            <div class="side-controls left-side">
+              <button class="card-btn" id="p1-cards">Cards</button>
+            </div>
+            <div class="side-controls right-side">
+              <button class="card-btn" id="p2-cards">Cards</button>
+            </div>
+          </div>
+
+          <!-- Middle Row: Table (Status Box) -->
+          <div class="grid-row middle-row" style="display: flex; justify-content: center; gap: 30px;">
+            <div class="serve-indicator-tp left-tp" id="p1-serve-tp" style="align-self: flex-end; margin-bottom: 20px;">
+              <div class="s-circle-tp">S</div>
+              <span class="s-label-tp">Server</span>
+            </div>
+
+            <div class="status-box-tp glass-panel-green" id="main-status-box">
+              <span class="status-text-tp" id="status-text">Start Of Play</span>
+
+              <!-- Added player name layout that can be toggled via JS -->
+              <div class="table-player-grid hidden" id="table-player-grid">
+                <div class="table-quad top-left" id="table-quad-tl"></div>
+                <div class="table-quad top-right" id="table-quad-tr"></div>
+                <div class="table-quad bottom-left" id="table-quad-bl"></div>
+                <div class="table-quad bottom-right" id="table-quad-br"></div>
+                <div class="table-net-line"></div>
+                <div class="table-horizontal-line"></div>
+              </div>
+            </div>
+
+            <div class="serve-indicator-tp right-tp" id="p2-serve-tp" style="align-self: flex-start; margin-top: 20px;">
+              <div class="s-circle-tp">R</div>
+              <span class="s-label-tp">Receiver</span>
+            </div>
+          </div>
+
+          <!-- Bottom Row: Plus/Minus and Score Display -->
+          <div class="grid-row bottom-row">
+            <div class="side-plus-minus left-pm">
+              <button class="score-btn-large plus-btn" id="p1-plus">+</button>
+              <button class="score-btn-small minus-btn" id="p1-minus">-</button>
+            </div>
+
+            <div class="center-score-display">
+              <div class="game-pts-row">
+                <span id="tp-p1-games">0</span>
+                <div class="pts-divider"></div>
+                <span id="tp-p2-games">0</span>
+              </div>
+              <div class="current-pts-row">
+                <span id="ls-p1">1</span>
+                <div class="pts-divider"></div>
+                <span id="ls-p2">0</span>
+              </div>
+            </div>
+
+            <div class="side-plus-minus right-pm">
+              <button class="score-btn-small minus-btn" id="p2-minus">-</button>
+              <button class="score-btn-large plus-btn" id="p2-plus">+</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Actions -->
+        <div class="bottom-action-bar">
+          <button class="action-btn swap-sides-btn" id="btn-swap"><i class="fa-solid fa-arrow-right-arrow-left"></i>
+            Swap Sides</button>
+          <button class="action-btn expedite-btn" id="btn-expedite"><i class="fa-solid fa-stopwatch"></i>
+            Expedite</button>
+          <div class="divider"></div>
+          <button class="action-btn next-game-btn disabled" id="btn-next">Next Game <i
+              class="fa-solid fa-forward-step"></i></button>
+          <button class="action-btn end-match-btn" id="btn-end">End Match</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Match Confirmation Modal -->
+  <div id="match-confirm-modal" class="modal-overlay hidden">
+    <div class="modal-content glass-panel">
+      <div class="modal-header">
+        <h3>You have chosen match</h3>
+      </div>
+      <div class="modal-body">
+        <div class="confirm-match-info">
+          <table class="match-table mini-table">
+            <thead>
+              <tr>
+                <th>Event</th>
+                <th>Time</th>
+                <th>Player 1</th>
+                <th>Player 2</th>
+                <th>Best Of</th>
+              </tr>
+            </thead>
+            <tbody id="confirm-match-body">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+          <p class="modal-prompt">Are you sure you want to start?</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="confirm-start-btn" class="modal-btn primary-btn">Start</button>
+        <button id="confirm-reset-btn" class="modal-btn secondary-btn">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Setup View -->
+  <section id="setup-view" class="view ds-dark hidden">
+    <div class="setup-container">
+      <div class="tp-header">
+        <div class="tp-time"><span class="setup-date">10/8/2024</span> <span
+            class="setup-clock accent-text">09:00</span></div>
+        <button class="icon-btn power-btn setup-power-btn"><i class="fa-solid fa-power-off"></i></button>
+      </div>
+      <div class="setup-toolbar">
+        <button class="back-to-list-btn icon-btn"><i class="fa-solid fa-arrow-left"></i></button>
+        <div class="match-bestof-badge" id="setup-bestof">Best of 5</div>
+        <button class="setup-menu-btn icon-btn"><i class="fa-solid fa-table-tennis-paddle-ball"></i></button>
+      </div>
+
+      <div class="court-area">
+        <div class="court-grid">
+          <div class="court-quadrant top-left" id="quad-tl"></div>
+          <div class="court-quadrant top-right" id="quad-tr"></div>
+          <div class="court-quadrant bottom-left" id="quad-bl"></div>
+          <div class="court-quadrant bottom-right" id="quad-br"></div>
+          <div class="net-line"></div>
+          <div class="horizontal-line"></div>
+        </div>
+
+        <!-- Hidden templates for player slots to be moved by JS -->
+        <div id="player-templates" style="display:none;">
+          <div class="player-slot" id="setup-p1-slot">
+            <div class="player-info">
+              <span class="p-label">Player 1</span>
+              <span class="p-name" id="setup-p1-name">JEOUNG Youngsik</span>
+              <span class="p-country">KOR</span>
+            </div>
+          </div>
+          <div class="player-slot" id="setup-p2-slot">
+            <div class="player-info">
+              <span class="p-label">Player 2</span>
+              <span class="p-name" id="setup-p2-name">SAMSONOV Vladimir</span>
+              <span class="p-country">BLR</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Positioned Serve Indicators -->
+        <div class="setup-serve-indicators">
+          <div class="setup-serve-box left-serve active" id="setup-left-serve">
+            <div class="s-circle">S</div>
+            <span class="s-tag">Server</span>
+          </div>
+          <div class="setup-serve-box right-serve" id="setup-right-serve">
+            <div class="s-circle">R</div>
+            <span class="s-tag">Receiver</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="setup-actions">
+        <button class="setup-btn swap-btn" id="setup-swap-btn">Swap Sides</button>
+        <button class="setup-btn warmup-btn" id="setup-warmup-btn">Start Warm Up</button>
+        <button class="setup-btn end-btn" id="setup-end-btn">End Match</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Warm Up Confirmation Modal -->
+  <div id="warmup-confirm-modal" class="modal-overlay hidden">
+    <div class="modal-content small-modal">
+      <div class="modal-header">
+        <h3>Player positions</h3>
+      </div>
+      <div class="modal-body">
+        <p class="warning-text">Note: Can't set players positions after warmup. please set players positions before
+          warmup.</p>
+        <p class="modal-prompt-bold">Is Players Positions Set?</p>
+      </div>
+      <div class="modal-footer">
+        <button id="warmup-confirm-start-btn" class="modal-btn primary-btn">Confirm</button>
+        <button id="warmup-cancel-btn" class="modal-btn cancel-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Warm Up Timer Overlay -->
+  <div id="warmup-timer-overlay" class="timer-overlay hidden">
+    <div class="timer-content">
+      <h2>Warm up</h2>
+      <div class="circular-timer">
+        <svg class="timer-svg" viewBox="0 0 100 100">
+          <circle class="timer-bg" cx="50" cy="50" r="45"></circle>
+          <circle class="timer-progress" cx="50" cy="50" r="45"></circle>
+        </svg>
+        <div class="timer-text">
+          <span id="timer-countdown">02:00</span>
+          <span class="timer-unit">Sec</span>
+        </div>
+      </div>
+      <button id="start-match-btn" class="start-match-btn">Start Match</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
