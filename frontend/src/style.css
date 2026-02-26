@@ -36,7 +36,8 @@ body {
   font-family: 'Outfit', sans-serif;
   background-color: var(--bg-light);
   color: var(--text-main);
-  height: 100vh;
+  height: 100dvh;
+  /* dvh accounts for mobile browser chrome */
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -112,10 +113,18 @@ button {
 }
 
 /* Views */
+#app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
 .app-main {
   flex: 1;
   position: relative;
+  overflow: hidden;
 }
+
 
 .view {
   position: absolute;
@@ -249,13 +258,13 @@ button {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem;
+  padding: 0.4rem 1.5rem;
   background: var(--surface-dark);
   border-bottom: 1px solid #333;
 }
 
 .tp-time {
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: 600;
 }
 
@@ -273,7 +282,7 @@ button {
   background: transparent;
   color: var(--text-light);
   box-shadow: none;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
 }
 
 .tp-power-btn:hover {
@@ -283,37 +292,54 @@ button {
 
 /* Score Summary */
 .score-summary-container {
+  display: flex;
+  align-items: stretch;
   background: var(--surface-dark);
 }
 
 .score-summary-table {
-  width: 100%;
+  flex: 1;
   border-collapse: collapse;
   text-align: center;
+  table-layout: fixed;
+  /* enforces explicit column widths */
+  min-width: 0;
+  /* flex shrink */
+  margin: 0.5rem 0.5rem 0.5rem 1.0rem;
 }
 
 .score-summary-table th {
   background: var(--primary-color);
   color: white;
-  padding: 0.2rem;
+  padding: 0.6rem 0;
   font-weight: 600;
   border: 1px solid #333;
   font-size: 0.75rem;
 }
 
+/* Game score columns — max score is 99, so 2 digits fits in 28px */
+.game-col {
+  width: 28px;
+}
+
 .score-summary-table td {
-  padding: 0.2rem;
+  padding: 0.7rem 0;
   border: 1px solid #333;
   font-size: 0.85rem;
   font-weight: 600;
 }
 
 .tools-col {
-  width: 15%;
+  width: 160px;
+  /* In table-layout:fixed, only 'width' works — not max-width */
   text-align: left;
   padding: 0.2rem 0.5rem !important;
   position: relative;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
+
 
 .let-col {
   width: 10%;
@@ -363,6 +389,7 @@ button {
 .player-name-cell {
   text-align: left;
   padding-left: 0.5rem !important;
+  padding-right: 0.5rem !important;
   display: flex;
   justify-content: space-between;
 }
@@ -383,7 +410,7 @@ button {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 1.5rem 2rem;
+  padding: 0.5rem 1rem;
   background: #1a1a1a;
   position: relative;
   height: 100%;
@@ -397,7 +424,7 @@ button {
 }
 
 .top-row {
-  height: 80px;
+  height: clamp(50px, 8vh, 80px);
 }
 
 .middle-row {
@@ -406,7 +433,7 @@ button {
 }
 
 .bottom-row {
-  height: 150px;
+  height: clamp(90px, 14vh, 150px);
   align-items: flex-end;
 }
 
@@ -484,11 +511,11 @@ button {
 }
 
 .plus-btn {
-  width: 170px;
-  height: 170px;
+  width: clamp(90px, 14vh, 170px);
+  height: clamp(90px, 14vh, 170px);
   background: #1b873f;
   color: white;
-  font-size: 6rem;
+  font-size: clamp(3rem, 5vh, 6rem);
   font-weight: 300;
 }
 
@@ -510,11 +537,11 @@ button {
 }
 
 .minus-btn {
-  width: 60px;
-  height: 60px;
+  width: clamp(36px, 6vh, 60px);
+  height: clamp(36px, 6vh, 60px);
   background: var(--danger-red);
   color: white;
-  font-size: 2.5rem;
+  font-size: clamp(1.4rem, 2.5vh, 2.5rem);
 }
 
 .minus-btn:hover {
@@ -538,8 +565,8 @@ button {
   background: #006b3c;
   border: 4px solid white;
   border-radius: 4px;
-  width: 420px;
-  height: 250px;
+  width: clamp(280px, 35vw, 420px);
+  height: clamp(180px, 28vh, 290px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -549,7 +576,7 @@ button {
 
 .status-text-tp {
   color: white;
-  font-size: 3.2rem;
+  font-size: clamp(1.8rem, 3.5vh, 3.2rem);
   font-weight: 600;
 }
 
@@ -557,14 +584,14 @@ button {
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  padding-bottom: 20px;
+  padding-bottom: 5px;
 }
 
 .score-btn-large {
-  width: 170px;
-  height: 170px;
+  width: clamp(90px, 14vh, 170px);
+  height: clamp(90px, 14vh, 170px);
   border-radius: 50%;
-  font-size: 6rem;
+  font-size: clamp(3rem, 5vh, 6rem);
   font-weight: 300;
   display: flex;
   align-items: center;
@@ -573,12 +600,12 @@ button {
 }
 
 .score-btn-small {
-  width: 44px;
-  height: 44px;
+  width: clamp(36px, 6vh, 60px);
+  height: clamp(36px, 6vh, 60px);
   background: #ff0000;
   color: white;
   border-radius: 50%;
-  font-size: 2rem;
+  font-size: clamp(1.4rem, 2.5vh, 2.5rem);
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -587,7 +614,7 @@ button {
 }
 
 .center-score-display {
-  width: 350px;
+  width: clamp(220px, 28vw, 350px);
   background: #222;
   border-radius: 8px;
   overflow: hidden;
@@ -611,7 +638,7 @@ button {
   display: flex;
   justify-content: space-around;
   padding: 0.5rem 0;
-  font-size: 3rem;
+  font-size: clamp(1.8rem, 4vh, 3rem);
   font-weight: 800;
 }
 

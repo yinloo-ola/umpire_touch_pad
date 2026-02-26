@@ -108,15 +108,14 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
       </div>
 
       <!-- Score Summary -->
-      <div class="score-summary-container" style="position: relative; display: flex; justify-content: center;">
-        <table class="score-summary-table" style="max-width: 800px; margin: 0 auto;">
+      <div class="score-summary-container">
+        <table class="score-summary-table">
           <thead>
             <tr>
               <th class="tools-col">
                 <button class="text-btn edit-score-btn"><i class="fa-solid fa-pen-to-square"></i> Edit Score</button>
-                <span class="ssq" title="Service Sequence">SSQ</span>
               </th>
-              <th v-for="g in games" :key="g">G{{g}}</th>
+              <th v-for="g in games" :key="g" class="game-col">G{{g}}</th>
             </tr>
           </thead>
           <tbody>
@@ -136,7 +135,7 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
                 <span class="player-name">{{ team2Name }}</span>
                 <span class="player-country">{{ team2Country }}</span>
               </td>
-             <td v-for="g in games" :key="g" 
+              <td v-for="g in games" :key="g" 
                   class="game-score" 
                   :class="{ 'active-game': matchStore.game === g }">
                 {{ getScoreP2(g) !== null ? getScoreP2(g) : '' }}
@@ -145,8 +144,10 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
           </tbody>
         </table>
 
-        <!-- Let Button outside table -->
-        <button class="let-btn-large" :disabled="!matchStore.pointStarted || matchStore.isGameOver" @click="handleLet">Let</button>
+        <!-- Let Button sits as flex sibling, never overlaps table -->
+        <div class="let-btn-cell">
+          <button class="let-btn-large" :disabled="!matchStore.pointStarted || matchStore.isGameOver" @click="handleLet">Let</button>
+        </div>
       </div>
 
       <!-- Main Interaction Area -->
@@ -163,7 +164,10 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
 
         <!-- Middle Row: Table (Status Box) -->
         <div class="grid-row middle-row" style="display: flex; justify-content: center; gap: 30px;">
-          <div class="serve-indicator-tp left-tp" :class="{ active: matchStore.isLeftServer }" style="align-self: flex-end; margin-bottom: 20px;">
+          <div class="serve-indicator-tp left-tp"
+               :class="{ active: matchStore.isLeftServer, 'receiver-clickable': matchStore.isStarted && !matchStore.isLeftServer }"
+               style="align-self: flex-end; margin-bottom: 20px;"
+               @click="matchStore.isStarted && !matchStore.isLeftServer ? swapServer('left') : null">
             <div class="s-circle-tp">{{ matchStore.isLeftServer ? 'S' : 'R' }}</div>
             <span class="s-label-tp">{{ matchStore.isLeftServer ? 'Server' : 'Receiver' }}</span>
           </div>
@@ -195,7 +199,10 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
             </div>
           </div>
 
-          <div class="serve-indicator-tp right-tp" :class="{ active: !matchStore.isLeftServer }" style="align-self: flex-start; margin-top: 20px;">
+          <div class="serve-indicator-tp right-tp"
+               :class="{ active: !matchStore.isLeftServer, 'receiver-clickable': matchStore.isStarted && matchStore.isLeftServer }"
+               style="align-self: flex-start; margin-top: 20px;"
+               @click="matchStore.isStarted && matchStore.isLeftServer ? swapServer('right') : null">
             <div class="s-circle-tp">{{ !matchStore.isLeftServer ? 'S' : 'R' }}</div>
             <span class="s-label-tp">{{ !matchStore.isLeftServer ? 'Server' : 'Receiver' }}</span>
           </div>
@@ -326,31 +333,34 @@ button:disabled {
 .bottom-left { grid-column: 1; grid-row: 2; }
 .top-right { grid-column: 2; grid-row: 1; }
 
+.let-btn-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.75rem;
+  flex-shrink: 0;
+}
+
 .let-btn-large {
-  position: absolute;
-  top: 50%;
-  right: 2rem;
-  transform: translateY(-50%);
-  width: 90px;
-  height: 90px;
+  width: clamp(60px, 9vh, 90px);
+  height: clamp(60px, 9vh, 90px);
   border-radius: 50%;
   background: #8b5cf6; /* Purple for enabled state */
   color: white;
-  font-size: 1.8rem;
+  font-size: clamp(1.2rem, 2vh, 1.8rem);
   font-weight: 700;
   box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
-  z-index: 10;
   border: none;
   cursor: pointer;
 }
 
 .let-btn-large:not(:disabled):hover {
   background: #7c3aed;
-  transform: translateY(-50%) scale(1.05);
+  transform: scale(1.05);
 }
 
 .let-btn-large:disabled {
