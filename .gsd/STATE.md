@@ -3,7 +3,7 @@
 > Last updated: 2026-02-27
 
 ## Current Phase
-**Phase 1** — Store Foundation (not started)
+**Phase 1** — Store Foundation (planned, ready for `/execute 1`)
 
 ## Last Session Summary
 Project fully initialized via `/new-project`.
@@ -17,7 +17,10 @@ Project fully initialized via `/new-project`.
 - [x] SPEC.md created (FINALIZED)
 - [x] ROADMAP.md created (4 phases)
 - [x] DECISIONS.md, JOURNAL.md, TODO.md initialized
-- [ ] Phase 1: Store Foundation
+- [ ] Phase 1: Store Foundation ← **READY** (3 plans created)
+  - 1.1: Quadrant state + swap actions + getters (wave 1)
+  - 1.2: Doubles serve rotation engine (wave 1)
+  - 1.3: Between-game serve setup + deciding-game swap (wave 2)
 - [ ] Phase 2: SetupView Doubles UI
 - [ ] Phase 3: Touchpad Doubles UI
 - [ ] Phase 4: Deciding-game swap + polish
