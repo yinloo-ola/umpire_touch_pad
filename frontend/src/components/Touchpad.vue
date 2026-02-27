@@ -222,21 +222,20 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
         <!-- Top Row -->
         <div class="grid-row top-row">
           <div class="side-controls left-side">
-            <button v-if="isDoubles" @click="swapLeftPlayers" class="swap-players-btn-tp swap-left-tp" id="tp-swap-left-btn">
-              <i class="fa-solid fa-arrow-down"></i> Swap <i class="fa-solid fa-arrow-up"></i>
-            </button>
-            <button v-else class="card-btn">Cards</button>
+            <button class="card-btn">Cards</button>
           </div>
           <div class="side-controls right-side">
-            <button v-if="isDoubles" @click="swapRightPlayers" class="swap-players-btn-tp swap-right-tp" id="tp-swap-right-btn">
-              <i class="fa-solid fa-arrow-down"></i> Swap <i class="fa-solid fa-arrow-up"></i>
-            </button>
-            <button v-else class="card-btn">Cards</button>
+            <button class="card-btn">Cards</button>
           </div>
         </div>
 
         <!-- Middle Row: Table (Status Box) -->
-        <div class="grid-row middle-row" style="display: flex; justify-content: center; gap: 30px">
+        <div class="grid-row middle-row" style="display: flex; justify-content: center; gap: 40px; align-items: center">
+          <!-- Left Swap Players Button -->
+          <button v-if="isDoubles" @click="swapLeftPlayers" class="swap-players-btn-tp" id="tp-swap-left-btn">
+            <i class="fa-solid fa-arrow-down"></i> Swap Players <i class="fa-solid fa-arrow-up"></i>
+          </button>
+
           <div
             class="serve-indicator-tp left-tp"
             :class="{
@@ -325,8 +324,12 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
             <div class="s-circle-tp">{{ (isDoubles ? !matchStore.isLeftDoublesServer : !matchStore.isLeftServer) ? 'S' : 'R' }}</div>
             <span class="s-label-tp">{{ (isDoubles ? !matchStore.isLeftDoublesServer : !matchStore.isLeftServer) ? 'Server' : 'Receiver' }}</span>
           </div>
-        </div>
 
+          <!-- Right Swap Players Button -->
+          <button v-if="isDoubles" @click="swapRightPlayers" class="swap-players-btn-tp" id="tp-swap-right-btn">
+            <i class="fa-solid fa-arrow-down"></i> Swap Players <i class="fa-solid fa-arrow-up"></i>
+          </button>
+        </div>
         <!-- Bottom Row -->
         <div class="grid-row bottom-row">
           <div class="side-plus-minus left-pm">
@@ -739,9 +742,9 @@ button:disabled {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 0.5rem 0.6rem;
-  font-size: 0.8rem;
+  gap: 8px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.9rem;
   font-weight: 700;
   background: #6ab04c;
   color: white;
@@ -749,6 +752,8 @@ button:disabled {
   border-radius: 6px;
   cursor: pointer;
   white-space: nowrap;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  align-self: center;
 }
 .swap-players-btn-tp:active { opacity: 0.7; }
 .top-left { grid-column: 1; grid-row: 1; }
