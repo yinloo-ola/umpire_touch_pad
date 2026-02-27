@@ -2,7 +2,7 @@
         lint lint-frontend lint-backend \
         fmt fmt-frontend fmt-backend \
         build build-frontend build-backend \
-        install
+        test install
 
 # ── Directories ──────────────────────────────────────────────────────────────
 FRONTEND_DIR := frontend
@@ -56,6 +56,11 @@ build-frontend:
 build-backend:
 	@echo "▶ Building backend…"
 	cd $(BACKEND_DIR) && go build -o ../bin/server .
+
+# ── Testing ──────────────────────────────────────────────────────────────────
+## Run Vitest test suite
+test:
+	cd $(FRONTEND_DIR) && npm run test
 
 # ── Setup ─────────────────────────────────────────────────────────────────────
 ## Install frontend dependencies
