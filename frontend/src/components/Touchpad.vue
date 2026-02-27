@@ -470,6 +470,19 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
         </div>
       </div>
     </div>
+
+    <!-- Deciding Game Swap Modal -->
+    <div v-if="matchStore.midGameSwapPending" class="modal-overlay alert-overlay-bg">
+      <div class="alert-modal-content">
+        <h2 class="alert-title">Decider game of Match</h2>
+        <p class="alert-body">Decider game of Match, 5 points scored, swapping sides and players.</p>
+        <div class="modal-footer alert-footer">
+          <button @click="matchStore.applyMidGameSwap()" class="modal-btn alert-close-btn">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
   </section>
 </template>
 
@@ -758,4 +771,63 @@ button:disabled {
 .swap-players-btn-tp:active { opacity: 0.7; }
 .top-left { grid-column: 1; grid-row: 1; }
 .bottom-right { grid-column: 2; grid-row: 2; }
+
+/* Alert Modal Styles */
+.alert-overlay-bg {
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.alert-modal-content {
+  background: #2b2b2b;
+  width: 90%;
+  max-width: 550px;
+  border-radius: 8px;
+  padding: 2.5rem;
+  text-align: center;
+  border: 1px solid #444;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+}
+
+.alert-title {
+  color: #f58220;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: 2rem;
+  font-family: serif;
+  font-weight: 700;
+}
+
+.alert-body {
+  color: white;
+  margin-bottom: 2.5rem;
+  font-size: 1.4rem;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.alert-footer {
+  display: flex;
+  justify-content: center;
+  background: transparent;
+  padding: 0;
+}
+
+.alert-close-btn {
+  background: #f58220;
+  color: white;
+  padding: 0.8rem 4rem;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 1.3rem;
+  box-shadow: 0 4px 15px rgba(245, 130, 32, 0.3);
+}
+
+.alert-close-btn:hover {
+  background: #e07010;
+  transform: translateY(-2px);
+}
 </style>

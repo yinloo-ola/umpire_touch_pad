@@ -90,29 +90,7 @@ const rightIndicatorPlayerName = computed(() => {
     : matchStore.doublesServerName
 })
 
-// ── Between-game server choice modal ─────────────────────────────────────────
-const showServerChoiceModal = computed(() => {
-  return isDoubles.value && matchStore.doublesNextServingTeam !== null
-})
 
-const servingTeamPlayers = computed(() => {
-  if (!matchStore.doublesNextServingTeam || !matchStore.currentMatch) return []
-  const t = matchStore.doublesNextServingTeam
-  return t === 1
-    ? matchStore.currentMatch.team1
-    : matchStore.currentMatch.team2
-})
-
-const chooseNewGameServer = (playerIdx) => {
-  matchStore.setDoublesServerForNewGame(
-    matchStore.doublesNextServingTeam,
-    playerIdx,
-    matchStore.prevDoublesInitialServer,
-    matchStore.prevDoublesInitialReceiver,
-  )
-  // Clear the flag so the modal closes
-  matchStore.doublesNextServingTeam = null
-}
 
 // ── Singles actions ───────────────────────────────────────────────────────────
 const goBack = () => router.push('/')
@@ -328,31 +306,7 @@ const timerProgressValue = computed(() => {
       </div>
     </div>
 
-    <!-- Between-game: doubles server choice modal -->
-    <div v-if="showServerChoiceModal" class="modal-overlay" id="doubles-server-choice-modal">
-      <div class="modal-content small-modal">
-        <div class="modal-header">
-          <h3>Who serves first?</h3>
-        </div>
-        <div class="modal-body">
-          <p class="modal-prompt-bold">
-            Team {{ matchStore.doublesNextServingTeam }} serves first this game.
-            Choose the first server:
-          </p>
-          <div class="server-choice-btns">
-            <button
-              v-for="(player, idx) in servingTeamPlayers"
-              :key="idx"
-              @click="chooseNewGameServer(idx)"
-              class="modal-btn primary-btn server-choice-btn"
-              :id="`server-choice-player-${idx}`"
-            >
-              {{ player.name }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+
 
     <!-- Warmup Timer Overlay -->
     <div v-if="matchStore.timerActive" class="timer-overlay">

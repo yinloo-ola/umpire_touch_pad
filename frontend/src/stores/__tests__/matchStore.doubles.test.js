@@ -333,14 +333,18 @@ describe('Plan 1.3 – nextGame() for doubles', () => {
         expect(store.prevDoublesInitialReceiver).toEqual({ team: 2, player: 1 })
     })
 
-    it('resets quadrant indices to 0,1,0,1 for new game', () => {
+    it('resets and syncs quadrant indices for new game', () => {
         store.p1Top = 1  // simulate a swap
         store.p2Bot = 0
         store.nextGame()
+        // nextGame() resets to 0,1,0,1 THEN calls syncDoublesQuadrants()
+        // In Game 2, swappedSides=true, Team 2 serves (X). 
+        // Team 2 on Left -> X(0) is @Bot. So p2Bot=0, p2Top=1.
+        // Team 1 on Right -> A(0) is @Top. So p1Top=0, p1Bot=1.
         expect(store.p1Top).toBe(0)
         expect(store.p1Bot).toBe(1)
-        expect(store.p2Top).toBe(0)
-        expect(store.p2Bot).toBe(1)
+        expect(store.p2Top).toBe(1)
+        expect(store.p2Bot).toBe(0)
     })
 
     it('resets decidingSwapDone to false', () => {
@@ -361,7 +365,7 @@ describe('Plan 1.3 – Deciding-game side swap', () => {
     function buildStore(matchType) {
         setActivePinia(createPinia())
         const store = useMatchStore()
-        const match = matchType === 'doubles' ? doublesMatch : singlesMatch
+        const match = matchType === 'doubles' ? { ...doublesMatch } : { ...singlesMatch }
         store.selectMatch(match)
         store.isStarted = true
         // Advance to the deciding game (game 5 for bestOf=5)
@@ -373,11 +377,15 @@ describe('Plan 1.3 – Deciding-game side swap', () => {
         return store
     }
 
-    it('singles: swappedSides toggles at score 5', () => {
+    it('singles: midGameSwapPending becomes true at score 5', () => {
         const store = buildStore('singles')
         store.p1Score = 4
         store.startPoint()
         store.handleScore(1, 1)  // p1Score → 5
+        expect(store.midGameSwapPending).toBe(true)
+        expect(store.swappedSides).toBe(false) // Not swapped yet
+
+        store.applyMidGameSwap()
         expect(store.swappedSides).toBe(true)
         expect(store.decidingSwapDone).toBe(true)
     })
@@ -387,17 +395,22 @@ describe('Plan 1.3 – Deciding-game side swap', () => {
         store.p1Score = 4
         store.startPoint()
         store.handleScore(1, 1)
+        store.applyMidGameSwap()
         expect(store.p1Top).toBe(0)
         expect(store.p1Bot).toBe(1)
         expect(store.p2Top).toBe(0)
         expect(store.p2Bot).toBe(1)
     })
 
-    it('doubles: swappedSides toggles at score 5', () => {
+    it('doubles: midGameSwapPending becomes true at score 5', () => {
         const store = buildStore('doubles')
         store.p1Score = 4
         store.startPoint()
         store.handleScore(1, 1)
+        expect(store.midGameSwapPending).toBe(true)
+        expect(store.swappedSides).toBe(false)
+
+        store.applyMidGameSwap()
         expect(store.swappedSides).toBe(true)
         expect(store.decidingSwapDone).toBe(true)
     })
@@ -414,28 +427,39 @@ describe('Plan 1.3 – Deciding-game side swap', () => {
 
         store.pointStarted = true
         store.handleScore(1, 1) // 5-1. TRIGGER SWAP.
+        store.applyMidGameSwap()
 
         // Before swap, at 5-1, it was cyclePos=3 (total=6 -> servesPassed=3).
         // Cycle[3] servedTo was Y->A.
         // Post-swap rule: "pair having right to receive next shall change...".
-        // Next serving team is team1 (was receiver). Wait, next server is Y?
-        // Let's check who is serving now at 5-1.
-        // total=6. floor(6/2)=3. cycle[3]= {server:Y, receiver:A}.
+        // Next serving team is team1 (was receiver).
         // Rule: A (receiver) should swap with B.
         // So receiver becomes B.
         expect(store.doublesServerName).toBe('Y')
         expect(store.doublesReceiverName).toBe('B') // WAS A before swap logic
     })
 
+    it('Best-of-7: swap fires in game 7 at 5 points', () => {
+        const store = buildStore('singles')
+        store.currentMatch.bestOf = 7
+        store.game = 7
+        store.p1Score = 4
+        store.startPoint()
+        store.handleScore(1, 1)  // p1Score → 5
+        expect(store.midGameSwapPending).toBe(true)
+    })
+
     it('decidingSwapDone prevents double-trigger on next point', () => {
         const store = buildStore('singles')
         store.p1Score = 4
         store.startPoint()
-        store.handleScore(1, 1)  // triggers swap, swappedSides=true
+        store.handleScore(1, 1)  // triggers pending
+        store.applyMidGameSwap()
         const sideBefore = store.swappedSides
         store.startPoint()
         store.handleScore(1, 1)  // p1Score=6, should NOT re-trigger
         expect(store.swappedSides).toBe(sideBefore)  // unchanged
+        expect(store.midGameSwapPending).toBe(false)
     })
 
     it('swap does NOT fire in non-deciding game', () => {
@@ -450,10 +474,50 @@ describe('Plan 1.3 – Deciding-game side swap', () => {
 
     it('swap fires when p2 reaches 5 (not just p1)', () => {
         const store = buildStore('singles')
-        store.p2Score = 4
+        scorePoints(store, 0, 4) // Use helper to ensure scores proxy is updated
         store.startPoint()
         store.handleScore(2, 1)  // p2Score → 5
-        expect(store.swappedSides).toBe(true)
-        expect(store.decidingSwapDone).toBe(true)
+        expect(store.p2Score).toBe(5)
+        expect(store.midGameSwapPending).toBe(true)
+    })
+})
+
+describe('Plan 5.2/5.3 – Automated between-game receiver', () => {
+    let store
+    beforeEach(() => {
+        setActivePinia(createPinia())
+        store = useMatchStore()
+        store.selectMatch(doublesMatch)
+        // Game 1: A serves to X.
+        store.isStarted = true
+        store.p1Score = 11
+        store.p2Score = 0
+        store.isGameOver = true
+    })
+
+    it('nextGame() automatically sets mandatory receiver for Game 2', () => {
+        // Game 1: Initial receiver was Team 2 player 0 (X). 
+        // Rule: Team that received first in Game 1 serves first in Game 2.
+        // So Team 2 serves first in Game 2.
+        // Rotation in Game 1: A->X, X->B, B->Y, Y->A.
+        // Umpire chooses server for Game 2: Suppose X(Team 2, player 0) serves.
+        // Mandatory receiver: The player who served TO X in previous game = A.
+
+        store.nextGame() // game -> 2
+        // nextGame should have called setDoublesServerForNewGame(2, 0, ...) internally
+        expect(store.game).toBe(2)
+        expect(store.doublesInitialServer).toEqual({ team: 2, player: 0 }) // X
+        expect(store.doublesInitialReceiver).toEqual({ team: 1, player: 0 }) // A
+    })
+
+    it('swapPlayerOnTeam() recalibrates receiver when server swapped pre-play in Game 2', () => {
+        store.nextGame()
+        // Game 2 starts: X serves to A.
+        // Manual swap on Team 2 -> Y serves instead of X.
+        // Mandatory receiver: The player who served TO Y in previous game = B.
+
+        store.swapPlayerOnTeam(2) // Y becomes server
+        expect(store.doublesInitialServer).toEqual({ team: 2, player: 1 }) // Y
+        expect(store.doublesInitialReceiver).toEqual({ team: 1, player: 1 }) // B
     })
 })

@@ -52,6 +52,9 @@ export const useMatchStore = defineStore('match', {
     // Previous game's initial server/receiver (needed for mandatory receiver lookup)
     prevDoublesInitialServer: null,
     prevDoublesInitialReceiver: null,
+
+    // Deciding-game mid-game swap alert state
+    midGameSwapPending: false,
   }),
 
   getters: {
@@ -260,6 +263,7 @@ export const useMatchStore = defineStore('match', {
       this.doublesNextServingTeam = null
       this.prevDoublesInitialServer = null
       this.prevDoublesInitialReceiver = null
+      this.midGameSwapPending = false
     },
 
     nextGame() {
@@ -285,15 +289,21 @@ export const useMatchStore = defineStore('match', {
         this.initialServer = this.game % 2 === 0 ? 2 : 1
         this.server = this.initialServer
 
-        // For doubles: also reset quadrant swap for new game start
-        // (sides swapped via swappedSides above, player positions synchronized later)
+        // For doubles: automate initial receiver selection for new game
         if (this.currentMatch?.type === 'doubles') {
           // Reset initial indices to ensure sync starts from clean state
           this.p1Top = 0
           this.p1Bot = 1
           this.p2Top = 0
           this.p2Bot = 1
-          // syncDoublesQuadrants() will be called after initial server selection
+
+          // Automate receiver selection based on previous game served-to mapping
+          this.setDoublesServerForNewGame(
+            this.doublesNextServingTeam,
+            0,
+            this.prevDoublesInitialServer,
+            this.prevDoublesInitialReceiver
+          )
         }
 
         // Initialize next game score in proxy
@@ -362,7 +372,18 @@ export const useMatchStore = defineStore('match', {
       const nextPlayerIdx = 1 - currentPlayerIdx
 
       if (isServerTeam) {
-        this.setDoublesServer(teamNum, nextPlayerIdx)
+        // At start of game (before play), swap server triggers mandatory receiver recalibration
+        const isStartOfGame = this.p1Score === 0 && this.p2Score === 0
+        if (isStartOfGame && this.game > 1 && this.prevDoublesInitialServer) {
+          this.setDoublesServerForNewGame(
+            teamNum,
+            nextPlayerIdx,
+            this.prevDoublesInitialServer,
+            this.prevDoublesInitialReceiver
+          )
+        } else {
+          this.setDoublesServer(teamNum, nextPlayerIdx)
+        }
       } else {
         // Calibrate rotation so the partner becomes the receiver instead
         if (teamNum === this.doublesInitialReceiver.team) {
@@ -510,6 +531,24 @@ export const useMatchStore = defineStore('match', {
       this.syncDoublesQuadrants()
     },
 
+    applyMidGameSwap() {
+      this.swappedSides = !this.swappedSides
+
+      if (this.currentMatch?.type === 'doubles') {
+        const pair = this.doublesCurrentPair
+        const recTeamAtWait = pair.receiver.team
+
+        if (recTeamAtWait === this.doublesInitialReceiver.team) {
+          this.doublesInitialReceiver.player = 1 - this.doublesInitialReceiver.player
+        } else {
+          this.doublesInitialServer.player = 1 - this.doublesInitialServer.player
+        }
+      }
+      this.syncDoublesQuadrants()
+      this.midGameSwapPending = false
+      this.decidingSwapDone = true
+    },
+
     startTimer(callback) {
       this.timerActive = true
       this.timeLeft = 120
@@ -575,21 +614,7 @@ export const useMatchStore = defineStore('match', {
       // Deciding-game mid-game side swap: triggers when first team reaches 5 points
       const isDecidingGame = this.game === (this.currentMatch?.bestOf ?? 5)
       if (isDecidingGame && !this.decidingSwapDone && (this.p1Score === 5 || this.p2Score === 5)) {
-        this.decidingSwapDone = true
-        this.swappedSides = !this.swappedSides
-
-        if (this.currentMatch?.type === 'doubles') {
-          // Requirement: "the pair having the right to receive next shall change their order of receiving"
-          const pair = this.doublesCurrentPair
-          const receivingTeam = pair.receiver.team
-
-          if (receivingTeam === this.doublesInitialReceiver.team) {
-            this.doublesInitialReceiver.player = 1 - this.doublesInitialReceiver.player
-          } else {
-            this.doublesInitialServer.player = 1 - this.doublesInitialServer.player
-          }
-          // syncDoublesQuadrants will place players in correct positions after the side swap + receiver change
-        }
+        this.midGameSwapPending = true
       }
       // Apply quadrant updates if scores changed
       this.syncDoublesQuadrants()

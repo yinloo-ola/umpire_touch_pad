@@ -1,7 +1,8 @@
 # ROADMAP.md
 
-> **Current Phase**: Phase 5 — Deciding-Game Swap + Between-Game Modal + Polish
+> **Current Phase**: v1.0 Complete ✅
 > **Milestone**: v1.0 — Complete Doubles Match Feature
+
 
 ---
 
@@ -108,8 +109,9 @@
 ---
 
 ### Phase 5: Deciding-Game Swap + Automatic Receiver + Polish
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Implement the deciding-game side-swap alert, automate the between-game receiver selection for doubles (eliminating the modal), and finalize the full match flow.
+
 
 **Tasks**:
 - Implement `showDecidingSwapModal` in store/components: triggers when first team or player (singles) reaches 5 points in deciding game. After dismissing this dialog, the side swap should occur. For doubles, the receiving team should also swap their receive order.

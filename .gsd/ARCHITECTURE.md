@@ -64,13 +64,15 @@
 - **Route:** `/scoring`
 - **Dependencies:** `matchStore`, `vue-router`
 - **Key Behaviour:**
-  - Score summary table (G1–G5 per player)
-  - "Start Of Play" status box — must be tapped before adding points
-  - `+` / `−` buttons for left/right sides (aware of `swappedSides`)
-  - Let button resets `pointStarted` without adjusting score
-  - Serve indicator auto-rotates every 2 points; clickable to correct
-  - Game Over detected automatically; "Next Game" advances play
-  - "Confirm Winner" modal shown when match winner detected
+  - Score summary table (G1–G5 per player).
+  - "Start Of Play" status box — must be tapped before adding points.
+  - `+` / `−` buttons for left/right sides (aware of `swappedSides`).
+  - Let button resets `pointStarted` without adjusting score.
+  - Serve indicator auto-rotates every 2 points; clickable to correct.
+  - Game Over detected automatically; "Next Game" advances play.
+  - "Confirm Winner" modal shown when match winner detected.
+  - **Mid-Game Swap Alert:** In decider games, a modal triggers at 5 points to coordinate player/side swaps without visual jitter.
+
 
 ### matchStore.js (Pinia Store)
 - **Purpose:** Single source of truth for all match state. Contains scoring logic, server rotation, game progression, and warmup timer.
@@ -90,11 +92,19 @@
   | `isGameOver` | Boolean | Current game ended |
   | `timerActive` | Boolean | Warmup countdown running |
   | `timeLeft` | Number | Seconds remaining (0-120) |
+  | `midGameSwapPending` | Boolean | Pauses game for deciding-game side swap alert |
+  | `decidingSwapDone` | Boolean | Tracks if swap happened this game |
+  | `doublesInitialServer` | Object | {team, player} at start of game |
+  | `doublesInitialReceiver` | Object | {team, player} at start of game |
+  | `prevDoublesInitialServer` | Object | Context for between-game receiver logic |
+  | `prevDoublesInitialReceiver` | Object | Context for between-game receiver logic |
 
 - **Key Business Logic:**
-  - **Server rotation**: every 2 points, alternates using `initialServer` parity; at deuce (10-10+) rotates every point
-  - **Game progression**: odd games → sides/server reset to P1 defaults; even games → swap sides + server
-  - **Score guards**: `+` only works when `pointStarted=true`; `−` always works (umpire correction)
+  - **Server rotation**: every 2 points, alternates using `initialServer` parity; at deuce (10-10+) rotates every point.
+  - **Game progression**: odd games → sides/server reset to P1 defaults; even games → swap sides + server.
+  - **Doubles Receiver**: Initial receiver for games 2-5 is automatically computed based on "who served to whom" in the previous game, fulfilling ITTF mandatory rotation rules.
+  - **Score guards**: `+` only works when `pointStarted=true`; `−` always works (umpire correction).
+
 
 ### backend/main.go
 - **Purpose:** Lightweight Go HTTP server providing match data and a save endpoint. Currently serves hardcoded fixture data.
@@ -141,8 +151,9 @@
 - [ ] **No match result persistence** — `/api/match` POST stub doesn't save anything
 - [ ] **Hardcoded CORS** — Allowed origins hardcoded to `localhost:5173`; no config file
 - [ ] **Hardcoded player ID** — Winner modal shows `108246` (placeholder, not dynamic)
-- [ ] **`saveMatch` unimplemented** — Function exists but is a stub
-- [ ] **No tests** — Zero test files across frontend and backend
+- [ ] **saveMatch` unimplemented** — Function exists but is a stub
+- [x] **Store Tests** — Comprehensive Vitest suite for `matchStore.js` (Singles & Doubles) coverage.
+
 - [ ] **No error boundaries** — Frontend has no error handling beyond API fetch fallback
 - [ ] **Timer not persisted** — Warmup timer resets on page refresh; state lives only in Pinia (in-memory)
 - [ ] **`console.error` in production code** — `MatchList.vue` logs fetch errors; not a structured logging pattern
@@ -159,4 +170,5 @@
 **Structure:** Feature components directly under `src/components/`; single global store; router in `src/router/`
 **State Management:** All game logic centralized in `matchStore` — components call actions, never mutate state directly
 **Styling:** Mix of global CSS (`style.css`) + scoped styles per component; CSS variables for theming
-**Testing:** No tests currently exist
+**Testing:** Vitest suite for `matchStore.js` targeting core logic and doubles rotations.
+
