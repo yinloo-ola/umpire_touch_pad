@@ -134,16 +134,7 @@ describe('SetupView — doubles layout', () => {
         expect(wrapper.find('.doubles-br').text()).toContain('Carol')
     })
 
-    test('serve indicator shows doublesServerName under S circle for doubles', async () => {
-        const { wrapper, store } = mountComponent(doublesMatch)
-        store.swappedSides = false
-        await nextTick()
 
-        // Default: isLeftDoublesServer=true (team1 on left), doublesServerName='Alice'
-        const sPlayerName = wrapper.find('.s-player-name')
-        expect(sPlayerName.exists()).toBe(true)
-        expect(sPlayerName.text()).toContain('Alice')
-    })
 
     test('between-game modal renders when doublesNextServingTeam is set', async () => {
         const { wrapper, store } = mountComponent(doublesMatch)

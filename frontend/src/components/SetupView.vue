@@ -176,7 +176,7 @@ const timerProgressValue = computed(() => {
         <template v-if="isDoubles">
           <div class="doubles-court-wrapper">
             <button @click="swapLeft" class="swap-players-btn swap-left-btn">
-              <i class="fa-solid fa-arrows-up-down"></i> Swap
+              <i class="fa-solid fa-arrow-down"></i> Swap Players <i class="fa-solid fa-arrow-up"></i>
             </button>
 
             <div class="doubles-court-grid">
@@ -226,11 +226,11 @@ const timerProgressValue = computed(() => {
             </div>
 
             <button @click="swapRight" class="swap-players-btn swap-right-btn">
-              <i class="fa-solid fa-arrows-up-down"></i> Swap
+              <i class="fa-solid fa-arrow-down"></i> Swap Players <i class="fa-solid fa-arrow-up"></i>
             </button>
           </div>
 
-          <!-- Doubles serve indicators -->
+          <!-- Serve indicators live as a sibling overlay (identical to singles) -->
           <div class="setup-serve-indicators">
             <div
               class="setup-serve-box left-serve"
@@ -240,7 +240,6 @@ const timerProgressValue = computed(() => {
             >
               <div class="s-circle">{{ matchStore.isLeftDoublesServer ? 'S' : 'R' }}</div>
               <span class="s-tag">{{ matchStore.isLeftDoublesServer ? 'Server' : 'Receiver' }}</span>
-              <span class="s-player-name">{{ leftIndicatorPlayerName }}</span>
             </div>
             <div
               class="setup-serve-box right-serve"
@@ -250,7 +249,6 @@ const timerProgressValue = computed(() => {
             >
               <div class="s-circle">{{ !matchStore.isLeftDoublesServer ? 'S' : 'R' }}</div>
               <span class="s-tag">{{ !matchStore.isLeftDoublesServer ? 'Server' : 'Receiver' }}</span>
-              <span class="s-player-name">{{ rightIndicatorPlayerName }}</span>
             </div>
           </div>
         </template>
@@ -467,22 +465,26 @@ const timerProgressValue = computed(() => {
   grid-row: 1;
 }
 
-/* Doubles layout */
 .doubles-court-wrapper {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   width: 100%;
 }
+
+
 .doubles-court-grid {
-  flex: 1;
+  /* Match singles .court-grid exactly */
+  flex: none;
+  width: 650px;
+  height: 400px;
+  background: #006b3c;
+  border: 5px solid white;
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
   position: relative;
-  border: 2px solid var(--border-color, #444);
-  border-radius: 4px;
-  min-height: 160px;
 }
 .doubles-tl { grid-column: 1; grid-row: 1; }
 .doubles-tr { grid-column: 2; grid-row: 1; }
@@ -490,32 +492,24 @@ const timerProgressValue = computed(() => {
 .doubles-br { grid-column: 2; grid-row: 2; }
 .swap-players-btn {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 0.5rem 0.4rem;
-  font-size: 0.7rem;
-  background: var(--accent-orange, #f59e0b);
-  color: #000;
+  justify-content: center;
+  gap: 8px;
+  padding: 0.6rem 1rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  background: #6ab04c;
+  color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  min-width: 36px;
+  white-space: nowrap;
+}
+.swap-players-btn i {
+  font-size: 1rem;
 }
 .swap-players-btn:active {
-  opacity: 0.7;
-}
-.s-player-name {
-  font-size: 0.65rem;
-  font-weight: 600;
-  margin-top: 2px;
-  text-align: center;
-  max-width: 80px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  opacity: 0.8;
 }
 .server-choice-btns {
   display: flex;

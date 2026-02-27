@@ -15,3 +15,4 @@
 - [ ] Add input validation to backend `saveMatch` endpoint
 - [ ] Configurable CORS origins (move out of hardcoded `main.go`)
 - [ ] Add tests (Vitest for frontend store logic, Go table tests for backend)
+- [x] Doubles pre-warmup UI should be identical in style to singles pre-warmup — same dark background, same table court look — but with 4 players in 4 quadrants and "Swap Players" buttons (left/right sides) `medium` — 2026-02-27
