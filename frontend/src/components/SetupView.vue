@@ -45,7 +45,76 @@ const rightCountry = computed(() =>
   matchStore.swappedSides ? team1Country.value : team2Country.value,
 )
 
-// Actions
+// ── Doubles: quadrant player computeds ────────────────────────────────────────
+const isDoubles = computed(() => matchStore.currentMatch?.type === 'doubles')
+
+const leftTopPlayer  = computed(() => matchStore.doublesLeftTopPlayer)
+const leftBotPlayer  = computed(() => matchStore.doublesLeftBotPlayer)
+const rightTopPlayer = computed(() => matchStore.doublesRightTopPlayer)
+const rightBotPlayer = computed(() => matchStore.doublesRightBotPlayer)
+
+const swapLeft  = () => matchStore.swapLeftPlayers()
+const swapRight = () => matchStore.swapRightPlayers()
+
+// ── Doubles serve designation ────────────────────────────────────────────────
+const leftTeam  = computed(() => matchStore.swappedSides ? 2 : 1)
+const rightTeam = computed(() => matchStore.swappedSides ? 1 : 2)
+
+const leftDoublesPlayerIdx  = ref(0)
+const rightDoublesPlayerIdx = ref(0)
+
+const setLeftServerDoubles = () => {
+  leftDoublesPlayerIdx.value = 1 - leftDoublesPlayerIdx.value
+  matchStore.setDoublesServer(leftTeam.value, leftDoublesPlayerIdx.value)
+}
+const setRightServerDoubles = () => {
+  rightDoublesPlayerIdx.value = 1 - rightDoublesPlayerIdx.value
+  matchStore.setDoublesServer(rightTeam.value, rightDoublesPlayerIdx.value)
+}
+
+// Unified click handlers (works for both singles and doubles)
+const onLeftIndicatorClick  = () => isDoubles.value ? setLeftServerDoubles()  : setLeftServer()
+const onRightIndicatorClick = () => isDoubles.value ? setRightServerDoubles() : setRightServer()
+
+// Doubles: display individual player name beneath the S/R circle
+const leftIndicatorPlayerName = computed(() => {
+  if (!isDoubles.value) return ''
+  return matchStore.isLeftDoublesServer
+    ? matchStore.doublesServerName
+    : matchStore.doublesReceiverName
+})
+const rightIndicatorPlayerName = computed(() => {
+  if (!isDoubles.value) return ''
+  return matchStore.isLeftDoublesServer
+    ? matchStore.doublesReceiverName
+    : matchStore.doublesServerName
+})
+
+// ── Between-game server choice modal ─────────────────────────────────────────
+const showServerChoiceModal = computed(() => {
+  return isDoubles.value && matchStore.doublesNextServingTeam !== null
+})
+
+const servingTeamPlayers = computed(() => {
+  if (!matchStore.doublesNextServingTeam || !matchStore.currentMatch) return []
+  const t = matchStore.doublesNextServingTeam
+  return t === 1
+    ? matchStore.currentMatch.team1
+    : matchStore.currentMatch.team2
+})
+
+const chooseNewGameServer = (playerIdx) => {
+  matchStore.setDoublesServerForNewGame(
+    matchStore.doublesNextServingTeam,
+    playerIdx,
+    matchStore.prevDoublesInitialServer,
+    matchStore.prevDoublesInitialReceiver,
+  )
+  // Clear the flag so the modal closes
+  matchStore.doublesNextServingTeam = null
+}
+
+// ── Singles actions ───────────────────────────────────────────────────────────
 const goBack = () => router.push('/')
 const toggleSwap = () => matchStore.toggleSwapSides()
 const setLeftServer = () => matchStore.setServer(matchStore.swappedSides ? 2 : 1)
@@ -103,49 +172,135 @@ const timerProgressValue = computed(() => {
       </div>
 
       <div class="court-area">
-        <div class="court-grid">
-          <!-- Left side slot (Bottom-Left) -->
-          <div class="court-quadrant bottom-left">
-            <div class="player-slot">
-              <div class="player-info">
-                <span class="p-label">{{ matchStore.swappedSides ? 'Player 2' : 'Player 1' }}</span>
-                <span class="p-name">{{ leftPlayerName }}</span>
-                <span class="p-country">{{ leftCountry }}</span>
-              </div>
-            </div>
-          </div>
-          <!-- Right side slot (Top-Right typically in standard view) -->
-          <div class="court-quadrant top-right">
-            <div class="player-slot">
-              <div class="player-info">
-                <span class="p-label">{{ matchStore.swappedSides ? 'Player 1' : 'Player 2' }}</span>
-                <span class="p-name">{{ rightPlayerName }}</span>
-                <span class="p-country">{{ rightCountry }}</span>
-              </div>
-            </div>
-          </div>
-          <div class="net-line"></div>
-          <div class="horizontal-line"></div>
-        </div>
+        <!-- DOUBLES layout -->
+        <template v-if="isDoubles">
+          <div class="doubles-court-wrapper">
+            <button @click="swapLeft" class="swap-players-btn swap-left-btn">
+              <i class="fa-solid fa-arrows-up-down"></i> Swap
+            </button>
 
-        <div class="setup-serve-indicators">
-          <div
-            class="setup-serve-box left-serve"
-            :class="{ active: matchStore.isLeftServer }"
-            @click="setLeftServer"
-          >
-            <div class="s-circle">{{ matchStore.isLeftServer ? 'S' : 'R' }}</div>
-            <span class="s-tag">{{ matchStore.isLeftServer ? 'Server' : 'Receiver' }}</span>
+            <div class="doubles-court-grid">
+              <!-- Top-Left -->
+              <div class="court-quadrant doubles-tl">
+                <div class="player-slot">
+                  <div class="player-info">
+                    <span class="p-label">{{ matchStore.swappedSides ? 'P2' : 'P1' }}</span>
+                    <span class="p-name">{{ leftTopPlayer?.name ?? '—' }}</span>
+                    <span class="p-country">{{ leftTopPlayer?.country ?? '' }}</span>
+                  </div>
+                </div>
+              </div>
+              <!-- Top-Right -->
+              <div class="court-quadrant doubles-tr">
+                <div class="player-slot">
+                  <div class="player-info">
+                    <span class="p-label">{{ matchStore.swappedSides ? 'P1' : 'P2' }}</span>
+                    <span class="p-name">{{ rightTopPlayer?.name ?? '—' }}</span>
+                    <span class="p-country">{{ rightTopPlayer?.country ?? '' }}</span>
+                  </div>
+                </div>
+              </div>
+              <!-- Net line -->
+              <div class="net-line"></div>
+              <div class="horizontal-line"></div>
+              <!-- Bottom-Left -->
+              <div class="court-quadrant doubles-bl">
+                <div class="player-slot">
+                  <div class="player-info">
+                    <span class="p-label">{{ matchStore.swappedSides ? 'P2D' : 'P1D' }}</span>
+                    <span class="p-name">{{ leftBotPlayer?.name ?? '—' }}</span>
+                    <span class="p-country">{{ leftBotPlayer?.country ?? '' }}</span>
+                  </div>
+                </div>
+              </div>
+              <!-- Bottom-Right -->
+              <div class="court-quadrant doubles-br">
+                <div class="player-slot">
+                  <div class="player-info">
+                    <span class="p-label">{{ matchStore.swappedSides ? 'P1D' : 'P2D' }}</span>
+                    <span class="p-name">{{ rightBotPlayer?.name ?? '—' }}</span>
+                    <span class="p-country">{{ rightBotPlayer?.country ?? '' }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button @click="swapRight" class="swap-players-btn swap-right-btn">
+              <i class="fa-solid fa-arrows-up-down"></i> Swap
+            </button>
           </div>
-          <div
-            class="setup-serve-box right-serve"
-            :class="{ active: !matchStore.isLeftServer }"
-            @click="setRightServer"
-          >
-            <div class="s-circle">{{ !matchStore.isLeftServer ? 'S' : 'R' }}</div>
-            <span class="s-tag">{{ !matchStore.isLeftServer ? 'Server' : 'Receiver' }}</span>
+
+          <!-- Doubles serve indicators -->
+          <div class="setup-serve-indicators">
+            <div
+              class="setup-serve-box left-serve"
+              :class="{ active: matchStore.isLeftDoublesServer }"
+              @click="onLeftIndicatorClick"
+              id="doubles-left-serve-indicator"
+            >
+              <div class="s-circle">{{ matchStore.isLeftDoublesServer ? 'S' : 'R' }}</div>
+              <span class="s-tag">{{ matchStore.isLeftDoublesServer ? 'Server' : 'Receiver' }}</span>
+              <span class="s-player-name">{{ leftIndicatorPlayerName }}</span>
+            </div>
+            <div
+              class="setup-serve-box right-serve"
+              :class="{ active: !matchStore.isLeftDoublesServer }"
+              @click="onRightIndicatorClick"
+              id="doubles-right-serve-indicator"
+            >
+              <div class="s-circle">{{ !matchStore.isLeftDoublesServer ? 'S' : 'R' }}</div>
+              <span class="s-tag">{{ !matchStore.isLeftDoublesServer ? 'Server' : 'Receiver' }}</span>
+              <span class="s-player-name">{{ rightIndicatorPlayerName }}</span>
+            </div>
           </div>
-        </div>
+        </template>
+
+        <!-- SINGLES layout (unchanged) -->
+        <template v-else>
+          <div class="court-grid">
+            <!-- Left side slot (Bottom-Left) -->
+            <div class="court-quadrant bottom-left">
+              <div class="player-slot">
+                <div class="player-info">
+                  <span class="p-label">{{ matchStore.swappedSides ? 'Player 2' : 'Player 1' }}</span>
+                  <span class="p-name">{{ leftPlayerName }}</span>
+                  <span class="p-country">{{ leftCountry }}</span>
+                </div>
+              </div>
+            </div>
+            <!-- Right side slot (Top-Right typically in standard view) -->
+            <div class="court-quadrant top-right">
+              <div class="player-slot">
+                <div class="player-info">
+                  <span class="p-label">{{ matchStore.swappedSides ? 'Player 1' : 'Player 2' }}</span>
+                  <span class="p-name">{{ rightPlayerName }}</span>
+                  <span class="p-country">{{ rightCountry }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="net-line"></div>
+            <div class="horizontal-line"></div>
+          </div>
+
+          <div class="setup-serve-indicators">
+            <div
+              class="setup-serve-box left-serve"
+              :class="{ active: matchStore.isLeftServer }"
+              @click="onLeftIndicatorClick"
+            >
+              <div class="s-circle">{{ matchStore.isLeftServer ? 'S' : 'R' }}</div>
+              <span class="s-tag">{{ matchStore.isLeftServer ? 'Server' : 'Receiver' }}</span>
+            </div>
+            <div
+              class="setup-serve-box right-serve"
+              :class="{ active: !matchStore.isLeftServer }"
+              @click="onRightIndicatorClick"
+            >
+              <div class="s-circle">{{ !matchStore.isLeftServer ? 'S' : 'R' }}</div>
+              <span class="s-tag">{{ !matchStore.isLeftServer ? 'Server' : 'Receiver' }}</span>
+            </div>
+          </div>
+        </template>
       </div>
 
       <div class="setup-actions">
@@ -171,6 +326,32 @@ const timerProgressValue = computed(() => {
         <div class="modal-footer">
           <button @click="startWarmupCountdown" class="modal-btn primary-btn">Confirm</button>
           <button @click="cancelWarmup" class="modal-btn cancel-btn">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Between-game: doubles server choice modal -->
+    <div v-if="showServerChoiceModal" class="modal-overlay" id="doubles-server-choice-modal">
+      <div class="modal-content small-modal">
+        <div class="modal-header">
+          <h3>Who serves first?</h3>
+        </div>
+        <div class="modal-body">
+          <p class="modal-prompt-bold">
+            Team {{ matchStore.doublesNextServingTeam }} serves first this game.
+            Choose the first server:
+          </p>
+          <div class="server-choice-btns">
+            <button
+              v-for="(player, idx) in servingTeamPlayers"
+              :key="idx"
+              @click="chooseNewGameServer(idx)"
+              class="modal-btn primary-btn server-choice-btn"
+              :id="`server-choice-player-${idx}`"
+            >
+              {{ player.name }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -284,5 +465,65 @@ const timerProgressValue = computed(() => {
 .top-right {
   grid-column: 2;
   grid-row: 1;
+}
+
+/* Doubles layout */
+.doubles-court-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+.doubles-court-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  position: relative;
+  border: 2px solid var(--border-color, #444);
+  border-radius: 4px;
+  min-height: 160px;
+}
+.doubles-tl { grid-column: 1; grid-row: 1; }
+.doubles-tr { grid-column: 2; grid-row: 1; }
+.doubles-bl { grid-column: 1; grid-row: 2; }
+.doubles-br { grid-column: 2; grid-row: 2; }
+.swap-players-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0.5rem 0.4rem;
+  font-size: 0.7rem;
+  background: var(--accent-orange, #f59e0b);
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  min-width: 36px;
+}
+.swap-players-btn:active {
+  opacity: 0.7;
+}
+.s-player-name {
+  font-size: 0.65rem;
+  font-weight: 600;
+  margin-top: 2px;
+  text-align: center;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.server-choice-btns {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+.server-choice-btn {
+  flex: 1;
 }
 </style>
