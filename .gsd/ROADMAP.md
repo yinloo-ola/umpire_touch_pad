@@ -107,27 +107,30 @@
 
 ---
 
-### Phase 5: Deciding-Game Swap + Between-Game Modal + Polish
+### Phase 5: Deciding-Game Swap + Automatic Receiver + Polish
 **Status**: ⬜ Not Started
-**Objective**: Implement the deciding-game side-swap for both singles and doubles (at 5 points), build the between-game serve selection modal for doubles, verify the full match flow works end-to-end, and handle edge cases.
+**Objective**: Implement the deciding-game side-swap alert, automate the between-game receiver selection for doubles (eliminating the modal), and finalize the full match flow.
 
 **Tasks**:
-- Verify deciding-game mid-game swap fires correctly for both singles and doubles
-- Build "New Game — Choose Server" modal for doubles: appears when "Next Game" is tapped for a doubles match
-  - Shows which team is serving first (auto-determined by ITTF rule)
-  - Offers the two player choices from that team
-  - On selection, calls `setDoublesServerForNewGame(team, playerIdx)`
-- For singles: `nextGame()` already handles correctly — verify no regression
+- Implement `showDecidingSwapModal` in store/components: triggers when first team or player (singles) reaches 5 points in deciding game. After dismissing this dialog, the side swap should occur. For doubles, the receiving team should also swap their receive order.
+- Build "Decider game of Match" alert modal in `Touchpad.vue` following reference design
+- Automate doubles receiver choice for games 2-5:
+  - In `swapPlayerOnTeam`, if at start of game (0-0 score) and swapping the serving team, automatically recalibrate `doublesInitialReceiver` based on previous game history
+  - No "Who serves first?" modal needed — default to Player 0 and let umpire swap if needed
+- Update `SetupView` and `Touchpad` to remove the old `showServerChoiceModal` logic
+- Verify mid-game corrections: ensure "Automatic Receiver" logic DOES NOT trigger mid-game (only at 0-0 or in SetupView)
 - Edge cases:
   - Best-of-7: deciding game is game 7
   - Deuce (10-10+): rotation continues at 1-point intervals using same formula
-  - Umpire correction mid-game: override `doublesServer` + recalibrate rotation
 - Smoke test: manually play through a full 3-game doubles match and verify all rotations are correct
 - Update `ARCHITECTURE.md` with new store fields and component changes
-- Write end-to-end store-level tests for edge cases: Best-of-7 deciding game, deuce rotation at 10-10+, umpire mid-game correction via `setDoublesServer()`, and full 3-game doubles match rotation walkthrough
-- **Requirement**: REQ-EDGE-01 through REQ-EDGE-05
+- Write end-to-end store-level tests for:
+  - Automatic receiver sync when swapping serving pair at start of Game 2
+  - Deciding-game alert modal trigger and side swap
+  - Best-of-7 deciding game (Game 7) swap trigger
+- **Requirement**: REQ-EDGE-01 through REQ-EDGE-06
 
-**Requirements Link**: SPEC § Deciding-Game Mid-Game Swap, § Between-Game Rules
+**Requirements Link**: SPEC § Deciding-Game Mid-Game Swap, § Between-Game Rules (Games 2+)
 
 ---
 

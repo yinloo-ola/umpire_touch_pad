@@ -136,20 +136,26 @@ The `cyclePos` maps to server/receiver relative to the initial pair:
 - 2 → partner of initial server serves to partner of initial receiver
 - 3 → partner of initial receiver serves to initial server
 
-### Between-Game Rules
-- The team that **received** first in game N **serves** first in game N+1
-- The **serving team** in game N+1 **chooses which player** serves first (umpire selects in UI)
-- The **first receiver** in game N+1 must be the player who served TO the chosen first server in game N (i.e., the receiver for that player in the previous game)
-- This is presented to the umpire as a constrained choice: team chooses server, receiver is auto-determined
+### Between-Game Rules (Games 2+)
+- **No Modal**: Eliminate the "Who serves first?" modal for between-game transitions.
+- **Initial Serve Right**: The team that **received** first in game N **serves** first in game N+1.
+- **Automatic Receiver (Games 2-5)**: 
+    - At the start of a new game (before the first point is scored), when the umpire swaps the serving pair (using "Swap Players" buttons or clicking the server), the **receiver** on the other side is automatically changed.
+    - The **first receiver** must be the player who served TO the chosen first server in game N (i.e., the receiver for that player in the previous game).
+- **Control**: The umpire simply ensures the correct server is designated (by swapping players if needed) and the system keeps the receiver in sync based on ITTF rules.
 
 ### Deciding-Game Mid-Game Swap (at 5 points)
 - Triggered when: `game === maxGame` AND `(p1Score + p2Score) === 10` (i.e., one team just reached 5, total hits 10... actually trigger when first team reaches 5: `p1Score === 5 || p2Score === 5`)
 - Wait — ITTF rule: "when the first pair scores 5 points" means the first time **either** team's score reaches 5
 - Trigger condition: `isDecidingGame && (p1Score === 5 || p2Score === 5) && !decidingSwapDone`
-- Action:
+- **Action**:
   - **Both sides** swap: left side swaps top↔bottom, right side swaps top↔bottom; `swappedSides` toggles
   - **Receiving pair** additionally swaps their two players: `p2Top ↔ p2Bot` (if receiving is right) or `p1Top ↔ p1Bot` (if receiving is left)
   - `decidingSwapDone = true` (prevent double-trigger)
+  - **Alert Modal**: Show a modal to inform the umpire:
+    - Title: "Decider game of Match"
+    - Body: "Decider game of Match, 5 points scored, swapping sides and players."
+    - Button: "Close"
 - For **singles**: same trigger, just `swappedSides` toggles (no player-within-side swap needed)
 
 ---
@@ -161,8 +167,9 @@ The `cyclePos` maps to server/receiver relative to the initial pair:
 - [ ] **Swap Players (right)** button swaps TR and BR players before and during the match
 - [ ] **Server/Receiver indicators** function identically to singles (don't need individual player names)
 - [ ] **Serve rotation** follows A→X→B→Y→A cycle exactly; verified by playing through 8 serves manually
-- [ ] **Between-game serve setup** correctly determines which player must receive based on previous game
+- [ ] **Between-game serve setup** correctly determines which player must receive based on previous game, triggered by swapping serving players without an extra modal
 - [ ] **Deciding game** triggers side swap at 5 points; both sides swap; receiving pair also swaps receive order
+- [ ] **Deciding game alert** shows modal "Decider game of Match, 5 points scored..." at 5-point swap
 - [ ] **Singles deciding game** triggers player swap at 5 points
 - [ ] **Singles behaviour unchanged** — all existing singles tests pass visually unchanged
 - [ ] **Swap Players buttons** remain functional during live scoring
