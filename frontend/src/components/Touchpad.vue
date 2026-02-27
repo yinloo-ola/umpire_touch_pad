@@ -26,6 +26,16 @@ const time = computed(() => {
 })
 
 // UI Computed Properties
+const isDoubles = computed(() => matchStore.currentMatch?.type === 'doubles')
+
+const leftTopPlayer = computed(() => matchStore.doublesLeftTopPlayer)
+const leftBotPlayer = computed(() => matchStore.doublesLeftBotPlayer)
+const rightTopPlayer = computed(() => matchStore.doublesRightTopPlayer)
+const rightBotPlayer = computed(() => matchStore.doublesRightBotPlayer)
+
+const swapLeftPlayers = () => matchStore.swapLeftPlayers()
+const swapRightPlayers = () => matchStore.swapRightPlayers()
+
 const team1Name = computed(() => {
   if (!matchStore.currentMatch) return 'Player 1'
   const match = matchStore.currentMatch
@@ -101,11 +111,34 @@ const nextGame = () => {
 
 // Allows receiver to be designated as server mid-game (umpire correction)
 const swapServer = (side) => {
-  // side: 'left' or 'right' — the physical side clicked
-  // determine which player (1 or 2) is on that side
-  const playerOnSide =
-    side === 'left' ? (matchStore.swappedSides ? 2 : 1) : matchStore.swappedSides ? 1 : 2
-  matchStore.setServer(playerOnSide)
+  if (isDoubles.value) {
+    // Determine which player on that side is the receiver and make them server
+    const isReceiverOnLeft = !matchStore.isLeftDoublesServer && side === 'left'
+    const isReceiverOnRight = matchStore.isLeftDoublesServer && side === 'right'
+    if (isReceiverOnLeft || isReceiverOnRight) {
+      // Get receiver details from the pair and set as server
+      const A = matchStore.doublesInitialServer
+      const X = matchStore.doublesInitialReceiver
+      const B = { team: A.team, player: 1 - A.player }
+      const Y = { team: X.team, player: 1 - X.player }
+      const total = matchStore.p1Score + matchStore.p2Score
+      const servesPassed = (matchStore.p1Score >= 10 && matchStore.p2Score >= 10)
+        ? 10 + (total - 20) : Math.floor(total / 2)
+      const cycle = [
+        { server: A, receiver: X },
+        { server: X, receiver: B },
+        { server: B, receiver: Y },
+        { server: Y, receiver: A },
+      ]
+      const currentReceiver = cycle[servesPassed % 4].receiver
+      matchStore.setDoublesServer(currentReceiver.team, currentReceiver.player)
+    }
+  } else {
+    // Singles: existing logic
+    const playerOnSide =
+      side === 'left' ? (matchStore.swappedSides ? 2 : 1) : matchStore.swappedSides ? 1 : 2
+    matchStore.setServer(playerOnSide)
+  }
 }
 
 // Display logic helpers
@@ -189,10 +222,16 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
         <!-- Top Row -->
         <div class="grid-row top-row">
           <div class="side-controls left-side">
-            <button class="card-btn">Cards</button>
+            <button v-if="isDoubles" @click="swapLeftPlayers" class="swap-players-btn-tp swap-left-tp" id="tp-swap-left-btn">
+              <i class="fa-solid fa-arrows-up-down"></i> Swap
+            </button>
+            <button v-else class="card-btn">Cards</button>
           </div>
           <div class="side-controls right-side">
-            <button class="card-btn">Cards</button>
+            <button v-if="isDoubles" @click="swapRightPlayers" class="swap-players-btn-tp swap-right-tp" id="tp-swap-right-btn">
+              <i class="fa-solid fa-arrows-up-down"></i> Swap
+            </button>
+            <button v-else class="card-btn">Cards</button>
           </div>
         </div>
 
@@ -201,14 +240,14 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
           <div
             class="serve-indicator-tp left-tp"
             :class="{
-              active: matchStore.isLeftServer,
-              'receiver-clickable': matchStore.isStarted && !matchStore.isLeftServer,
+              active: (isDoubles && matchStore.isLeftDoublesServer) || (!isDoubles && matchStore.isLeftServer),
+              'receiver-clickable': matchStore.isStarted && (isDoubles ? !matchStore.isLeftDoublesServer : !matchStore.isLeftServer),
             }"
             style="align-self: flex-end; margin-bottom: 20px"
-            @click="matchStore.isStarted && !matchStore.isLeftServer ? swapServer('left') : null"
+            @click="matchStore.isStarted && (isDoubles ? !matchStore.isLeftDoublesServer : !matchStore.isLeftServer) ? swapServer('left') : null"
           >
-            <div class="s-circle-tp">{{ matchStore.isLeftServer ? 'S' : 'R' }}</div>
-            <span class="s-label-tp">{{ matchStore.isLeftServer ? 'Server' : 'Receiver' }}</span>
+            <div class="s-circle-tp">{{ (isDoubles ? matchStore.isLeftDoublesServer : matchStore.isLeftServer) ? 'S' : 'R' }}</div>
+            <span class="s-label-tp">{{ (isDoubles ? matchStore.isLeftDoublesServer : matchStore.isLeftServer) ? 'Server' : 'Receiver' }}</span>
           </div>
 
           <!-- Status Box -->
@@ -221,7 +260,36 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
             <span class="status-text-tp" v-else-if="!matchStore.pointStarted">Start Of Play</span>
 
             <!-- Player names when started -->
-            <div class="table-player-grid" v-if="matchStore.pointStarted && !matchStore.isGameOver">
+            <div class="table-player-grid" v-if="matchStore.pointStarted && !matchStore.isGameOver && isDoubles">
+              <div class="table-quad top-left">
+                <div class="table-player-info">
+                  <span class="tp-p-label">{{ matchStore.swappedSides ? 'P2' : 'P1' }}</span>
+                  <span class="tp-p-name">{{ leftTopPlayer?.name ?? '—' }}</span>
+                </div>
+              </div>
+              <div class="table-quad top-right">
+                <div class="table-player-info">
+                  <span class="tp-p-label">{{ matchStore.swappedSides ? 'P1' : 'P2' }}</span>
+                  <span class="tp-p-name">{{ rightTopPlayer?.name ?? '—' }}</span>
+                </div>
+              </div>
+              <div class="table-net-line"></div>
+              <div class="table-horizontal-line"></div>
+              <div class="table-quad bottom-left">
+                <div class="table-player-info">
+                  <span class="tp-p-label">{{ matchStore.swappedSides ? 'P2D' : 'P1D' }}</span>
+                  <span class="tp-p-name">{{ leftBotPlayer?.name ?? '—' }}</span>
+                </div>
+              </div>
+              <div class="table-quad bottom-right">
+                <div class="table-player-info">
+                  <span class="tp-p-label">{{ matchStore.swappedSides ? 'P1D' : 'P2D' }}</span>
+                  <span class="tp-p-name">{{ rightBotPlayer?.name ?? '—' }}</span>
+                </div>
+              </div>
+            </div>
+            <!-- Singles 2-slot layout -->
+            <div class="table-player-grid" v-if="matchStore.pointStarted && !matchStore.isGameOver && !isDoubles">
               <div class="table-quad bottom-left">
                 <div class="table-player-info">
                   <span class="tp-p-label">{{
@@ -248,14 +316,14 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
           <div
             class="serve-indicator-tp right-tp"
             :class="{
-              active: !matchStore.isLeftServer,
-              'receiver-clickable': matchStore.isStarted && matchStore.isLeftServer,
+              active: (isDoubles && !matchStore.isLeftDoublesServer) || (!isDoubles && !matchStore.isLeftServer),
+              'receiver-clickable': matchStore.isStarted && (isDoubles ? matchStore.isLeftDoublesServer : matchStore.isLeftServer),
             }"
             style="align-self: flex-start; margin-top: 20px"
-            @click="matchStore.isStarted && matchStore.isLeftServer ? swapServer('right') : null"
+            @click="matchStore.isStarted && (isDoubles ? matchStore.isLeftDoublesServer : matchStore.isLeftServer) ? swapServer('right') : null"
           >
-            <div class="s-circle-tp">{{ !matchStore.isLeftServer ? 'S' : 'R' }}</div>
-            <span class="s-label-tp">{{ !matchStore.isLeftServer ? 'Server' : 'Receiver' }}</span>
+            <div class="s-circle-tp">{{ (isDoubles ? !matchStore.isLeftDoublesServer : !matchStore.isLeftServer) ? 'S' : 'R' }}</div>
+            <span class="s-label-tp">{{ (isDoubles ? !matchStore.isLeftDoublesServer : !matchStore.isLeftServer) ? 'Server' : 'Receiver' }}</span>
           </div>
         </div>
 
@@ -667,5 +735,23 @@ button:disabled {
   background: #f8f8f8;
   transform: translateY(-2px);
 }
+.swap-players-btn-tp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0.4rem 0.3rem;
+  font-size: 0.65rem;
+  background: var(--accent-orange, #f59e0b);
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  min-width: 30px;
+}
+.swap-players-btn-tp:active { opacity: 0.7; }
+.top-left { grid-column: 1; grid-row: 1; }
+.bottom-right { grid-column: 2; grid-row: 2; }
 </style>
-```

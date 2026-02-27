@@ -1,6 +1,6 @@
 # ROADMAP.md
 
-> **Current Phase**: Phase 3 — SetupView Doubles Four-Quadrant Court
+> **Current Phase**: Phase 5 — Deciding-Game Swap + Between-Game Modal + Polish
 > **Milestone**: v1.0 — Complete Doubles Match Feature
 
 ---
@@ -90,18 +90,17 @@
 ---
 
 ### Phase 4: Touchpad — Doubles Live Scoring UI
-**Status**: ⬜ Not Started
-**Objective**: Update the live scoring Touchpad view to correctly show 4 quadrants during doubles play, display the current individual server and receiver by name, and keep the Swap Players buttons accessible during the game.
+**Status**: ✅ Complete
+**Objective**: Update the live scoring Touchpad view to correctly show 4 quadrants during doubles play, and keep the Swap Players buttons accessible during the game.
 
 **Tasks**:
 - 4-quadrant status box during doubles play (show player names in each quadrant, same layout as SetupView)
-- Update serve indicator display: show individual player name below S/R circle for doubles
 - Keep Swap Players (left) and Swap Players (right) buttons visible in the `top-row` of the interaction grid during doubles
 - Swap Players buttons call `swapLeftPlayers()` / `swapRightPlayers()` — store updates all affected positions
 - Serve indicator override for doubles: clicking the Receiver indicator calls the new `setDoublesServerForNewGame`-style override, adjusting `doublesServer`/`doublesReceiver` directly
 - Score summary table: show "T1" / "T2" team names (since player count doesn't fit); already works
 - Mid-game deciding swap: no UI trigger needed (auto-triggers at 5 points); potentially show a brief toast/flash to inform the umpire
-- Write component/store integration tests for Touchpad doubles: quadrant display, serve indicator name update per rotation point, Swap Players buttons wiring, and serve override callback
+- Write component/store integration tests for Touchpad doubles: quadrant display, Swap Players buttons wiring, and serve override callback
 - **Requirement**: REQ-UI-TOUCH-01 through REQ-UI-TOUCH-05
 
 **Requirements Link**: SPEC § UX Design Notes (Touchpad), § Deciding-Game Mid-Game Swap
