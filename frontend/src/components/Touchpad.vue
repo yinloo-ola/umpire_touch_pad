@@ -8,17 +8,20 @@ const matchStore = useMatchStore()
 const showWinnerModal = ref(false)
 
 // Auto-show winner modal when match ends
-watch(() => matchStore.matchWinner, (newWinner) => {
-  if (newWinner !== null) {
-    showWinnerModal.value = true
-  }
-})
+watch(
+  () => matchStore.matchWinner,
+  (newWinner) => {
+    if (newWinner !== null) {
+      showWinnerModal.value = true
+    }
+  },
+)
 
 const time = computed(() => {
   const now = new Date()
   return {
     date: now.toLocaleDateString(),
-    clock: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    clock: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
   }
 })
 
@@ -26,27 +29,33 @@ const time = computed(() => {
 const team1Name = computed(() => {
   if (!matchStore.currentMatch) return 'Player 1'
   const match = matchStore.currentMatch
-  return match.type === 'singles' 
-    ? match.team1[0].name 
+  return match.type === 'singles'
+    ? match.team1[0].name
     : `${match.team1[0].name} / ${match.team1[1].name.split(' ')[0]}`
 })
 
 const team2Name = computed(() => {
   if (!matchStore.currentMatch) return 'Player 2'
   const match = matchStore.currentMatch
-  return match.type === 'singles' 
-    ? match.team2[0].name 
+  return match.type === 'singles'
+    ? match.team2[0].name
     : `${match.team2[0].name} / ${match.team2[1].name.split(' ')[0]}`
 })
 
 const team1Country = computed(() => matchStore.currentMatch?.team1[0].country || 'KOR')
 const team2Country = computed(() => matchStore.currentMatch?.team2[0].country || 'BLR')
 
-const leftPlayerName = computed(() => matchStore.swappedSides ? team2Name.value : team1Name.value)
-const rightPlayerName = computed(() => matchStore.swappedSides ? team1Name.value : team2Name.value)
+const leftPlayerName = computed(() => (matchStore.swappedSides ? team2Name.value : team1Name.value))
+const rightPlayerName = computed(() =>
+  matchStore.swappedSides ? team1Name.value : team2Name.value,
+)
 
-const leftCountry = computed(() => matchStore.swappedSides ? team2Country.value : team1Country.value)
-const rightCountry = computed(() => matchStore.swappedSides ? team1Country.value : team2Country.value)
+const leftCountry = computed(() =>
+  matchStore.swappedSides ? team2Country.value : team1Country.value,
+)
+const rightCountry = computed(() =>
+  matchStore.swappedSides ? team1Country.value : team2Country.value,
+)
 
 const games = computed(() => {
   const bestOf = matchStore.currentMatch?.bestOf || 5
@@ -94,12 +103,10 @@ const nextGame = () => {
 const swapServer = (side) => {
   // side: 'left' or 'right' — the physical side clicked
   // determine which player (1 or 2) is on that side
-  const playerOnSide = side === 'left'
-    ? (matchStore.swappedSides ? 2 : 1)
-    : (matchStore.swappedSides ? 1 : 2)
+  const playerOnSide =
+    side === 'left' ? (matchStore.swappedSides ? 2 : 1) : matchStore.swappedSides ? 1 : 2
   matchStore.setServer(playerOnSide)
 }
-
 
 // Display logic helpers
 const getScoreP1 = (g) => matchStore.scores[`g${g}`]?.p1
@@ -112,10 +119,12 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
       <!-- Touchpad Header bar -->
       <div class="tp-header">
         <div class="tp-time">
-          <span id="tp-date">{{ time.date }}</span> 
+          <span id="tp-date">{{ time.date }}</span>
           <span id="tp-clock" class="accent-text">{{ time.clock }}</span>
         </div>
-        <button @click="quitMatch" class="icon-btn power-btn tp-power-btn"><i class="fa-solid fa-power-off"></i></button>
+        <button @click="quitMatch" class="icon-btn power-btn tp-power-btn">
+          <i class="fa-solid fa-power-off"></i>
+        </button>
       </div>
 
       <!-- Score Summary -->
@@ -124,9 +133,11 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
           <thead>
             <tr>
               <th class="tools-col">
-                <button class="text-btn edit-score-btn"><i class="fa-solid fa-pen-to-square"></i> Edit Score</button>
+                <button class="text-btn edit-score-btn">
+                  <i class="fa-solid fa-pen-to-square"></i> Edit Score
+                </button>
               </th>
-              <th v-for="g in games" :key="g" class="game-col">G{{g}}</th>
+              <th v-for="g in games" :key="g" class="game-col">G{{ g }}</th>
             </tr>
           </thead>
           <tbody>
@@ -135,9 +146,12 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
                 <span class="player-name">{{ team1Name }}</span>
                 <span class="player-country">{{ team1Country }}</span>
               </td>
-              <td v-for="g in games" :key="g" 
-                  class="game-score" 
-                  :class="{ 'active-game': matchStore.game === g }">
+              <td
+                v-for="g in games"
+                :key="g"
+                class="game-score"
+                :class="{ 'active-game': matchStore.game === g }"
+              >
                 {{ getScoreP1(g) !== null ? getScoreP1(g) : '' }}
               </td>
             </tr>
@@ -146,9 +160,12 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
                 <span class="player-name">{{ team2Name }}</span>
                 <span class="player-country">{{ team2Country }}</span>
               </td>
-              <td v-for="g in games" :key="g" 
-                  class="game-score" 
-                  :class="{ 'active-game': matchStore.game === g }">
+              <td
+                v-for="g in games"
+                :key="g"
+                class="game-score"
+                :class="{ 'active-game': matchStore.game === g }"
+              >
                 {{ getScoreP2(g) !== null ? getScoreP2(g) : '' }}
               </td>
             </tr>
@@ -157,7 +174,13 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
 
         <!-- Let Button sits as flex sibling, never overlaps table -->
         <div class="let-btn-cell">
-          <button class="let-btn-large" :disabled="!matchStore.pointStarted || matchStore.isGameOver" @click="handleLet">Let</button>
+          <button
+            class="let-btn-large"
+            :disabled="!matchStore.pointStarted || matchStore.isGameOver"
+            @click="handleLet"
+          >
+            Let
+          </button>
         </div>
       </div>
 
@@ -174,18 +197,26 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
         </div>
 
         <!-- Middle Row: Table (Status Box) -->
-        <div class="grid-row middle-row" style="display: flex; justify-content: center; gap: 30px;">
-          <div class="serve-indicator-tp left-tp"
-               :class="{ active: matchStore.isLeftServer, 'receiver-clickable': matchStore.isStarted && !matchStore.isLeftServer }"
-               style="align-self: flex-end; margin-bottom: 20px;"
-               @click="matchStore.isStarted && !matchStore.isLeftServer ? swapServer('left') : null">
+        <div class="grid-row middle-row" style="display: flex; justify-content: center; gap: 30px">
+          <div
+            class="serve-indicator-tp left-tp"
+            :class="{
+              active: matchStore.isLeftServer,
+              'receiver-clickable': matchStore.isStarted && !matchStore.isLeftServer,
+            }"
+            style="align-self: flex-end; margin-bottom: 20px"
+            @click="matchStore.isStarted && !matchStore.isLeftServer ? swapServer('left') : null"
+          >
             <div class="s-circle-tp">{{ matchStore.isLeftServer ? 'S' : 'R' }}</div>
             <span class="s-label-tp">{{ matchStore.isLeftServer ? 'Server' : 'Receiver' }}</span>
           </div>
 
           <!-- Status Box -->
-          <div class="status-box-tp glass-panel-green" id="main-status-box" @click="handleStartPlay">
-            
+          <div
+            class="status-box-tp glass-panel-green"
+            id="main-status-box"
+            @click="handleStartPlay"
+          >
             <span class="status-text-tp" v-if="matchStore.isGameOver">Game Over</span>
             <span class="status-text-tp" v-else-if="!matchStore.pointStarted">Start Of Play</span>
 
@@ -193,14 +224,18 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
             <div class="table-player-grid" v-if="matchStore.pointStarted && !matchStore.isGameOver">
               <div class="table-quad bottom-left">
                 <div class="table-player-info">
-                  <span class="tp-p-label">{{ matchStore.swappedSides ? 'Player 2' : 'Player 1' }}</span>
+                  <span class="tp-p-label">{{
+                    matchStore.swappedSides ? 'Player 2' : 'Player 1'
+                  }}</span>
                   <span class="tp-p-name">{{ leftPlayerName }}</span>
                   <span class="tp-p-country">{{ leftCountry }}</span>
                 </div>
               </div>
               <div class="table-quad top-right">
                 <div class="table-player-info">
-                  <span class="tp-p-label">{{ matchStore.swappedSides ? 'Player 1' : 'Player 2' }}</span>
+                  <span class="tp-p-label">{{
+                    matchStore.swappedSides ? 'Player 1' : 'Player 2'
+                  }}</span>
                   <span class="tp-p-name">{{ rightPlayerName }}</span>
                   <span class="tp-p-country">{{ rightCountry }}</span>
                 </div>
@@ -210,10 +245,15 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
             </div>
           </div>
 
-          <div class="serve-indicator-tp right-tp"
-               :class="{ active: !matchStore.isLeftServer, 'receiver-clickable': matchStore.isStarted && matchStore.isLeftServer }"
-               style="align-self: flex-start; margin-top: 20px;"
-               @click="matchStore.isStarted && matchStore.isLeftServer ? swapServer('right') : null">
+          <div
+            class="serve-indicator-tp right-tp"
+            :class="{
+              active: !matchStore.isLeftServer,
+              'receiver-clickable': matchStore.isStarted && matchStore.isLeftServer,
+            }"
+            style="align-self: flex-start; margin-top: 20px"
+            @click="matchStore.isStarted && matchStore.isLeftServer ? swapServer('right') : null"
+          >
             <div class="s-circle-tp">{{ !matchStore.isLeftServer ? 'S' : 'R' }}</div>
             <span class="s-label-tp">{{ !matchStore.isLeftServer ? 'Server' : 'Receiver' }}</span>
           </div>
@@ -222,7 +262,13 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
         <!-- Bottom Row -->
         <div class="grid-row bottom-row">
           <div class="side-plus-minus left-pm">
-            <button class="score-btn-large plus-btn" @click="addLeft" :disabled="!matchStore.pointStarted || matchStore.isGameOver">+</button>
+            <button
+              class="score-btn-large plus-btn"
+              @click="addLeft"
+              :disabled="!matchStore.pointStarted || matchStore.isGameOver"
+            >
+              +
+            </button>
             <button class="score-btn-small minus-btn" @click="minusLeft">-</button>
           </div>
 
@@ -241,24 +287,42 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
 
           <div class="side-plus-minus right-pm">
             <button class="score-btn-small minus-btn" @click="minusRight">-</button>
-            <button class="score-btn-large plus-btn" @click="addRight" :disabled="!matchStore.pointStarted || matchStore.isGameOver">+</button>
+            <button
+              class="score-btn-large plus-btn"
+              @click="addRight"
+              :disabled="!matchStore.pointStarted || matchStore.isGameOver"
+            >
+              +
+            </button>
           </div>
         </div>
       </div>
 
       <!-- Bottom Actions -->
       <div v-if="matchStore.matchWinner === null" class="bottom-action-bar">
-        <button class="action-btn swap-sides-btn" @click="swapSides"><i class="fa-solid fa-arrow-right-arrow-left"></i> Swap Sides</button>
-        <button class="action-btn expedite-btn"><i class="fa-solid fa-stopwatch"></i> Expedite</button>
+        <button class="action-btn swap-sides-btn" @click="swapSides">
+          <i class="fa-solid fa-arrow-right-arrow-left"></i> Swap Sides
+        </button>
+        <button class="action-btn expedite-btn">
+          <i class="fa-solid fa-stopwatch"></i> Expedite
+        </button>
         <div class="divider"></div>
-        <button class="action-btn next-game-btn" :class="{ disabled: !matchStore.isGameOver }" @click="nextGame">Next Game <i class="fa-solid fa-forward-step"></i></button>
+        <button
+          class="action-btn next-game-btn"
+          :class="{ disabled: !matchStore.isGameOver }"
+          @click="nextGame"
+        >
+          Next Game <i class="fa-solid fa-forward-step"></i>
+        </button>
         <button @click="quitMatch" class="action-btn end-match-btn">End Match</button>
       </div>
       <div v-else class="bottom-action-bar match-over-bar">
-        <div style="flex: 1;"></div>
+        <div style="flex: 1"></div>
         <div class="divider"></div>
-        <div style="flex: 1; display: flex; justify-content: center;">
-          <button @click="showWinnerModal = true" class="action-btn confirm-winner-btn">Confirm Winner</button>
+        <div style="flex: 1; display: flex; justify-content: center">
+          <button @click="showWinnerModal = true" class="action-btn confirm-winner-btn">
+            Confirm Winner
+          </button>
         </div>
       </div>
     </div>
@@ -278,23 +342,27 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
           <h2 class="winner-title">Winner Is</h2>
           <div class="winner-profile">
             <div class="wp-flag-container">
-              <div class="wp-flag">{{ matchStore.matchWinner === 1 ? team1Country : team2Country }}</div>
+              <div class="wp-flag">
+                {{ matchStore.matchWinner === 1 ? team1Country : team2Country }}
+              </div>
               <div class="wp-label">Player {{ matchStore.matchWinner }}</div>
             </div>
             <div class="wp-info">
               <div class="wp-name">{{ matchStore.matchWinner === 1 ? team1Name : team2Name }}</div>
               <div class="wp-id">108246</div>
-              <div class="wp-country">{{ matchStore.matchWinner === 1 ? team1Country : team2Country }}</div>
+              <div class="wp-country">
+                {{ matchStore.matchWinner === 1 ? team1Country : team2Country }}
+              </div>
             </div>
           </div>
-          
+
           <div class="winner-score-summary">
             <table class="winner-score-table">
               <thead>
                 <tr>
                   <th class="w-tools-col"><span>SSQ</span></th>
-                  <th v-for="g in games" :key="g">G{{g}}</th>
-                  <th class="w-final-result-col">Final<br>Result</th>
+                  <th v-for="g in games" :key="g">G{{ g }}</th>
+                  <th class="w-final-result-col">Final<br />Result</th>
                 </tr>
               </thead>
               <tbody>
@@ -321,8 +389,12 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
           </div>
 
           <div class="modal-footer winner-modal-footer">
-            <button @click="confirmMatchResult" class="modal-btn winner-confirm-btn">Confirm</button>
-            <button @click="showWinnerModal = false" class="modal-btn winner-cancel-btn">Cancel</button>
+            <button @click="confirmMatchResult" class="modal-btn winner-confirm-btn">
+              Confirm
+            </button>
+            <button @click="showWinnerModal = false" class="modal-btn winner-cancel-btn">
+              Cancel
+            </button>
           </div>
         </div>
       </div>
@@ -341,8 +413,14 @@ button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-.bottom-left { grid-column: 1; grid-row: 2; }
-.top-right { grid-column: 2; grid-row: 1; }
+.bottom-left {
+  grid-column: 1;
+  grid-row: 2;
+}
+.top-right {
+  grid-column: 2;
+  grid-row: 1;
+}
 
 .let-btn-cell {
   display: flex;
@@ -382,7 +460,7 @@ button:disabled {
 }
 
 .confirm-winner-btn {
-  background: #F58220 !important;
+  background: #f58220 !important;
   color: white !important;
   min-width: 250px;
 }
@@ -416,7 +494,7 @@ button:disabled {
   align-items: center;
   justify-content: center;
   font-size: 1.2rem;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .winner-modal-content {
@@ -425,7 +503,7 @@ button:disabled {
   max-width: 850px;
   border-radius: 4px;
   overflow: visible;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
   display: flex;
   flex-direction: column;
   position: relative;
@@ -443,7 +521,7 @@ button:disabled {
 
 .winner-title {
   text-align: center;
-  color: #F58220;
+  color: #f58220;
   font-size: 2.2rem;
   font-family: serif;
   margin-top: 2rem;
@@ -472,14 +550,14 @@ button:disabled {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: #219C06;
-  border: 4px solid #F58220;
+  background: #219c06;
+  border: 4px solid #f58220;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 800;
   font-size: 1.4rem;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
 }
 
 .wp-info {
@@ -493,13 +571,14 @@ button:disabled {
   font-weight: 700;
   letter-spacing: 0.5px;
 }
-.wp-id, .wp-country {
+.wp-id,
+.wp-country {
   font-size: 1.1rem;
   color: #ddd;
   font-weight: 700;
 }
 .wp-label {
-  color: #F58220;
+  color: #f58220;
   font-weight: 800;
   font-size: 1.2rem;
   text-transform: uppercase;
@@ -518,25 +597,25 @@ button:disabled {
   color: #333;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
 .winner-score-table th {
-  background: #219C06;
+  background: #219c06;
   color: white;
   padding: 0.6rem 0.5rem;
-  border: 1px solid rgba(0,0,0,0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   font-size: 1rem;
   font-weight: 700;
 }
 
 .w-final-result-col {
-  background: #F58220 !important;
+  background: #f58220 !important;
 }
 
 .winner-score-table td {
   padding: 0.6rem 0.5rem;
-  border: 1px solid rgba(0,0,0,0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   font-weight: 800;
   font-size: 1.1rem;
 }
@@ -547,7 +626,7 @@ button:disabled {
 }
 
 .w-final-score {
-  background: #F58220;
+  background: #f58220;
   color: white;
   font-size: 1.2rem;
 }
@@ -561,7 +640,7 @@ button:disabled {
 }
 
 .winner-confirm-btn {
-  background: #F58220;
+  background: #f58220;
   color: white;
   font-size: 1.3rem;
   padding: 0.8rem 4rem;
@@ -569,7 +648,10 @@ button:disabled {
   font-weight: 700;
   box-shadow: 0 4px 15px rgba(245, 130, 32, 0.4);
 }
-.winner-confirm-btn:hover { background: #e07010; transform: translateY(-2px); }
+.winner-confirm-btn:hover {
+  background: #e07010;
+  transform: translateY(-2px);
+}
 
 .winner-cancel-btn {
   background: white;
@@ -579,9 +661,11 @@ button:disabled {
   border: 1px solid #ccc;
   border-radius: 8px;
   font-weight: 700;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
-.winner-cancel-btn:hover { background: #f8f8f8; transform: translateY(-2px); }
-
+.winner-cancel-btn:hover {
+  background: #f8f8f8;
+  transform: translateY(-2px);
+}
 </style>
 ```

@@ -15,17 +15,17 @@ onMounted(async () => {
       matches.value = await res.json()
     }
   } catch (err) {
-    console.error("Failed to fetch matches:", err)
+    console.error('Failed to fetch matches:', err)
     // fallback data
     matches.value = [
       {
         type: 'singles',
         event: "Men's Singles (Offline)",
-        time: "09:00",
+        time: '09:00',
         bestOf: 5,
-        team1: [{ name: "JEOUNG Youngsik", country: "KOR" }],
-        team2: [{ name: "SAMSONOV Vladimir", country: "BLR" }]
-      }
+        team1: [{ name: 'JEOUNG Youngsik', country: 'KOR' }],
+        team2: [{ name: 'SAMSONOV Vladimir', country: 'BLR' }],
+      },
     ]
   }
 })
@@ -71,27 +71,43 @@ const startMatch = () => {
             <td>{{ match.time }}</td>
             <td>
               <template v-if="match.type === 'singles'">
-                <span class="player-name-main">{{ match.team1[0].name }}</span> <span class="country-code">{{ match.team1[0].country }}</span>
+                <span class="player-name-main">{{ match.team1[0].name }}</span>
+                <span class="country-code">{{ match.team1[0].country }}</span>
               </template>
               <template v-else>
                 <div class="doubles-cell">
-                  <div><span class="player-name-main">{{ match.team1[0].name }}</span> <span class="country-code">{{ match.team1[0].country }}</span></div>
-                  <div><span class="player-name-main">{{ match.team1[1].name }}</span> <span class="country-code">{{ match.team1[1].country }}</span></div>
+                  <div>
+                    <span class="player-name-main">{{ match.team1[0].name }}</span>
+                    <span class="country-code">{{ match.team1[0].country }}</span>
+                  </div>
+                  <div>
+                    <span class="player-name-main">{{ match.team1[1].name }}</span>
+                    <span class="country-code">{{ match.team1[1].country }}</span>
+                  </div>
                 </div>
               </template>
             </td>
             <td>
               <template v-if="match.type === 'singles'">
-                <span class="player-name-main">{{ match.team2[0].name }}</span> <span class="country-code">{{ match.team2[0].country }}</span>
+                <span class="player-name-main">{{ match.team2[0].name }}</span>
+                <span class="country-code">{{ match.team2[0].country }}</span>
               </template>
               <template v-else>
                 <div class="doubles-cell">
-                  <div><span class="player-name-main">{{ match.team2[0].name }}</span> <span class="country-code">{{ match.team2[0].country }}</span></div>
-                  <div><span class="player-name-main">{{ match.team2[1].name }}</span> <span class="country-code">{{ match.team2[1].country }}</span></div>
+                  <div>
+                    <span class="player-name-main">{{ match.team2[0].name }}</span>
+                    <span class="country-code">{{ match.team2[0].country }}</span>
+                  </div>
+                  <div>
+                    <span class="player-name-main">{{ match.team2[1].name }}</span>
+                    <span class="country-code">{{ match.team2[1].country }}</span>
+                  </div>
                 </div>
               </template>
             </td>
-            <td><strong>{{ match.bestOf }}</strong></td>
+            <td>
+              <strong>{{ match.bestOf }}</strong>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -124,21 +140,27 @@ const startMatch = () => {
                   <td>{{ selectedMatch.time }}</td>
                   <td>
                     <template v-if="selectedMatch.type === 'singles'">
-                      <strong>{{ selectedMatch.team1[0].name }}</strong> {{ selectedMatch.team1[0].country }}
+                      <strong>{{ selectedMatch.team1[0].name }}</strong>
+                      {{ selectedMatch.team1[0].country }}
                     </template>
                     <template v-else>
-                      <div>{{ selectedMatch.team1[0].name }}</div><div>{{ selectedMatch.team1[1].name }}</div>
+                      <div>{{ selectedMatch.team1[0].name }}</div>
+                      <div>{{ selectedMatch.team1[1].name }}</div>
                     </template>
                   </td>
                   <td>
                     <template v-if="selectedMatch.type === 'singles'">
-                      <strong>{{ selectedMatch.team2[0].name }}</strong> {{ selectedMatch.team2[0].country }}
+                      <strong>{{ selectedMatch.team2[0].name }}</strong>
+                      {{ selectedMatch.team2[0].country }}
                     </template>
                     <template v-else>
-                      <div>{{ selectedMatch.team2[0].name }}</div><div>{{ selectedMatch.team2[1].name }}</div>
+                      <div>{{ selectedMatch.team2[0].name }}</div>
+                      <div>{{ selectedMatch.team2[1].name }}</div>
                     </template>
                   </td>
-                  <td><strong>{{ selectedMatch.bestOf }}</strong></td>
+                  <td>
+                    <strong>{{ selectedMatch.bestOf }}</strong>
+                  </td>
                 </tr>
               </tbody>
             </table>

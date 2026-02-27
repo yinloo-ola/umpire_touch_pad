@@ -35,8 +35,8 @@ func getMatches(w http.ResponseWriter, r *http.Request) {
 			Event:  "Men's Singles",
 			Time:   "09:00",
 			BestOf: 5,
-			Team1:  []Player{{Name: "JEOUNG Youngsik", Country: "KOR"}},
-			Team2:  []Player{{Name: "SAMSONOV Vladimir", Country: "BLR"}},
+			Team1:  []Player{{Name: "Clarence Chew", Country: "SIN"}},
+			Team2:  []Player{{Name: "Koen Pang", Country: "SIN"}},
 		},
 		{
 			Type:   "doubles",

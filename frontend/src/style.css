@@ -1,9 +1,9 @@
 :root {
-  --primary-color: #219C06;
+  --primary-color: #219c06;
   --primary-hover: #1e8706;
-  --accent-orange: #F58220;
+  --accent-orange: #f58220;
   --accent-hover: #e07010;
-  --danger-red: #D32F2F;
+  --danger-red: #d32f2f;
   --danger-hover: #b71c1c;
 
   --bg-light: #f8fafc;
@@ -52,7 +52,8 @@ body::before {
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at top left, rgba(33, 156, 6, 0.05), transparent 40%),
+  background:
+    radial-gradient(circle at top left, rgba(33, 156, 6, 0.05), transparent 40%),
     radial-gradient(circle at bottom right, rgba(245, 130, 32, 0.05), transparent 40%);
   z-index: -1;
   pointer-events: none;
@@ -90,7 +91,6 @@ button {
   color: var(--accent-orange);
 }
 
-
 .simulation-btn {
   background: linear-gradient(135deg, var(--accent-orange), #ff9a44);
   color: white;
@@ -125,7 +125,6 @@ button {
   overflow: hidden;
 }
 
-
 .view {
   position: absolute;
   top: 0;
@@ -135,7 +134,9 @@ button {
   padding: 2rem;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.4s ease, transform 0.4s ease;
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s ease;
   transform: scale(0.98);
   display: flex;
   flex-direction: column;
@@ -237,7 +238,6 @@ button {
   color: var(--primary-color);
 }
 
-
 /* ===== Touchpad View (Dark Mode) ===== */
 .ds-dark {
   background-color: var(--bg-dark);
@@ -305,7 +305,7 @@ button {
   /* enforces explicit column widths */
   min-width: 0;
   /* flex shrink */
-  margin: 0.5rem 0.5rem 0.5rem 1.0rem;
+  margin: 0.5rem 0.5rem 0.5rem 1rem;
 }
 
 .score-summary-table th {
@@ -339,7 +339,6 @@ button {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
 
 .let-col {
   width: 10%;
@@ -487,7 +486,6 @@ button {
   box-shadow: 0 0 0 2px rgba(245, 130, 32, 0.5);
 }
 
-
 .s-circle-tp {
   background: #444;
   color: white;
@@ -567,7 +565,6 @@ button {
 .minus-btn:active {
   transform: scale(0.9);
 }
-
 
 /* Center Status Area */
 .center-status-area {
@@ -661,8 +658,6 @@ button {
   width: 1px;
   background: rgba(0, 0, 0, 0.1);
 }
-
-
 
 .status-text {
   font-size: 2rem;
@@ -1054,7 +1049,9 @@ button {
   opacity: 0.3;
   pointer-events: auto;
   cursor: pointer;
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
 }
 
 .left-serve {
