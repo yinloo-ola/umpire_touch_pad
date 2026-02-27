@@ -223,13 +223,13 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
         <div class="grid-row top-row">
           <div class="side-controls left-side">
             <button v-if="isDoubles" @click="swapLeftPlayers" class="swap-players-btn-tp swap-left-tp" id="tp-swap-left-btn">
-              <i class="fa-solid fa-arrows-up-down"></i> Swap
+              <i class="fa-solid fa-arrow-down"></i> Swap <i class="fa-solid fa-arrow-up"></i>
             </button>
             <button v-else class="card-btn">Cards</button>
           </div>
           <div class="side-controls right-side">
             <button v-if="isDoubles" @click="swapRightPlayers" class="swap-players-btn-tp swap-right-tp" id="tp-swap-right-btn">
-              <i class="fa-solid fa-arrows-up-down"></i> Swap
+              <i class="fa-solid fa-arrow-down"></i> Swap <i class="fa-solid fa-arrow-up"></i>
             </button>
             <button v-else class="card-btn">Cards</button>
           </div>
@@ -737,19 +737,18 @@ button:disabled {
 }
 .swap-players-btn-tp {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 0.4rem 0.3rem;
-  font-size: 0.65rem;
-  background: var(--accent-orange, #f59e0b);
-  color: #000;
+  justify-content: center;
+  gap: 6px;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: #6ab04c;
+  color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  min-width: 30px;
+  white-space: nowrap;
 }
 .swap-players-btn-tp:active { opacity: 0.7; }
 .top-left { grid-column: 1; grid-row: 1; }
