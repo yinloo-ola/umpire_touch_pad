@@ -1,9 +1,9 @@
 # STATE.md — Project Memory
 
-> Last updated: 2026-02-27
+> Last updated: 2026-02-28
 
 ## Current Phase
-**Phase 5** — Deciding-Game Swap + Between-Game Modal + Polish
+**Phase 5** — Deciding-Game Swap + Automatic Receiver + Polish
 
 ## Last Session Summary
 Phase 4 complete (2 plans, 1 wave, all verified).
@@ -12,28 +12,13 @@ Phase 4 complete (2 plans, 1 wave, all verified).
 - `make test` exits 0 with 55 total tests (39 store + 16 component)
 - Phase 4 verified with integration tests covering all must-haves.
 
-## Current Status
-- [x] Codebase mapped → ARCHITECTURE.md, STACK.md
-- [x] SPEC.md created (FINALIZED)
-- [x] ROADMAP.md created (now 5 phases)
-- [x] DECISIONS.md, JOURNAL.md, TODO.md initialized
-- [x] Phase 1: Store Foundation ✅ COMPLETE (commit 58ccda1)
-  - 1.1: Quadrant state + swap actions + getters ✅
-  - 1.2: Doubles serve rotation engine ✅
-  - 1.3: Between-game serve setup + deciding-game swap ✅
-- [x] Phase 2: Vitest Setup & Phase 1 Store Tests ✅ COMPLETE (commits 0f2b115, 361a41f)
-  - 2.1: Vitest install, vite config, make test ✅
-  - 2.2: 39 unit tests, all passing ✅
-- [x] Phase 3: SetupView Doubles UI ✅ COMPLETE (commits fdded05, 1992989)
-  - 3.1: Doubles court layout — 4-quadrant grid + Swap Players buttons ✅
-  - 3.2: Doubles serve designation + between-game modal ✅
-  - 3.3: SetupView integration tests (9 tests) ✅
-- [x] Phase 4: Touchpad Doubles UI ✅ COMPLETE
-- [ ] Phase 5: Deciding-game swap + polish ← **NEXT UP**
+## Current Position
+- **Phase**: 5
+- **Task**: Planning complete
+- **Status**: Ready for execution
 
 ## Next Steps
-1. `/plan 5` — create plans for deciding-game swap, between-game modal, and final polish
-2. `/execute 5` — implement and verify final phase
+1. `/execute 5` — run all plans
 
 ## Known Blockers
 None
