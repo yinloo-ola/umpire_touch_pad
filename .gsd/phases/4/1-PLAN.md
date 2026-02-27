@@ -9,9 +9,8 @@ wave: 1
 ## Objective
 Update `Touchpad.vue` so that during a doubles match it:
 1. Shows a 4-quadrant status box (same layout as SetupView) instead of the 2-slot singles box
-2. Displays the **individual player name** below the S/R circle in both serve indicators (doubles only)
-3. Adds **Swap Players (left)** and **Swap Players (right)** buttons in the `top-row` of the interaction grid (visible for doubles only)
-4. Clicking the **receiver** serve indicator in doubles calls `setDoublesServer()` (umpire serve-override) instead of the existing `setServer()` singles call
+2. Adds **Swap Players (left)** and **Swap Players (right)** buttons in the `top-row` of the interaction grid (visible for doubles only)
+3. Clicking the **receiver** serve indicator in doubles calls `setDoublesServer()` (umpire serve-override) instead of the existing `setServer()` singles call
 
 All singles behaviour must remain unchanged.
 
@@ -45,29 +44,13 @@ All singles behaviour must remain unchanged.
        const rightBotPlayer = computed(() => matchStore.doublesRightBotPlayer)
        ```
 
-    3. Serve indicator display name computeds:
-       ```js
-       const leftIndicatorPlayerName = computed(() => {
-         if (!isDoubles.value) return ''
-         return matchStore.isLeftDoublesServer
-           ? matchStore.doublesServerName
-           : matchStore.doublesReceiverName
-       })
-       const rightIndicatorPlayerName = computed(() => {
-         if (!isDoubles.value) return ''
-         return matchStore.isLeftDoublesServer
-           ? matchStore.doublesReceiverName
-           : matchStore.doublesServerName
-       })
-       ```
-
-    4. Swap Players actions:
+    3. Swap Players actions:
        ```js
        const swapLeftPlayers  = () => matchStore.swapLeftPlayers()
        const swapRightPlayers = () => matchStore.swapRightPlayers()
        ```
 
-    5. Replace the existing `swapServer(side)` function with a doubles-aware version:
+    4. Replace the existing `swapServer(side)` function with a doubles-aware version:
        ```js
        const swapServer = (side) => {
          if (isDoubles.value) {
@@ -110,7 +93,7 @@ All singles behaviour must remain unchanged.
   <name>Update Touchpad template for doubles UI</name>
   <files>frontend/src/components/Touchpad.vue</files>
   <action>
-    Make the following three template changes:
+    Make the following two template changes:
 
     **A. top-row: Add Swap Players buttons for doubles**
 
@@ -187,19 +170,9 @@ All singles behaviour must remain unchanged.
     </div>
     ```
 
-    **C. Serve indicators: add individual player name display for doubles**
+    **C. Serve indicators click and active/status updates**
 
-    In the LEFT serve indicator (`left-tp`), after the `<span class="s-label-tp">` line, add:
-    ```html
-    <span v-if="isDoubles" class="s-player-name-tp">{{ leftIndicatorPlayerName }}</span>
-    ```
-
-    In the RIGHT serve indicator (`right-tp`), after its `<span class="s-label-tp">` line, add:
-    ```html
-    <span v-if="isDoubles" class="s-player-name-tp">{{ rightIndicatorPlayerName }}</span>
-    ```
-
-    Also update the LEFT serve indicator's click condition and the RIGHT serve indicator's click condition so
+    Update the LEFT serve indicator's click condition and the RIGHT serve indicator's click condition so
     doubles uses `isLeftDoublesServer` and singles uses `isLeftServer`:
     - Left indicator: active when `(isDoubles && matchStore.isLeftDoublesServer) || (!isDoubles && matchStore.isLeftServer)`
     - Right indicator: active when `(isDoubles && !matchStore.isLeftDoublesServer) || (!isDoubles && !matchStore.isLeftServer)`
@@ -227,26 +200,14 @@ All singles behaviour must remain unchanged.
       min-width: 30px;
     }
     .swap-players-btn-tp:active { opacity: 0.7; }
-    .s-player-name-tp {
-      font-size: 0.6rem;
-      font-weight: 600;
-      margin-top: 2px;
-      text-align: center;
-      max-width: 70px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      color: inherit;
-    }
     .top-left { grid-column: 1; grid-row: 1; }
     .bottom-right { grid-column: 2; grid-row: 2; }
     ```
   </action>
-  <verify>grep -n "isDoubles\|swap-players-btn-tp\|leftTopPlayer\|leftIndicatorPlayerName\|tp-swap-left-btn\|top-left\|bottom-right" frontend/src/components/Touchpad.vue | head -30</verify>
+  <verify>grep -n "isDoubles\|swap-players-btn-tp\|leftTopPlayer\|tp-swap-left-btn\|top-left\|bottom-right" frontend/src/components/Touchpad.vue | head -30</verify>
   <done>
     - top-row has conditional Swap Players buttons for doubles
     - status box has separate doubles (4-quad) and singles (2-slot) layouts conditioned on isDoubles
-    - serve indicators show s-player-name-tp span for doubles
     - serve indicator active/S/R classes use isLeftDoublesServer for doubles and isLeftServer for singles
     - CSS classes added for new elements
   </done>
@@ -257,7 +218,5 @@ All singles behaviour must remain unchanged.
 - [ ] Clicking "Swap" left during doubles calls `swapLeftPlayers()` — visually exchanges TL/BL names in status box
 - [ ] During a doubles match with pointStarted, status box shows 4 named quadrant slots (TL, TR, BL, BR)
 - [ ] Singles status box still shows 2-slot layout unchanged
-- [ ] Left serve indicator shows individual server/receiver player name below S/R circle for doubles
-- [ ] Right serve indicator shows individual server/receiver player name below S/R circle for doubles
 - [ ] Clicking the receiver indicator in doubles correctly invokes `setDoublesServer()` (not `setServer()`)
 - [ ] `make test` still exits 0 (no regressions)

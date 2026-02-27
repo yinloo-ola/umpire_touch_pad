@@ -159,7 +159,7 @@ The `cyclePos` maps to server/receiver relative to the initial pair:
 - [ ] **Doubles SetupView** shows 4 quadrants with correct player names in each
 - [ ] **Swap Players (left)** button swaps TL and BL players before and during the match
 - [ ] **Swap Players (right)** button swaps TR and BR players before and during the match
-- [ ] **Server/Receiver indicators** show the individual player's name (or position) who is currently serving and receiving
+- [ ] **Server/Receiver indicators** function identically to singles (don't need individual player names)
 - [ ] **Serve rotation** follows A→X→B→Y→A cycle exactly; verified by playing through 8 serves manually
 - [ ] **Between-game serve setup** correctly determines which player must receive based on previous game
 - [ ] **Deciding game** triggers side swap at 5 points; both sides swap; receiving pair also swaps receive order
@@ -191,16 +191,10 @@ The `cyclePos` maps to server/receiver relative to the initial pair:
 
 ### Touchpad (Doubles, during play)
 - Status box shows 4 mini-quadrants with player positions (same as singles but 4 slots)
-- Server indicator shows the serving **individual player's name** beneath the S circle (not just the team)
-- Receiver indicator shows receiving **individual player's name** beneath the R circle
 - Swap Players buttons remain visible on left/right sides of the court area
 
 ### Serve Indicator Detail (Doubles)
-The existing left/right serve indicator now needs to show **which player** on that side is serving/receiving:
-```
-Left side serving:   S circle + "HU Heming" (name only, no ID/flag)
-Right side receiving: R circle + "NUYTINCK" (name only, no ID/flag)
-```
+- Just like in singles, the indicator shows "S" for Server and "R" for Receiver. No individual player names are needed below the circle.
 
 ---
 
