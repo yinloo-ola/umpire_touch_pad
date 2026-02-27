@@ -92,16 +92,49 @@ To track the full ITTF doubles serve rotation:
 ### Rotation Logic
 Given initial server A (team1[0]) and initial receiver X (team2[0]):
 
-| Serves passed | Server | Receiver |
-|---------------|--------|----------|
-| 0–1 | A (t1[0]) | X (t2[0]) |
-| 2–3 | X (t2[0]) | B (t1[1]) |
-| 4–5 | B (t1[1]) | Y (t2[1]) |
-| 6–7 | Y (t2[1]) | A (t1[0]) |
-| 8–9 | A (t1[0]) | X (t2[0]) |
-| … | cycle repeats | |
+**Before deuce (total points < 20):** each player in the cycle serves 2 consecutive points.
 
-At deuce (≥10-10), each point is 1 serve (not 2). After deuce reached, the existing `p1Score+p2Score` formula continues to work with the cycle — serves rotate every point.
+| Serves passed | Total pts range | Server | Receiver |
+|---------------|-----------------|--------|----------|
+| 0 | 0–1 | A | X |
+| 1 | 2–3 | X | B |
+| 2 | 4–5 | B | Y |
+| 3 | 6–7 | Y | A |
+| 4 | 8–9 | A | X |
+| … | … | cycle of 4 | … |
+| 9 | 18–19 | X | B |
+
+**At deuce (both scores ≥ 10, total ≥ 20):** each player serves **1 serve only**, but the A→X→B→Y→A order is unchanged.
+
+| Total pts | Score example | Server | Receiver |
+|-----------|---------------|--------|----------|
+| 20 | 10–10 | (position 10 mod 4 = 2) B | Y |
+| 21 | 11–10 or 10–11 | Y | A |
+| 22 | 11–11 | A | X |
+| 23 | 12–11 or 11–12 | X | B |
+| 24 | 12–12 | B | Y |
+| … | … | cycle continues | … |
+
+> **Note**: The user example "at 10-10 if A→X" is illustrative of the rotation continuing — the actual position depends on who was serving just before deuce started. The formula derives the correct position automatically.
+
+**Formula (same structure as existing singles logic):**
+```js
+// servesPassed = how many 'serve slots' have elapsed
+if (p1Score >= 10 && p2Score >= 10) {
+  servesPassed = 10 + (p1Score + p2Score - 20)  // 1 serve per slot at deuce
+} else {
+  servesPassed = Math.floor((p1Score + p2Score) / 2)  // 2 serves per slot normally
+}
+// Position in 4-player cycle:
+const cyclePos = servesPassed % 4
+// Map cyclePos → {server, receiver} using doublesInitialServer/Receiver
+```
+
+The `cyclePos` maps to server/receiver relative to the initial pair:
+- 0 → initial server serves to initial receiver
+- 1 → initial receiver serves to partner of initial server
+- 2 → partner of initial server serves to partner of initial receiver
+- 3 → partner of initial receiver serves to initial server
 
 ### Between-Game Rules
 - The team that **received** first in game N **serves** first in game N+1
@@ -154,17 +187,19 @@ At deuce (≥10-10), each point is 1 serve (not 2). After deuce reached, the exi
 [Swap Sides]   [Start Warm Up]   [End Match]
 ```
 
+> **No flag icons or player ID numbers** are needed — show only player name and country code text.
+
 ### Touchpad (Doubles, during play)
 - Status box shows 4 mini-quadrants with player positions (same as singles but 4 slots)
-- Server indicator shows the serving player's name beneath the S circle
-- Receiver indicator shows receiving player's name beneath the R circle
+- Server indicator shows the serving **individual player's name** beneath the S circle (not just the team)
+- Receiver indicator shows receiving **individual player's name** beneath the R circle
 - Swap Players buttons remain visible on left/right sides of the court area
 
 ### Serve Indicator Detail (Doubles)
-The existing left/right serve indicator now needs to show **which player** on that side is serving. E.g.:
+The existing left/right serve indicator now needs to show **which player** on that side is serving/receiving:
 ```
-Left side is serving   →   show "HU Heming" below the S circle
-Right side is receiving →  show "NUYTINCK" below the R circle
+Left side serving:   S circle + "HU Heming" (name only, no ID/flag)
+Right side receiving: R circle + "NUYTINCK" (name only, no ID/flag)
 ```
 
 ---
