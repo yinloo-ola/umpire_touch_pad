@@ -86,14 +86,17 @@ describe('SetupView — doubles layout', () => {
         store.toggleSwapSides()
         await nextTick()
 
-        // After swap: left = team2 (Carol top, Dave bot), right = team1 (Alice top, Bob bot)
+        // After side swap: left = team2, right = team1.
+        // Score is 0-0, so Team 1 (Alice) is server.
+        // Team1 on Right side -> server must be @ Top.
+        // Team2 on Left side -> receiver (Carol) must be @ Bottom.
         const tl = wrapper.find('.doubles-tl')
         const bl = wrapper.find('.doubles-bl')
         const tr = wrapper.find('.doubles-tr')
         const br = wrapper.find('.doubles-br')
 
-        expect(tl.text()).toContain('Carol')
-        expect(bl.text()).toContain('Dave')
+        expect(tl.text()).toContain('Dave')
+        expect(bl.text()).toContain('Carol')
         expect(tr.text()).toContain('Alice')
         expect(br.text()).toContain('Bob')
     })
@@ -103,17 +106,18 @@ describe('SetupView — doubles layout', () => {
         store.swappedSides = false
         await nextTick()
 
-        // Before: TL = Alice (p1Top=0), BL = Bob (p1Bot=1)
-        expect(wrapper.find('.doubles-tl').text()).toContain('Alice')
-        expect(wrapper.find('.doubles-bl').text()).toContain('Bob')
+        // Initial 0-0: Alice is server @ Bottom-Left, Bob is partner @ Top-Left.
+        expect(wrapper.find('.doubles-tl').text()).toContain('Bob')
+        expect(wrapper.find('.doubles-bl').text()).toContain('Alice')
 
-        // Click the left swap button
+        // Click the left swap button -> Changes server to Bob.
+        // Bob becomes server @ Bottom-Left. Alice moves to Top-Left.
         await wrapper.find('.swap-left-btn').trigger('click')
         await nextTick()
 
-        // After: TL = Bob (p1Top=1), BL = Alice (p1Bot=0)
-        expect(wrapper.find('.doubles-tl').text()).toContain('Bob')
-        expect(wrapper.find('.doubles-bl').text()).toContain('Alice')
+        // After: TL = Alice (p1Top=0), BL = Bob (p1Bot=1)
+        expect(wrapper.find('.doubles-tl').text()).toContain('Alice')
+        expect(wrapper.find('.doubles-bl').text()).toContain('Bob')
     })
 
     test('Swap Players right button swaps TR and BR player names', async () => {
@@ -121,11 +125,12 @@ describe('SetupView — doubles layout', () => {
         store.swappedSides = false
         await nextTick()
 
-        // Before: TR = Carol (p2Top=0), BR = Dave (p2Bot=1)
+        // Initial 0-0: Carol is receiver @ Top-Right, Dave is partner @ Bottom-Right.
         expect(wrapper.find('.doubles-tr').text()).toContain('Carol')
         expect(wrapper.find('.doubles-br').text()).toContain('Dave')
 
-        // Click the right swap button
+        // Click the right swap button -> Changes receiver to Dave.
+        // Dave becomes receiver @ Top-Right. Carol moves to Bottom-Right.
         await wrapper.find('.swap-right-btn').trigger('click')
         await nextTick()
 

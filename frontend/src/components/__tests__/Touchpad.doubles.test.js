@@ -80,10 +80,12 @@ describe('Touchpad — doubles quadrant display', () => {
         store.pointStarted = true
         await nextTick()
 
-        // Before swap: top-left = Alice, bottom-left = Bob
-        const beforeNames = wrapper.findAll('.table-quad').map(q => q.text())
-        // Confirm Alice appears in a top-left position and Bob in bottom-left
-        // (exact order depends on DOM order: TL, TR, BL, BR)
+        // Before swap: Alice is server @ Bottom-Left, Bob is partner @ Top-Left
+        const quadsBefore = wrapper.findAll('.table-quad')
+        const tlBefore = quadsBefore.find(q => q.classes('top-left'))
+        const blBefore = quadsBefore.find(q => q.classes('bottom-left'))
+        expect(tlBefore.text()).toContain('Bob')
+        expect(blBefore.text()).toContain('Alice')
         expect(wrapper.text()).toContain('Alice')
         expect(wrapper.text()).toContain('Bob')
 
@@ -91,14 +93,14 @@ describe('Touchpad — doubles quadrant display', () => {
         store.swapLeftPlayers()
         await nextTick()
 
-        // After swap: p1Top=1 (Bob), p1Bot=0 (Alice)
-        // The top-left quadrant should now show Bob
+        // After swap: p1Top=0 (Alice), p1Bot=1 (Bob)
+        // because Bob is now the server and MUST be at Bottom
         const quads = wrapper.findAll('.table-quad')
         const topLeft = quads.find(q => q.classes('top-left'))
         const bottomLeft = quads.find(q => q.classes('bottom-left'))
         if (topLeft && bottomLeft) {
-            expect(topLeft.text()).toContain('Bob')
-            expect(bottomLeft.text()).toContain('Alice')
+            expect(topLeft.text()).toContain('Alice')
+            expect(bottomLeft.text()).toContain('Bob')
         }
     })
 
@@ -109,10 +111,15 @@ describe('Touchpad — doubles quadrant display', () => {
         store.pointStarted = true
         await nextTick()
 
+        // Carol is receiver @ Top-Right, Dave @ Bottom-Right
+        const trBefore = wrapper.find('.top-right')
+        expect(trBefore.text()).toContain('Carol')
+
         store.swapRightPlayers()
         await nextTick()
 
         // After swap: p2Top=1 (Dave), p2Bot=0 (Carol)
+        // because Dave is now the receiver and MUST be at Top
         const quads = wrapper.findAll('.table-quad')
         const topRight = quads.find(q => q.classes('top-right'))
         const bottomRight = quads.find(q => q.classes('bottom-right'))
@@ -145,28 +152,31 @@ describe('Touchpad — doubles top-row Swap Players buttons', () => {
         const { wrapper, store } = mountComponent(doublesMatch)
         await nextTick()
 
-        // p1Top=0 (Alice), p1Bot=1 (Bob) before
-        expect(store.p1Top).toBe(0)
-        expect(store.p1Bot).toBe(1)
+        // p1Top=1 (Bob), p1Bot=0 (Alice) before
+        // because Alice is server and must be at Bottom
+        expect(store.p1Top).toBe(1)
+        expect(store.p1Bot).toBe(0)
 
         await wrapper.find('#tp-swap-left-btn').trigger('click')
         await nextTick()
 
-        // After swap: p1Top=1, p1Bot=0
-        expect(store.p1Top).toBe(1)
-        expect(store.p1Bot).toBe(0)
+        // After swap: Bob is server, so p1Bot=1, p1Top=0
+        expect(store.p1Top).toBe(0)
+        expect(store.p1Bot).toBe(1)
     })
 
     test('clicking Swap right button calls swapRightPlayers()', async () => {
         const { wrapper, store } = mountComponent(doublesMatch)
         await nextTick()
 
+        // Dave must be receiver, so he moves to Top.
         expect(store.p2Top).toBe(0)
         expect(store.p2Bot).toBe(1)
 
         await wrapper.find('#tp-swap-right-btn').trigger('click')
         await nextTick()
 
+        // New receiver is Dave(1), so p2Top=1
         expect(store.p2Top).toBe(1)
         expect(store.p2Bot).toBe(0)
     })

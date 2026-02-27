@@ -32,17 +32,22 @@ describe('Plan 1.1 – Quadrant state & swap actions', () => {
         store.selectMatch(doublesMatch)
     })
 
-    it('initial quadrant indices are 0, 1, 0, 1', () => {
-        expect(store.p1Top).toBe(0)
-        expect(store.p1Bot).toBe(1)
+    it('initial quadrant indices reflect Alice/Server at bottom-left', () => {
+        // server={team:1,player:0} (Alice), receiver={team:2,player:0} (X)
+        // Team1 on Left -> Alice(0) @ Bot -> p1Bot=0, p1Top=1
+        // Team2 on Right -> X(0) @ Top -> p2Top=0, p2Bot=1
+        expect(store.p1Top).toBe(1)
+        expect(store.p1Bot).toBe(0)
         expect(store.p2Top).toBe(0)
         expect(store.p2Bot).toBe(1)
     })
 
-    it('swapLeftPlayers() toggles p1Top ↔ p1Bot', () => {
+    it('swapLeftPlayers() toggles indices via server shift', () => {
         store.swapLeftPlayers()
-        expect(store.p1Top).toBe(1)
-        expect(store.p1Bot).toBe(0)
+        // Team1 is serving at 0-0. Swapping means opponent now expects B serving.
+        // So p1Bot becomes 1 (B), p1Top becomes 0 (A)
+        expect(store.p1Top).toBe(0)
+        expect(store.p1Bot).toBe(1)
         // p2 unchanged
         expect(store.p2Top).toBe(0)
         expect(store.p2Bot).toBe(1)
@@ -51,42 +56,47 @@ describe('Plan 1.1 – Quadrant state & swap actions', () => {
     it('swapLeftPlayers() twice returns to original', () => {
         store.swapLeftPlayers()
         store.swapLeftPlayers()
-        expect(store.p1Top).toBe(0)
-        expect(store.p1Bot).toBe(1)
+        expect(store.p1Top).toBe(1)
+        expect(store.p1Bot).toBe(0)
     })
 
-    it('swapRightPlayers() toggles p2Top ↔ p2Bot', () => {
+    it('swapRightPlayers() toggles via receiver shift', () => {
         store.swapRightPlayers()
+        // Team2 is receiving. Swapping means Y(1) is now receiver @ Top.
+        // So p2Top=1, p2Bot=0
         expect(store.p2Top).toBe(1)
         expect(store.p2Bot).toBe(0)
-        // p1 unchanged
-        expect(store.p1Top).toBe(0)
-        expect(store.p1Bot).toBe(1)
+        // p1 unchanged (still A@Bot)
+        expect(store.p1Top).toBe(1)
+        expect(store.p1Bot).toBe(0)
     })
 
     it('quadrant getters return correct players when swappedSides=false', () => {
         // Left = team1, Right = team2
-        expect(store.doublesLeftTopPlayer.name).toBe('A')   // team1[p1Top=0]
-        expect(store.doublesLeftBotPlayer.name).toBe('B')   // team1[p1Bot=1]
-        expect(store.doublesRightTopPlayer.name).toBe('X')  // team2[p2Top=0]
+        expect(store.doublesLeftTopPlayer.name).toBe('B')   // team1[p1Top=1]
+        expect(store.doublesLeftBotPlayer.name).toBe('A')   // team1[p1Bot=0] Alice is server
+        expect(store.doublesRightTopPlayer.name).toBe('X')  // team2[p2Top=0] X is receiver
         expect(store.doublesRightBotPlayer.name).toBe('Y')  // team2[p2Bot=1]
     })
 
     it('quadrant getters swap sides correctly when swappedSides=true', () => {
         store.swappedSides = true
-        // Left = team2 (using p2 indices), Right = team1 (using p1 indices)
-        expect(store.doublesLeftTopPlayer.name).toBe('X')   // team2[p2Top=0]
-        expect(store.doublesLeftBotPlayer.name).toBe('Y')   // team2[p2Bot=1]
-        expect(store.doublesRightTopPlayer.name).toBe('A')  // team1[p1Top=0]
-        expect(store.doublesRightBotPlayer.name).toBe('B')  // team1[p1Bot=1]
+        store.syncDoublesQuadrants()
+        // Left = team2. active=X(0)@Bot. Right = team1. active=A(0)@Top.
+        expect(store.doublesLeftTopPlayer.name).toBe('Y')
+        expect(store.doublesLeftBotPlayer.name).toBe('X')
+        expect(store.doublesRightTopPlayer.name).toBe('A')
+        expect(store.doublesRightBotPlayer.name).toBe('B')
     })
 
     it('quadrant getters reflect swapLeftPlayers() after side swap', () => {
-        store.swapLeftPlayers()          // p1Top=1, p1Bot=0
+        store.swapLeftPlayers()          // Changes server to B(1). p1Bot=1, p1Top=0.
         store.swappedSides = true
-        // Left is now team2, Right is now team1 (using p1 indices after swap)
-        expect(store.doublesRightTopPlayer.name).toBe('B')  // team1[p1Top=1]
-        expect(store.doublesRightBotPlayer.name).toBe('A')  // team1[p1Bot=0]
+        store.syncDoublesQuadrants()
+        // Left = team2, Right = team1. Server B(1) on Right side must be at TOP.
+        // So p1Top=1.
+        expect(store.doublesRightTopPlayer.name).toBe('B')
+        expect(store.doublesRightBotPlayer.name).toBe('A')
     })
 
     it('decidingSwapDone resets to false on selectMatch()', () => {
@@ -149,9 +159,32 @@ describe('Plan 1.2 – Doubles serve rotation formula', () => {
         expect(store.doublesServerName).toBe('Y')
     })
 
-    it('deuce 11-11: servesPassed=12 → cyclePos=0 → A serves again', () => {
+    it('at 11-11: servesPassed=12 → cyclePos=0 → A serves again', () => {
         scorePoints(store, 11, 11)
         expect(store.doublesServerName).toBe('A')
+    })
+
+    it('repro bug fix: at 2-0, quadrants swap automatically for new receiver Alto', () => {
+        // 0-0: A serves to X. Left team is {A, B}, A is @Bot. Right is {X, Y}, X is @Top.
+        expect(store.doublesLeftBotPlayer.name).toBe('A')
+        expect(store.doublesRightTopPlayer.name).toBe('X')
+
+        // Score 2 points -> 2-0. Serve rotates.
+        // Rotation: X serves to B (Partner of A).
+        // X is on Right Team. X(0) must move to Top quadrant on Right? No, Right active is Top.
+        // B is on Left Team. B(1) must move to Bottom quadrant on Left.
+        store.isStarted = true
+        store.pointStarted = true
+        store.handleScore(1, 1) // 1-0
+        store.pointStarted = true
+        store.handleScore(1, 1) // 2-0 -> Serve rotation triggered
+
+        expect(store.doublesServerName).toBe('X')
+        expect(store.doublesReceiverName).toBe('B')
+
+        // VERIFY AUTOMATIC QUADRANT SWAP
+        expect(store.doublesRightTopPlayer.name).toBe('X') // Server X @ Top-Right
+        expect(store.doublesLeftBotPlayer.name).toBe('B')  // Receiver B @ Bottom-Left (Alto equivalent in user story)
     })
 })
 
@@ -369,20 +402,29 @@ describe('Plan 1.3 – Deciding-game side swap', () => {
         expect(store.decidingSwapDone).toBe(true)
     })
 
-    it('doubles: initial receiver (team2) ends up on left after swap — receives extra swap', () => {
+    it('doubles: receiver changes according to deciding game rule', () => {
         const store = buildStore('doubles')
-        // Initial: server=team1, receiver=team2. swappedSides=false → left=team1.
-        // After toggle: swappedSides=true → left=team2 (receiver side).
-        // Receiver on left → extra swapLeft → net effect: p1Top=0,p1Bot=1 (cancelled) + p2 swaps once
-        store.p1Score = 4
-        store.startPoint()
-        store.handleScore(1, 1)
-        // After toggle (swappedSides=true), receivingTeam=2, leftTeam=2 → swap left again
-        // p1: swapped then swapped back = 0,1  p2: swapped once = 1,0
-        expect(store.p1Top).toBe(0)
-        expect(store.p1Bot).toBe(1)
-        expect(store.p2Top).toBe(1)
-        expect(store.p2Bot).toBe(0)
+        // Initial rotation: A->X, X->B, B->Y, Y->A
+        // Suppose swap at score 5-0 (server=B, receiver=Y - wait, cyclePos=2 is 4-5 pts)
+        // total=4 -> servesPassed=2. cycle[2] = {S:B, R:Y}.
+        // Next would be cycle[3] = {S:Y, R:A}.
+        scorePoints(store, 4, 1)
+        expect(store.doublesServerName).toBe('B')
+        expect(store.doublesReceiverName).toBe('Y')
+
+        store.pointStarted = true
+        store.handleScore(1, 1) // 5-1. TRIGGER SWAP.
+
+        // Before swap, at 5-1, it was cyclePos=3 (total=6 -> servesPassed=3).
+        // Cycle[3] servedTo was Y->A.
+        // Post-swap rule: "pair having right to receive next shall change...".
+        // Next serving team is team1 (was receiver). Wait, next server is Y?
+        // Let's check who is serving now at 5-1.
+        // total=6. floor(6/2)=3. cycle[3]= {server:Y, receiver:A}.
+        // Rule: A (receiver) should swap with B.
+        // So receiver becomes B.
+        expect(store.doublesServerName).toBe('Y')
+        expect(store.doublesReceiverName).toBe('B') // WAS A before swap logic
     })
 
     it('decidingSwapDone prevents double-trigger on next point', () => {

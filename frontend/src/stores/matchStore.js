@@ -226,6 +226,7 @@ export const useMatchStore = defineStore('match', {
     selectMatch(match) {
       this.currentMatch = match
       this.resetMatchState()
+      this.syncDoublesQuadrants()
     },
 
     resetMatchState() {
@@ -285,14 +286,14 @@ export const useMatchStore = defineStore('match', {
         this.server = this.initialServer
 
         // For doubles: also reset quadrant swap for new game start
-        // (sides swapped via swappedSides above, within-side positions reset to default)
+        // (sides swapped via swappedSides above, player positions synchronized later)
         if (this.currentMatch?.type === 'doubles') {
+          // Reset initial indices to ensure sync starts from clean state
           this.p1Top = 0
           this.p1Bot = 1
           this.p2Top = 0
           this.p2Bot = 1
-          // doublesInitialServer/Receiver will be set by setDoublesServerForNewGame()
-          // when the umpire selects the server in the UI modal
+          // syncDoublesQuadrants() will be called after initial server selection
         }
 
         // Initialize next game score in proxy
@@ -300,18 +301,77 @@ export const useMatchStore = defineStore('match', {
       }
     },
 
+    syncDoublesQuadrants() {
+      if (!this.currentMatch || this.currentMatch.type !== 'doubles') return
+
+      const pair = this.doublesCurrentPair
+      const t1IsLeft = !this.swappedSides
+
+      // ITTF rules: Server serves diagonally from their right-half court.
+      // In our UI grid from umpire perspective:
+      // Left side: bottom quadrant (pXBot) is the "Right" half.
+      // Right side: top quadrant (pXTop) is the "Right" half.
+
+      if (t1IsLeft) {
+        // Team 1 is Left. Active player (server/receiver) must be in p1Bot.
+        const t1Active = (pair.server.team === 1) ? pair.server.player : pair.receiver.player
+        this.p1Bot = t1Active
+        this.p1Top = 1 - t1Active
+
+        // Team 2 is Right. Active player (server/receiver) must be in p2Top.
+        const t2Active = (pair.server.team === 2) ? pair.server.player : pair.receiver.player
+        this.p2Top = t2Active
+        this.p2Bot = 1 - t2Active
+      } else {
+        // Team 1 is Right. Active player must be in p1Top.
+        const t1Active = (pair.server.team === 1) ? pair.server.player : pair.receiver.player
+        this.p1Top = t1Active
+        this.p1Bot = 1 - t1Active
+
+        // Team 2 is on Left. Active player must be in p2Bot.
+        const t2Active = (pair.server.team === 2) ? pair.server.player : pair.receiver.player
+        this.p2Bot = t2Active
+        this.p2Top = 1 - t2Active
+      }
+    },
+
     toggleSwapSides() {
       this.swappedSides = !this.swappedSides
+      this.syncDoublesQuadrants()
     },
 
     // Doubles only: swap which player is top vs bottom on the LEFT side (team1)
     swapLeftPlayers() {
-      ;[this.p1Top, this.p1Bot] = [this.p1Bot, this.p1Top]
+      if (this.currentMatch?.type !== 'doubles') return
+      const teamNum = this.swappedSides ? 2 : 1
+      this.swapPlayerOnTeam(teamNum)
     },
 
     // Doubles only: swap which player is top vs bottom on the RIGHT side (team2)
     swapRightPlayers() {
-      ;[this.p2Top, this.p2Bot] = [this.p2Bot, this.p2Top]
+      if (this.currentMatch?.type !== 'doubles') return
+      const teamNum = this.swappedSides ? 1 : 2
+      this.swapPlayerOnTeam(teamNum)
+    },
+
+    // Helper for manual quadrant corrections: toggles player indices and re-calibrates rotation
+    swapPlayerOnTeam(teamNum) {
+      const pair = this.doublesCurrentPair
+      const isServerTeam = pair.server.team === teamNum
+      const currentPlayerIdx = isServerTeam ? pair.server.player : pair.receiver.player
+      const nextPlayerIdx = 1 - currentPlayerIdx
+
+      if (isServerTeam) {
+        this.setDoublesServer(teamNum, nextPlayerIdx)
+      } else {
+        // Calibrate rotation so the partner becomes the receiver instead
+        if (teamNum === this.doublesInitialReceiver.team) {
+          this.doublesInitialReceiver.player = 1 - this.doublesInitialReceiver.player
+        } else {
+          this.doublesInitialServer.player = 1 - this.doublesInitialServer.player
+        }
+        this.syncDoublesQuadrants()
+      }
     },
 
     setServer(s) {
@@ -402,6 +462,7 @@ export const useMatchStore = defineStore('match', {
       }
       this.doublesInitialServer = newInitialServer
       this.doublesInitialReceiver = newInitialReceiver
+      this.syncDoublesQuadrants()
     },
 
     // Called at the START of a new game once the serving team has chosen their server.
@@ -446,6 +507,7 @@ export const useMatchStore = defineStore('match', {
 
       this.doublesInitialServer = newServer
       this.doublesInitialReceiver = mandatoryReceiver
+      this.syncDoublesQuadrants()
     },
 
     startTimer(callback) {
@@ -517,24 +579,20 @@ export const useMatchStore = defineStore('match', {
         this.swappedSides = !this.swappedSides
 
         if (this.currentMatch?.type === 'doubles') {
-          // Both pairs swap within their side (everyone moves to the new position)
-          ;[this.p1Top, this.p1Bot] = [this.p1Bot, this.p1Top]
-            ;[this.p2Top, this.p2Bot] = [this.p2Bot, this.p2Top]
+          // Requirement: "the pair having the right to receive next shall change their order of receiving"
+          const pair = this.doublesCurrentPair
+          const receivingTeam = pair.receiver.team
 
-          // Receiving pair gets ONE ADDITIONAL swap (to adjust receive rotation)
-          // Determine which side the receiving team is on AFTER the swappedSides toggle
-          const receivingTeam = this.doublesInitialReceiver.team
-          const leftTeam = this.swappedSides ? 2 : 1
-          if (receivingTeam === leftTeam) {
-            // Receiver is now on the left — swap left players again
-            ;[this.p1Top, this.p1Bot] = [this.p1Bot, this.p1Top]
+          if (receivingTeam === this.doublesInitialReceiver.team) {
+            this.doublesInitialReceiver.player = 1 - this.doublesInitialReceiver.player
           } else {
-            // Receiver is now on the right — swap right players again
-            ;[this.p2Top, this.p2Bot] = [this.p2Bot, this.p2Top]
+            this.doublesInitialServer.player = 1 - this.doublesInitialServer.player
           }
+          // syncDoublesQuadrants will place players in correct positions after the side swap + receiver change
         }
-        // For singles: only swappedSides toggled above — no within-side player swaps
       }
+      // Apply quadrant updates if scores changed
+      this.syncDoublesQuadrants()
     },
   },
 })
