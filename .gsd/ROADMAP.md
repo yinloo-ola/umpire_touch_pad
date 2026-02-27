@@ -1,6 +1,6 @@
 # ROADMAP.md
 
-> **Current Phase**: Phase 2 — SetupView Doubles UI
+> **Current Phase**: Phase 2 — Vitest Setup & Phase 1 Tests
 > **Milestone**: v1.0 — Complete Doubles Match Feature
 
 ---
@@ -41,7 +41,34 @@
 
 ---
 
-### Phase 2: SetupView — Doubles Four-Quadrant Court
+### Phase 2: Testing — Vitest Setup & Phase 1 Store Tests
+**Status**: ⬜ Not Started
+**Objective**: Install Vitest in the frontend project, wire up Pinia test helpers, and write a comprehensive unit test suite for all `matchStore.js` doubles logic introduced in Phase 1. Tests must pass and be runnable via `make test`.
+
+**Tasks**:
+- Install `vitest` + `@vitest/ui` + `@pinia/testing` as dev dependencies
+- Add `test` and `test:watch` scripts to `package.json`
+- Add `make test` target to the root `Makefile`
+- Configure `vite.config.js` with a `test` block (globals, environment)
+- Write `frontend/src/stores/__tests__/matchStore.doubles.test.js` covering:
+  - `swapLeftPlayers()` / `swapRightPlayers()` index toggling (Plan 1.1)
+  - Quadrant getters: correct player returned with `swappedSides` false and true (Plan 1.1)
+  - Rotation formula: `doublesServerName` / `doublesReceiverName` at scores 0-0, 2-0, 4-0, 6-0 (full cycle) (Plan 1.2)
+  - Deuce rotation: at 10-10 and beyond, every single point advances the rotation (Plan 1.2)
+  - Singles guard: `server` state is NOT mutated by `handleScore()` when `type === 'doubles'` (Plan 1.2)
+  - `setDoublesServer()` umpire override: correct recalibration at cyclePos 0, 1, 2, 3 (Plan 1.2)
+  - `setDoublesServerForNewGame()`: mandatory receiver derived correctly from prev-game cycle (Plan 1.3)
+  - `nextGame()` for doubles: records `prevDoublesInitialServer/Receiver`, sets `doublesNextServingTeam`, resets quadrant indices (Plan 1.3)
+  - Deciding-game swap (singles): `swappedSides` toggles, no quadrant index changes (Plan 1.3)
+  - Deciding-game swap (doubles): all four indices swap + one extra swap on receiving side (Plan 1.3)
+  - `decidingSwapDone` prevents double-trigger (Plan 1.3)
+- **Requirement**: REQ-TEST-01 through REQ-TEST-11
+
+**Requirements Link**: Plans 1.1, 1.2, 1.3 success criteria
+
+---
+
+### Phase 3: SetupView — Doubles Four-Quadrant Court
 **Status**: ⬜ Not Started
 **Objective**: Update SetupView to show 4 player quadrants for doubles matches, with two "Swap Players" buttons (left and right) and correct server/receiver designation UI that handles both singles and doubles.
 
@@ -55,13 +82,14 @@
 - For between-game (doubles): show a "Who serves first?" modal for the serving team with the two player choices; auto-set receiver based on choice
 - Style the player cards in each quadrant to show: player label (P1, P1D, P2, P2D), flag/icon, name, country
 - Ensure Swap sides button still works (swaps all 4 players across the net)
+- Write component/store integration tests for SetupView doubles layout, quadrant rendering, swap button behaviour, and `setDoublesServerForNewGame()` being called correctly from the modal
 - **Requirement**: REQ-UI-SETUP-01 through REQ-UI-SETUP-06
 
 **Requirements Link**: SPEC § UX Design Notes (SetupView)
 
 ---
 
-### Phase 3: Touchpad — Doubles Live Scoring UI
+### Phase 4: Touchpad — Doubles Live Scoring UI
 **Status**: ⬜ Not Started
 **Objective**: Update the live scoring Touchpad view to correctly show 4 quadrants during doubles play, display the current individual server and receiver by name, and keep the Swap Players buttons accessible during the game.
 
@@ -73,13 +101,14 @@
 - Serve indicator override for doubles: clicking the Receiver indicator calls the new `setDoublesServerForNewGame`-style override, adjusting `doublesServer`/`doublesReceiver` directly
 - Score summary table: show "T1" / "T2" team names (since player count doesn't fit); already works
 - Mid-game deciding swap: no UI trigger needed (auto-triggers at 5 points); potentially show a brief toast/flash to inform the umpire
+- Write component/store integration tests for Touchpad doubles: quadrant display, serve indicator name update per rotation point, Swap Players buttons wiring, and serve override callback
 - **Requirement**: REQ-UI-TOUCH-01 through REQ-UI-TOUCH-05
 
 **Requirements Link**: SPEC § UX Design Notes (Touchpad), § Deciding-Game Mid-Game Swap
 
 ---
 
-### Phase 4: Deciding-Game Swap + Between-Game Modal + Polish
+### Phase 5: Deciding-Game Swap + Between-Game Modal + Polish
 **Status**: ⬜ Not Started
 **Objective**: Implement the deciding-game side-swap for both singles and doubles (at 5 points), build the between-game serve selection modal for doubles, verify the full match flow works end-to-end, and handle edge cases.
 
@@ -96,6 +125,7 @@
   - Umpire correction mid-game: override `doublesServer` + recalibrate rotation
 - Smoke test: manually play through a full 3-game doubles match and verify all rotations are correct
 - Update `ARCHITECTURE.md` with new store fields and component changes
+- Write end-to-end store-level tests for edge cases: Best-of-7 deciding game, deuce rotation at 10-10+, umpire mid-game correction via `setDoublesServer()`, and full 3-game doubles match rotation walkthrough
 - **Requirement**: REQ-EDGE-01 through REQ-EDGE-05
 
 **Requirements Link**: SPEC § Deciding-Game Mid-Game Swap, § Between-Game Rules
