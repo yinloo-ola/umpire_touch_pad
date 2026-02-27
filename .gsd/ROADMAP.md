@@ -1,6 +1,6 @@
 # ROADMAP.md
 
-> **Current Phase**: Not started
+> **Current Phase**: Phase 2 — SetupView Doubles UI
 > **Milestone**: v1.0 — Complete Doubles Match Feature
 
 ---
@@ -18,7 +18,7 @@
 ## Phases
 
 ### Phase 1: Store Foundation — Doubles State & Quadrant Model
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Extend `matchStore.js` with all new state fields and core logic for doubles: quadrant positions, doubles server/receiver tracking, and the A→X→B→Y→A rotation engine. No UI changes yet — just the data layer.
 
 **Tasks**:

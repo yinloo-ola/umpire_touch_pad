@@ -3,25 +3,24 @@
 > Last updated: 2026-02-27
 
 ## Current Phase
-**Phase 1** — Store Foundation (planned, ready for `/execute 1`)
+**Phase 2** — SetupView Doubles UI (ready for `/plan 2` or `/execute 2`)
 
 ## Last Session Summary
-Project fully initialized via `/new-project`.
-- Codebase mapped: 5 components, 13 debt items
-- SPEC.md finalized: doubles match feature with full ITTF serve rotation
-- ROADMAP.md created: 4 phases
-- All GSD docs initialized
+Phase 1 executed and verified successfully.
+- 3 plans, 8 tasks completed in one session
+- Full matchStore.js rewritten: 221 → 358 lines
+- Build passes: `✓ built in 371ms`
 
 ## Current Status
 - [x] Codebase mapped → ARCHITECTURE.md, STACK.md
 - [x] SPEC.md created (FINALIZED)
 - [x] ROADMAP.md created (4 phases)
 - [x] DECISIONS.md, JOURNAL.md, TODO.md initialized
-- [ ] Phase 1: Store Foundation ← **READY** (3 plans created)
-  - 1.1: Quadrant state + swap actions + getters (wave 1)
-  - 1.2: Doubles serve rotation engine (wave 1)
-  - 1.3: Between-game serve setup + deciding-game swap (wave 2)
-- [ ] Phase 2: SetupView Doubles UI
+- [x] Phase 1: Store Foundation ✅ COMPLETE (commit 58ccda1)
+  - 1.1: Quadrant state + swap actions + getters ✅
+  - 1.2: Doubles serve rotation engine ✅
+  - 1.3: Between-game serve setup + deciding-game swap ✅
+- [ ] Phase 2: SetupView Doubles UI ← **NEXT**
 - [ ] Phase 3: Touchpad Doubles UI
 - [ ] Phase 4: Deciding-game swap + polish
 
@@ -34,3 +33,4 @@ None
 - Backend: Go 1.24.1 REST server (hardcoded data, no DB)
 - Dev workflow: `make dev`
 - Key complexity: A→X→B→Y→A rotation formula + between-game constrained receiver
+- Phase 1 key decisions: All new getters use `(state) =>` arrow form (never `this.`); setDoublesServer() uses backward-calculation from cyclePos; setDoublesServerForNewGame() uses "served-to" map for mandatory receiver derivation
