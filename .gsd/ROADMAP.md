@@ -69,7 +69,7 @@
 ---
 
 ### Phase 3: SetupView — Doubles Four-Quadrant Court
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Update SetupView to show 4 player quadrants for doubles matches, with two "Swap Players" buttons (left and right) and correct server/receiver designation UI that handles both singles and doubles.
 
 **Tasks**:
