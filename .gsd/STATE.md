@@ -33,8 +33,7 @@ Phase 3 complete (3 plans, 3 waves, all verified).
 - [ ] Phase 5: Deciding-game swap + polish
 
 ## Next Steps
-1. `/plan 4` — plan Touchpad Doubles UI, or
-2. `/execute 4` — execute directly if plans exist
+1. `/execute 4` — run plans 4.1 and 4.2
 
 ## Known Blockers
 None
