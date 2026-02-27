@@ -1,6 +1,6 @@
 # ROADMAP.md
 
-> **Current Phase**: Phase 2 — Vitest Setup & Phase 1 Tests
+> **Current Phase**: Phase 3 — SetupView Doubles Four-Quadrant Court
 > **Milestone**: v1.0 — Complete Doubles Match Feature
 
 ---
@@ -42,7 +42,7 @@
 ---
 
 ### Phase 2: Testing — Vitest Setup & Phase 1 Store Tests
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Install Vitest in the frontend project, wire up Pinia test helpers, and write a comprehensive unit test suite for all `matchStore.js` doubles logic introduced in Phase 1. Tests must pass and be runnable via `make test`.
 
 **Tasks**:
