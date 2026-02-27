@@ -6,12 +6,10 @@
 **Phase 3** — SetupView Doubles Four-Quadrant Court
 
 ## Last Session Summary
-Phase 2 executed and verified successfully.
-- 2 plans, 5 tasks completed
-- Vitest + @pinia/testing + happy-dom installed
-- `vite.config.js` configured with `test: { globals: true, environment: 'happy-dom' }`
-- 39 unit tests written for all Phase 1 matchStore doubles logic — 0 failures
-- `make test` wired and passing from root
+Phase 3 planned (3 plans, 3 waves).
+- 3.1: Doubles court layout (4-quadrant grid + Swap Players buttons) — wave 1
+- 3.2: Doubles serve designation (indicator names + between-game modal) — wave 2
+- 3.3: SetupView integration tests — wave 3
 
 ## Current Status
 - [x] Codebase mapped → ARCHITECTURE.md, STACK.md
@@ -25,9 +23,15 @@ Phase 2 executed and verified successfully.
 - [x] Phase 2: Vitest Setup & Phase 1 Store Tests ✅ COMPLETE (commits 0f2b115, 361a41f)
   - 2.1: Vitest install, vite config, make test ✅
   - 2.2: 39 unit tests, all passing ✅
-- [ ] Phase 3: SetupView Doubles UI ← **NEXT**
+- [ ] Phase 3: SetupView Doubles UI ← **IN PROGRESS** (planned, ready for /execute 3)
+  - 3.1: Doubles court layout — 4-quadrant grid + Swap Players buttons (wave 1)
+  - 3.2: Doubles serve designation + between-game modal (wave 2)
+  - 3.3: SetupView integration tests (wave 3)
 - [ ] Phase 4: Touchpad Doubles UI
 - [ ] Phase 5: Deciding-game swap + polish
+
+## Next Steps
+1. `/execute 3` — run Plan 3.1 first, then 3.2, then 3.3
 
 ## Known Blockers
 None
@@ -40,3 +44,4 @@ None
 - Key complexity: A→X→B→Y→A rotation formula + between-game constrained receiver
 - Phase 1 key decisions: All new getters use `(state) =>` arrow form (never `this.`); setDoublesServer() uses backward-calculation from cyclePos; setDoublesServerForNewGame() uses "served-to" map for mandatory receiver derivation
 - Phase 2 key decisions: `scorePoints()` helper directly sets store state to bypass pointStarted guard for fast rotation tests; full handleScore() flow used for deciding-game swap tests
+- Phase 3 key decisions: SetupView uses `v-if="isDoubles"` branching to keep singles path untouched; Swap Players buttons rendered alongside court grid (flex row); serve indicator click toggles leftDoublesPlayerIdx/rightDoublesPlayerIdx to allow umpire to pick either player; between-game modal reads doublesNextServingTeam from store (set by nextGame()); component tests use real store actions (stubActions: false) + a real vue-router instance
