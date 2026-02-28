@@ -41,3 +41,4 @@ None
 - Phase 5 key decisions: `midGameSwapPending` introduced to decouple score trigger from visual side-flip, ensuring umpire controls timing; `setDoublesServerForNewGame` moved from manual UI choice to automatic store update in `nextGame`; `swapPlayerOnTeam` updated to dynamically recalibrate mandatory receiver at game start (0-0); `ARCHITECTURE.md` updated to reflect the formalized doubles rotation and state machine expansions.
 
 - Debug Session 2: Decoupled UI manual state overrrides in SetupView and Touchpad from `syncDoublesQuadrants()` to prevent visually jumping players when toggling independent settings (Sides, Players, S/R). (Resolution committed)
+- Debug Session 3: Resolved issue where automatic receiver did not properly recalibrate upon swapping active server at start of games >= 2 by updating UI logic to funnel through swapPlayerOnTeam() logic. (Resolution committed)
