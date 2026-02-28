@@ -10,6 +10,7 @@ Phase 5 complete (3 plans, 2 waves, all verified).
 - 5.1: Deciding-Game Swap Modal (Alert modal prevents visual jitter; confirming swap flips sides and players) ✅
 - 5.2: Automatic Receiver + Polish (Receiver for games 2-5 now derived autonomously; server choice modal removed) ✅
 - 5.3: Phase 5 Comprehensive Testing — All tests pass (57 total: 43 store, 14 component) ✅
+- Debug Session: Fixed issue where sides and initial servers did not swap correctly after Game 1 if manually toggled during setup. (Resolution committed)
 
 
 ## Current Position

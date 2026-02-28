@@ -285,8 +285,8 @@ export const useMatchStore = defineStore('match', {
         this.decidingSwapDone = false
 
         // Requirement 5 & 6: Cycle sides and initial server (singles)
-        this.swappedSides = this.game % 2 === 0
-        this.initialServer = this.game % 2 === 0 ? 2 : 1
+        this.swappedSides = !this.swappedSides
+        this.initialServer = this.initialServer === 1 ? 2 : 1
         this.server = this.initialServer
 
         // For doubles: automate initial receiver selection for new game
