@@ -11,6 +11,7 @@ Phase 5 complete (3 plans, 2 waves, all verified).
 - 5.2: Automatic Receiver + Polish (Receiver for games 2-5 now derived autonomously; server choice modal removed) ✅
 - 5.3: Phase 5 Comprehensive Testing — All tests pass (57 total: 43 store, 14 component) ✅
 - Debug Session: Fixed issue where sides and initial servers did not swap correctly after Game 1 if manually toggled during setup. (Resolution committed)
+- Debug Session 2: Decoupled UI manual state overrrides in SetupView and Touchpad from `syncDoublesQuadrants()` to prevent visually jumping players when toggling independent settings (Sides, Players, S/R). (Resolution committed)
 
 
 ## Current Position
@@ -39,3 +40,4 @@ None
 - Phase 4 key decisions: Touchpad uses the same 4-quadrant grid pattern as SetupView, conditioned on `isDoubles`; Swap Players buttons replace Cards buttons in `top-row` for doubles; `swapServer` logic for doubles calculates the receiver on the clicked side and calls `setDoublesServer` to allow umpire override; integration tests mirror SetupView pattern with `createTestingPinia({ stubActions: false })` and a mock router.
 - Phase 5 key decisions: `midGameSwapPending` introduced to decouple score trigger from visual side-flip, ensuring umpire controls timing; `setDoublesServerForNewGame` moved from manual UI choice to automatic store update in `nextGame`; `swapPlayerOnTeam` updated to dynamically recalibrate mandatory receiver at game start (0-0); `ARCHITECTURE.md` updated to reflect the formalized doubles rotation and state machine expansions.
 
+- Debug Session 2: Decoupled UI manual state overrrides in SetupView and Touchpad from `syncDoublesQuadrants()` to prevent visually jumping players when toggling independent settings (Sides, Players, S/R). (Resolution committed)

@@ -111,33 +111,13 @@ const nextGame = () => {
 
 // Allows receiver to be designated as server mid-game (umpire correction)
 const swapServer = (side) => {
-  if (isDoubles.value) {
-    // Determine which player on that side is the receiver and make them server
-    const isReceiverOnLeft = !matchStore.isLeftDoublesServer && side === 'left'
-    const isReceiverOnRight = matchStore.isLeftDoublesServer && side === 'right'
-    if (isReceiverOnLeft || isReceiverOnRight) {
-      // Get receiver details from the pair and set as server
-      const A = matchStore.doublesInitialServer
-      const X = matchStore.doublesInitialReceiver
-      const B = { team: A.team, player: 1 - A.player }
-      const Y = { team: X.team, player: 1 - X.player }
-      const total = matchStore.p1Score + matchStore.p2Score
-      const servesPassed = (matchStore.p1Score >= 10 && matchStore.p2Score >= 10)
-        ? 10 + (total - 20) : Math.floor(total / 2)
-      const cycle = [
-        { server: A, receiver: X },
-        { server: X, receiver: B },
-        { server: B, receiver: Y },
-        { server: Y, receiver: A },
-      ]
-      const currentReceiver = cycle[servesPassed % 4].receiver
-      matchStore.setDoublesServer(currentReceiver.team, currentReceiver.player)
-    }
-  } else {
-    // Singles: existing logic
-    const playerOnSide =
-      side === 'left' ? (matchStore.swappedSides ? 2 : 1) : matchStore.swappedSides ? 1 : 2
-    matchStore.setServer(playerOnSide)
+  // Only swap if they clicked the side that is CURRENTLY the receiver
+  const isReceiver = isDoubles.value 
+    ? (side === 'left' ? !matchStore.isLeftDoublesServer : matchStore.isLeftDoublesServer)
+    : (side === 'left' ? !matchStore.isLeftServer : matchStore.isLeftServer)
+
+  if (isReceiver) {
+    matchStore.calibrateServeStateFromUI(side)
   }
 }
 

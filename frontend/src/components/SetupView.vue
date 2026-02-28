@@ -60,21 +60,9 @@ const swapRight = () => matchStore.swapRightPlayers()
 const leftTeam  = computed(() => matchStore.swappedSides ? 2 : 1)
 const rightTeam = computed(() => matchStore.swappedSides ? 1 : 2)
 
-const leftDoublesPlayerIdx  = ref(0)
-const rightDoublesPlayerIdx = ref(0)
-
-const setLeftServerDoubles = () => {
-  leftDoublesPlayerIdx.value = 1 - leftDoublesPlayerIdx.value
-  matchStore.setDoublesServer(leftTeam.value, leftDoublesPlayerIdx.value)
-}
-const setRightServerDoubles = () => {
-  rightDoublesPlayerIdx.value = 1 - rightDoublesPlayerIdx.value
-  matchStore.setDoublesServer(rightTeam.value, rightDoublesPlayerIdx.value)
-}
-
 // Unified click handlers (works for both singles and doubles)
-const onLeftIndicatorClick  = () => isDoubles.value ? setLeftServerDoubles()  : setLeftServer()
-const onRightIndicatorClick = () => isDoubles.value ? setRightServerDoubles() : setRightServer()
+const onLeftIndicatorClick  = () => matchStore.calibrateServeStateFromUI('left')
+const onRightIndicatorClick = () => matchStore.calibrateServeStateFromUI('right')
 
 // Doubles: display individual player name beneath the S/R circle
 const leftIndicatorPlayerName = computed(() => {
@@ -90,13 +78,9 @@ const rightIndicatorPlayerName = computed(() => {
     : matchStore.doublesServerName
 })
 
-
-
-// ── Singles actions ───────────────────────────────────────────────────────────
+// ── Shared actions ───────────────────────────────────────────────────────────
 const goBack = () => router.push('/')
 const toggleSwap = () => matchStore.toggleSwapSides()
-const setLeftServer = () => matchStore.setServer(matchStore.swappedSides ? 2 : 1)
-const setRightServer = () => matchStore.setServer(matchStore.swappedSides ? 1 : 2)
 
 const promptWarmup = () => {
   showWarmupModal.value = true

@@ -345,23 +345,87 @@ export const useMatchStore = defineStore('match', {
       }
     },
 
+    // Manual overrides for UI (Setup & Umpire corrections)
+    // Decouples the physical quadrants from the logical S/R state so UI doesn't jump
+
+    calibrateServeStateFromUI(servingSide) {
+      if (!this.currentMatch) return
+
+      const leftTeam = this.swappedSides ? 2 : 1
+      const rightTeam = this.swappedSides ? 1 : 2
+
+      const serverTeamNum = servingSide === 'left' ? leftTeam : rightTeam
+
+      if (this.currentMatch.type === 'singles') {
+        this.setServer(serverTeamNum)
+        return
+      }
+
+      // Doubles active UI slots:
+      const leftActiveIdx = leftTeam === 1 ? this.p1Bot : this.p2Bot
+      const rightActiveIdx = rightTeam === 1 ? this.p1Top : this.p2Top
+
+      let serverPlayerIdx, receiverPlayerIdx
+      if (servingSide === 'left') {
+        serverPlayerIdx = leftActiveIdx
+        receiverPlayerIdx = rightActiveIdx
+      } else {
+        serverPlayerIdx = rightActiveIdx
+        receiverPlayerIdx = leftActiveIdx
+      }
+
+      const total = this.p1Score + this.p2Score
+      let servesPassed = (this.p1Score >= 10 && this.p2Score >= 10)
+        ? 10 + (total - 20) : Math.floor(total / 2)
+      const cyclePos = servesPassed % 4
+
+      const desiredS = { team: serverTeamNum, player: serverPlayerIdx }
+      const desiredR = { team: serverTeamNum === 1 ? 2 : 1, player: receiverPlayerIdx }
+      const partnerS = { team: desiredS.team, player: 1 - desiredS.player }
+      const partnerR = { team: desiredR.team, player: 1 - desiredR.player }
+
+      let A, X
+      if (cyclePos === 0) { A = desiredS; X = desiredR; }
+      else if (cyclePos === 1) { X = desiredS; A = partnerR; }
+      else if (cyclePos === 2) { A = partnerS; X = partnerR; }
+      else if (cyclePos === 3) { X = partnerS; A = desiredR; }
+
+      this.doublesInitialServer = A
+      this.doublesInitialReceiver = X
+    },
+
     toggleSwapSides() {
+      // Remember which visual side was serving
+      const wasLeftServing = this.currentMatch?.type === 'doubles'
+        ? this.isLeftDoublesServer
+        : this.isLeftServer
+
       this.swappedSides = !this.swappedSides
-      this.syncDoublesQuadrants()
+
+      // Keep serving on the same visual side by calibrating state to match UI
+      this.calibrateServeStateFromUI(wasLeftServing ? 'left' : 'right')
     },
 
     // Doubles only: swap which player is top vs bottom on the LEFT side (team1)
     swapLeftPlayers() {
       if (this.currentMatch?.type !== 'doubles') return
-      const teamNum = this.swappedSides ? 2 : 1
-      this.swapPlayerOnTeam(teamNum)
+      if (!this.swappedSides) {
+        const temp = this.p1Top; this.p1Top = this.p1Bot; this.p1Bot = temp;
+      } else {
+        const temp = this.p2Top; this.p2Top = this.p2Bot; this.p2Bot = temp;
+      }
+      this.calibrateServeStateFromUI(this.isLeftDoublesServer ? 'left' : 'right')
     },
 
     // Doubles only: swap which player is top vs bottom on the RIGHT side (team2)
     swapRightPlayers() {
       if (this.currentMatch?.type !== 'doubles') return
-      const teamNum = this.swappedSides ? 1 : 2
-      this.swapPlayerOnTeam(teamNum)
+      if (!this.swappedSides) {
+        const temp = this.p2Top; this.p2Top = this.p2Bot; this.p2Bot = temp;
+      } else {
+        const temp = this.p1Top; this.p1Top = this.p1Bot; this.p1Bot = temp;
+      }
+      this.calibrateServeStateFromUI(this.isLeftDoublesServer ? 'left' : 'right')
     },
 
     // Helper for manual quadrant corrections: toggles player indices and re-calibrates rotation
@@ -483,6 +547,50 @@ export const useMatchStore = defineStore('match', {
       }
       this.doublesInitialServer = newInitialServer
       this.doublesInitialReceiver = newInitialReceiver
+      this.syncDoublesQuadrants()
+    },
+
+    // Changes which team is serving without changing any player's quadrant position.
+    // The player currently in the right-half court of the new serving team becomes the server.
+    // The player currently in the right-half court of the new receiving team becomes the receiver.
+    changeServingTeamTo(teamNum) {
+      if (this.currentMatch?.type !== 'doubles') return
+
+      const pair = this.doublesCurrentPair
+      if (pair.server.team === teamNum) return // already serving
+
+      const t1IsLeft = !this.swappedSides
+      const t1Active = t1IsLeft ? this.p1Bot : this.p1Top
+      const t2Active = t1IsLeft ? this.p2Top : this.p2Bot
+
+      const newServerPlayerIdx = teamNum === 1 ? t1Active : t2Active
+      const newReceiverPlayerIdx = teamNum === 1 ? t2Active : t1Active
+
+      const total = this.p1Score + this.p2Score
+      let servesPassed = (this.p1Score >= 10 && this.p2Score >= 10)
+        ? 10 + (total - 20)
+        : Math.floor(total / 2)
+      const cyclePos = servesPassed % 4
+
+      const desiredS = { team: teamNum, player: newServerPlayerIdx }
+      const desiredR = { team: teamNum === 1 ? 2 : 1, player: newReceiverPlayerIdx }
+
+      const partnerS = { team: desiredS.team, player: 1 - desiredS.player }
+      const partnerR = { team: desiredR.team, player: 1 - desiredR.player }
+
+      let A, X
+      if (cyclePos === 0) {
+        A = desiredS; X = desiredR;
+      } else if (cyclePos === 1) {
+        X = desiredS; A = partnerR;
+      } else if (cyclePos === 2) {
+        A = partnerS; X = partnerR;
+      } else if (cyclePos === 3) {
+        X = partnerS; A = desiredR;
+      }
+
+      this.doublesInitialServer = A
+      this.doublesInitialReceiver = X
       this.syncDoublesQuadrants()
     },
 
