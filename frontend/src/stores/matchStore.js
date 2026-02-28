@@ -409,23 +409,15 @@ export const useMatchStore = defineStore('match', {
     // Doubles only: swap which player is top vs bottom on the LEFT side (team1)
     swapLeftPlayers() {
       if (this.currentMatch?.type !== 'doubles') return
-      if (!this.swappedSides) {
-        const temp = this.p1Top; this.p1Top = this.p1Bot; this.p1Bot = temp;
-      } else {
-        const temp = this.p2Top; this.p2Top = this.p2Bot; this.p2Bot = temp;
-      }
-      this.calibrateServeStateFromUI(this.isLeftDoublesServer ? 'left' : 'right')
+      const teamNum = this.swappedSides ? 2 : 1
+      this.swapPlayerOnTeam(teamNum)
     },
 
     // Doubles only: swap which player is top vs bottom on the RIGHT side (team2)
     swapRightPlayers() {
       if (this.currentMatch?.type !== 'doubles') return
-      if (!this.swappedSides) {
-        const temp = this.p2Top; this.p2Top = this.p2Bot; this.p2Bot = temp;
-      } else {
-        const temp = this.p1Top; this.p1Top = this.p1Bot; this.p1Bot = temp;
-      }
-      this.calibrateServeStateFromUI(this.isLeftDoublesServer ? 'left' : 'right')
+      const teamNum = this.swappedSides ? 1 : 2
+      this.swapPlayerOnTeam(teamNum)
     },
 
     // Helper for manual quadrant corrections: toggles player indices and re-calibrates rotation
