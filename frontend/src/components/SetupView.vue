@@ -57,26 +57,10 @@ const swapLeft  = () => matchStore.swapLeftPlayers()
 const swapRight = () => matchStore.swapRightPlayers()
 
 // ── Doubles serve designation ────────────────────────────────────────────────
-const leftTeam  = computed(() => matchStore.swappedSides ? 2 : 1)
-const rightTeam = computed(() => matchStore.swappedSides ? 1 : 2)
 
 // Unified click handlers (works for both singles and doubles)
 const onLeftIndicatorClick  = () => matchStore.calibrateServeStateFromUI('left')
 const onRightIndicatorClick = () => matchStore.calibrateServeStateFromUI('right')
-
-// Doubles: display individual player name beneath the S/R circle
-const leftIndicatorPlayerName = computed(() => {
-  if (!isDoubles.value) return ''
-  return matchStore.isLeftDoublesServer
-    ? matchStore.doublesServerName
-    : matchStore.doublesReceiverName
-})
-const rightIndicatorPlayerName = computed(() => {
-  if (!isDoubles.value) return ''
-  return matchStore.isLeftDoublesServer
-    ? matchStore.doublesReceiverName
-    : matchStore.doublesServerName
-})
 
 // ── Shared actions ───────────────────────────────────────────────────────────
 const goBack = () => router.push('/')
