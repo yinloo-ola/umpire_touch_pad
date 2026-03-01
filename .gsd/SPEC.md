@@ -162,17 +162,17 @@ The `cyclePos` maps to server/receiver relative to the initial pair:
 
 ## Success Criteria
 
-- [ ] **Doubles SetupView** shows 4 quadrants with correct player names in each
-- [ ] **Swap Players (left)** button swaps TL and BL players before and during the match
-- [ ] **Swap Players (right)** button swaps TR and BR players before and during the match
-- [ ] **Server/Receiver indicators** function identically to singles (don't need individual player names)
-- [ ] **Serve rotation** follows A→X→B→Y→A cycle exactly; verified by playing through 8 serves manually
-- [ ] **Between-game serve setup** correctly determines which player must receive based on previous game, triggered by swapping serving players without an extra modal
-- [ ] **Deciding game** triggers side swap at 5 points; both sides swap; receiving pair also swaps receive order
-- [ ] **Deciding game alert** shows modal "Decider game of Match, 5 points scored..." at 5-point swap
-- [ ] **Singles deciding game** triggers player swap at 5 points
-- [ ] **Singles behaviour unchanged** — all existing singles tests pass visually unchanged
-- [ ] **Swap Players buttons** remain functional during live scoring
+- [x] **Doubles SetupView** shows 4 quadrants with correct player names in each
+- [x] **Swap Players (left)** button swaps TL and BL players before and during the match
+- [x] **Swap Players (right)** button swaps TR and BR players before and during the match
+- [x] **Server/Receiver indicators** function identically to singles (don't need individual player names)
+- [x] **Serve rotation** follows A→X→B→Y→A cycle exactly; verified by playing through 8 serves manually
+- [x] **Between-game serve setup** correctly determines which player must receive based on previous game, triggered by swapping serving players without an extra modal
+- [x] **Deciding game** triggers side swap at 5 points; both sides swap; receiving pair also swaps receive order
+- [x] **Deciding game alert** shows modal "Decider game of Match, 5 points scored..." at 5-point swap
+- [x] **Singles deciding game** triggers player swap at 5 points
+- [x] **Singles behaviour unchanged** — all existing singles tests pass visually unchanged
+- [x] **Swap Players buttons** remain functional during live scoring
 
 ---
 
