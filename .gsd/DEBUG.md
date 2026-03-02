@@ -1,35 +1,34 @@
-# Debug Session: Doubles Receiver Not Updating
+# Debug Session: Cross-Game Revert Boundary
 
 ## Symptom
-For doubles, after the first game, at the start of the second game when the score is 0-0, if I click "swap players" for the server, the receiver should be changed automatically, but it doesn't.
+The user inquired whether undoing/reverting points when a new game has already started (e.g., at 1-0 due to carry-overs) will appropriately revert the match back to the previous game (Game 1 at 10-0).
 
-**When:** Start of second game (score 0-0), click "swap players" on server's side.
-**Expected:** The receiver changes automatically to match the mandatory receiver for the new server based on the previous game's rotation.
-**Actual:** The receiver does not change automatically.
-
-## Evidence
-- The UI (e.g., `SetupView.vue` and `Touchpad.vue`) calls `matchStore.swapLeftPlayers()` and `matchStore.swapRightPlayers()`.
-- These functions manually toggle physical quadrant variables (`p1Top`, `p1Bot`) and then call `calibrateServeStateFromUI()`.
-- `calibrateServeStateFromUI()` blindly assigns players based on the physical quadrant layout without applying the strict start-of-game mandatory receiver rules.
-- The correct logic (which uses `setDoublesServerForNewGame` to look up the mandatory receiver) is implemented in `swapPlayerOnTeam(teamNum)`, but this function is NEVER called by the UI.
+**When:** A game ends and `Next Game` is clicked, but an umpire wants to revert the scoring action that ended the previous game.
+**Expected:** State should revert across the `this.game` boundary.
+**Actual:** Implemented and Verified.
 
 ## Hypotheses
 
 | # | Hypothesis | Likelihood | Status |
 |---|------------|------------|--------|
-| 1 | UI is calling `swapLeftPlayers`/`swapRightPlayers` which bypass the correct logic in `swapPlayerOnTeam`. Refactoring them to use `swapPlayerOnTeam` will fix it. | 95% | CONFIRMED |
+| 1 | `matchStore` does not track previous game states to fully re-hydrate. | 100% | FIXED |
 
 ## Attempts
 
 ### Attempt 1
-**Testing:** H1 — Rewrite `swapLeftPlayers` and `swapRightPlayers` to call `swapPlayerOnTeam(teamNum)`.
-**Action:** Changed `frontend/src/stores/matchStore.js` `swapLeftPlayers()` and `swapRightPlayers()` to use `swapPlayerOnTeam` instead of physical quadrant swapping + UI calibration.
-**Result:** Passes the comprehensive doubles test suite. By leveraging `swapPlayerOnTeam`, the system correctly executes the mandatory receiver recalibration check (`this.setDoublesServerForNewGame`).
-**Conclusion:** CONFIRMED
+**Testing:** H1 — Reverting a penalty point in Game 2.
+**Action:** Wrote `matchStore.debug.test.js`.
+**Result:** Initial implementation did not support boundary crossing.
+**Conclusion:** Confirmed need for `gameHistory` snapshotting.
 
 ## Resolution
 
-**Root Cause:** The UI swap functions bypassed the store's strict logic for recalculating mandatory receivers, opting for a physical quadrant manual swap instead.
-**Fix:** Refactored `swapLeftPlayers` and `swapRightPlayers` to properly delegate to `swapPlayerOnTeam(teamNum)` which contains all necessary state syncing and start-of-game receptor hooks.
-**Verified:** Tests (`npm run test`) pass with 100% success rate.
-**Regression Check:** Verified no single or double tests broke, meaning the existing UI side effects of `swapPlayerOnTeam` match the intended behavior.
+**Root Cause:** The `matchStore` was not snapshotting state on `nextGame()`, making reverts bounded to the current game frame (minimum 0 points).
+**Fix:** 
+1. Added `gameHistory` array to state.
+2. `nextGame()` now pushes a snapshot including `scores`, `server`, `quadrants`, and `carryOverPoints`.
+3. Added `undoNextGame()` to pop and restore state.
+4. Integrated `undoNextGame()` call natively into both `handleScore` (minus) and `revertPenaltyPoints` if current points are insufficient for a reduction.
+**Verified:** `matchStore.debug.test.js` passes. 9-0 -> YR1 (10-0) -> YR2 (11-0) -> Next Game (Game 2 1-0) -> Revert YR2 -> Game 1 10-0.
+
+**Regression Check:** All 55 tests pass (Cards, Doubles, Penalty, Debug).

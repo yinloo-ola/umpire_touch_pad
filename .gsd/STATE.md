@@ -6,13 +6,18 @@
 **Milestone Card System** — Planned
 
 ## Last Session Summary
-Phase 2 executed successfully. 1 plan, 2 tasks completed.
+Phase 2 executed successfully with the addition of "Undo Next Game" functionality for cross-game score/card reverts.
 
 ## Current Position
 - **Milestone**: Card System
 - **Phase**: 3
 - **Task**: Planning phase 3
 - **Status**: Ready for planning
+
+## Achievement Notes
+- Implemented "Undo Next Game" functionality, supporting cross-game score/card reverts.
+- Integrated `gameHistory` snapshotting for full state recovery.
+- Phase 2 complete.
 
 ## Next Steps
 1. /plan 3
