@@ -33,9 +33,9 @@ The app already handles singles matches end-to-end. For doubles, the match list 
 5. **Deciding-game mid-game side swap** — at 5 points in the final game (game 5 of Best-of-5, game 7 of Best-of-7), both pairs swap sides AND the receiving pair additionally swaps their receive order
 6. **Singles deciding-game side swap** — same 5-point mid-game swap applies to singles (player swap left↔right)
 7. **Card System** — Implement Timeout, Yellow, Yellow Red 1, Yellow Red 2 (for players/pairs) and Yellow, Red (for coaches on the bench).
-8. **Penalty Points Logic** — YR1 awards 1 point, YR2 awards 2 points. Penalty points behave identically to regular points regarding server rotation (e.g. at 2-1, a penalty point makes it 2-2, triggering a server change). Auto-resolve win conditions if penalty points push the score beyond game/match limits (e.g., carrying over points to next game).
+8. **Penalty Points Logic** — YR1 awards 1 point, YR2 awards 2 points. Penalty points behave identically to regular points regarding server rotation (e.g. at 2-1, a penalty point makes it 2-2, triggering a server change). Auto-resolve win conditions if penalty points push the score beyond game/match limits (e.g., carrying over points to next game). Reverting penalty cards will also remove the automatically awarded points.
 9. **Timeout Timer** — 1-minute countdown timer popup, cancelable, only triggerable during "Start of Play".
-10. **Card UI & State** — Visual representation of awarded cards next to the card button. Cards side-swap when players swap. Stack-based revert logic (last in, first out).
+10. **Card UI & State** — Visual representation of awarded cards next to the card button. Cards side-swap when players swap. Revert logic is per-team, last in, first out (LIFO), which will also revert any automatically awarded penalty points. Timeouts are undone individually outside the main card LIFO stack. Player cards and coach cards are maintained on independent tracks.
 
 ---
 
