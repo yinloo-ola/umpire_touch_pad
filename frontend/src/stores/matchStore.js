@@ -25,6 +25,7 @@ export const useMatchStore = defineStore('match', {
     swappedSides: false,
     pointStarted: false,
     isGameOver: false,
+    carryOverPoints: { p1: 0, p2: 0 },
 
     // Warmup timer
     timerActive: false,
@@ -259,6 +260,7 @@ export const useMatchStore = defineStore('match', {
       this.swappedSides = false
       this.pointStarted = false
       this.isGameOver = false
+      this.carryOverPoints = { p1: 0, p2: 0 }
       this.timerActive = false
       this.timeLeft = 120
       this.p1Top = 0
@@ -293,8 +295,9 @@ export const useMatchStore = defineStore('match', {
         }
 
         this.game++
-        this.p1Score = 0
-        this.p2Score = 0
+        this.p1Score = this.carryOverPoints.p1
+        this.p2Score = this.carryOverPoints.p2
+        this.carryOverPoints = { p1: 0, p2: 0 }
         this.isGameOver = false
         this.pointStarted = false
         this.decidingSwapDone = false
@@ -322,7 +325,7 @@ export const useMatchStore = defineStore('match', {
         }
 
         // Initialize next game score in proxy
-        this.scores[`g${this.game}`] = { p1: 0, p2: 0 }
+        this.scores[`g${this.game}`] = { p1: this.p1Score, p2: this.p2Score }
       }
     },
 
@@ -735,9 +738,93 @@ export const useMatchStore = defineStore('match', {
       this.syncDoublesQuadrants()
     },
 
+    applyPenaltyPoints(scoringTeamNum, points) {
+      if (!this.currentMatch) return
+
+      for (let i = 0; i < points; i++) {
+        if (this.isGameOver) {
+          if (scoringTeamNum === 1) this.carryOverPoints.p1 += 1
+          else this.carryOverPoints.p2 += 1
+        } else {
+          if (scoringTeamNum === 1) this.p1Score += 1
+          else this.p2Score += 1
+
+          // Check if the current addition triggers game over
+          if ((this.p1Score >= 11 || this.p2Score >= 11) && Math.abs(this.p1Score - this.p2Score) >= 2) {
+            this.isGameOver = true
+          }
+        }
+      }
+
+      // Update current game proxy
+      this.scores[`g${this.game}`] = { p1: this.p1Score, p2: this.p2Score }
+
+      // Update singles server rotation
+      if (this.currentMatch?.type !== 'doubles') {
+        const totalPoints = this.p1Score + this.p2Score
+        let servesPassed = 0
+        if (this.p1Score >= 10 && this.p2Score >= 10) {
+          servesPassed = 10 + Math.max(0, totalPoints - 20)
+        } else {
+          servesPassed = Math.floor(totalPoints / 2)
+        }
+        this.server = (servesPassed % 2 === 0) ? this.initialServer : (this.initialServer === 1 ? 2 : 1)
+      }
+
+      const isDecidingGame = this.game === (this.currentMatch?.bestOf ?? 5)
+      if (isDecidingGame && !this.decidingSwapDone && (this.p1Score === 5 || this.p2Score === 5)) {
+        this.midGameSwapPending = true
+      }
+      this.syncDoublesQuadrants()
+    },
+
+    revertPenaltyPoints(scoringTeamNum, points) {
+      if (!this.currentMatch) return
+
+      for (let i = 0; i < points; i++) {
+        const carry = scoringTeamNum === 1 ? this.carryOverPoints.p1 : this.carryOverPoints.p2
+        if (carry > 0) {
+          if (scoringTeamNum === 1) this.carryOverPoints.p1 -= 1
+          else this.carryOverPoints.p2 -= 1
+        } else {
+          if (scoringTeamNum === 1) {
+            if (this.p1Score > 0) this.p1Score -= 1
+          } else {
+            if (this.p2Score > 0) this.p2Score -= 1
+          }
+          // If reversing brought us below win threshold, clear isGameOver
+          if (this.isGameOver) {
+            if (!(this.p1Score >= 11 || this.p2Score >= 11) || Math.abs(this.p1Score - this.p2Score) < 2) {
+              this.isGameOver = false
+            }
+          }
+        }
+      }
+
+      // Update proxy map
+      if (!this.isGameOver) {
+        this.pointStarted = false
+      }
+      this.scores[`g${this.game}`] = { p1: this.p1Score, p2: this.p2Score }
+
+      // Update singles server rotation
+      if (this.currentMatch?.type !== 'doubles') {
+        const totalPoints = this.p1Score + this.p2Score
+        let servesPassed = 0
+        if (this.p1Score >= 10 && this.p2Score >= 10) {
+          servesPassed = 10 + Math.max(0, totalPoints - 20)
+        } else {
+          servesPassed = Math.floor(totalPoints / 2)
+        }
+        this.server = (servesPassed % 2 === 0) ? this.initialServer : (this.initialServer === 1 ? 2 : 1)
+      }
+
+      this.syncDoublesQuadrants()
+    },
+
     issueCard(teamNum, type, target = 'player') {
       const arr = target === 'coach' ? this[`team${teamNum}CoachCards`] : this[`team${teamNum}Cards`]
-      
+
       if (target === 'player') {
         if (type === 'Yellow' && arr.length !== 0) return false
         if (type === 'YR1' && (arr.length !== 1 || arr[0] !== 'Yellow')) return false
@@ -748,15 +835,36 @@ export const useMatchStore = defineStore('match', {
       } else {
         return false
       }
-      
+
       arr.push(type)
+
+      // Award penalty points for YR1 and YR2
+      if (target === 'player') {
+        const opponent = teamNum === 1 ? 2 : 1
+        if (type === 'YR1') {
+          this.applyPenaltyPoints(opponent, 1)
+        } else if (type === 'YR2') {
+          this.applyPenaltyPoints(opponent, 2)
+        }
+      }
+
       return true
     },
 
     revertLastCard(teamNum, target = 'player') {
       const arr = target === 'coach' ? this[`team${teamNum}CoachCards`] : this[`team${teamNum}Cards`]
       if (arr.length > 0) {
-        arr.pop()
+        const popped = arr.pop()
+
+        // Revert penalty points if applicable
+        if (target === 'player') {
+          const opponent = teamNum === 1 ? 2 : 1
+          if (popped === 'YR1') {
+            this.revertPenaltyPoints(opponent, 1)
+          } else if (popped === 'YR2') {
+            this.revertPenaltyPoints(opponent, 2)
+          }
+        }
       }
     },
 
