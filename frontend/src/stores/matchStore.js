@@ -67,6 +67,9 @@ export const useMatchStore = defineStore('match', {
     team2CoachCards: [],
     team1Timeout: false,
     team2Timeout: false,
+    timeoutActive: false,
+    timeoutTimeLeft: 60,
+    timeoutCallingTeam: null,
   }),
 
   getters: {
@@ -286,6 +289,14 @@ export const useMatchStore = defineStore('match', {
       this.team2CoachCards = []
       this.team1Timeout = false
       this.team2Timeout = false
+      this.timeoutActive = false
+      this.timeoutTimeLeft = 60
+      this.timeoutCallingTeam = null
+
+      if (this.timeoutInterval) {
+        clearInterval(this.timeoutInterval)
+        this.timeoutInterval = null
+      }
     },
 
     nextGame() {
@@ -321,6 +332,9 @@ export const useMatchStore = defineStore('match', {
           prevDoublesInitialServer: this.prevDoublesInitialServer ? { ...this.prevDoublesInitialServer } : null,
           prevDoublesInitialReceiver: this.prevDoublesInitialReceiver ? { ...this.prevDoublesInitialReceiver } : null,
           doublesNextServingTeam: this.doublesNextServingTeam,
+          timeoutActive: this.timeoutActive,
+          timeoutTimeLeft: this.timeoutTimeLeft,
+          timeoutCallingTeam: this.timeoutCallingTeam,
           scores: JSON.parse(JSON.stringify(this.scores))
         })
 
@@ -385,6 +399,9 @@ export const useMatchStore = defineStore('match', {
       this.prevDoublesInitialServer = prev.prevDoublesInitialServer ? { ...prev.prevDoublesInitialServer } : null
       this.prevDoublesInitialReceiver = prev.prevDoublesInitialReceiver ? { ...prev.prevDoublesInitialReceiver } : null
       this.doublesNextServingTeam = prev.doublesNextServingTeam
+      this.timeoutActive = prev.timeoutActive
+      this.timeoutTimeLeft = prev.timeoutTimeLeft
+      this.timeoutCallingTeam = prev.timeoutCallingTeam
 
       this.scores = JSON.parse(JSON.stringify(prev.scores))
 
@@ -964,13 +981,45 @@ export const useMatchStore = defineStore('match', {
     },
 
     issueTimeout(teamNum) {
+      if (this.pointStarted || this.timerActive || this.timeoutActive) return false
+      const used = teamNum === 1 ? this.team1Timeout : this.team2Timeout
+      if (used) return false
+
+      this.timeoutActive = true
+      this.timeoutTimeLeft = 60
+      this.timeoutCallingTeam = teamNum
       if (teamNum === 1) this.team1Timeout = true
-      if (teamNum === 2) this.team2Timeout = true
+      else this.team2Timeout = true
+
+      if (this.timeoutInterval) clearInterval(this.timeoutInterval)
+      this.timeoutInterval = setInterval(() => {
+        if (this.timeoutTimeLeft > 0) {
+          this.timeoutTimeLeft--
+        } else {
+          clearInterval(this.timeoutInterval)
+          this.timeoutInterval = null
+        }
+      }, 1000)
+      return true
     },
 
     revertTimeout(teamNum) {
       if (teamNum === 1) this.team1Timeout = false
-      if (teamNum === 2) this.team2Timeout = false
+      else this.team2Timeout = false
+
+      if (this.timeoutCallingTeam === teamNum) {
+        if (this.timeoutInterval) {
+          clearInterval(this.timeoutInterval)
+          this.timeoutInterval = null
+        }
+        this.timeoutActive = false
+        this.timeoutTimeLeft = 60
+        this.timeoutCallingTeam = null
+      }
+    },
+
+    dismissTimeout() {
+      this.timeoutActive = false
     },
   },
 })
