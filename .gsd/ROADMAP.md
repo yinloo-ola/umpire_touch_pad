@@ -9,7 +9,7 @@
 
 - [ ] Card modal UI with Timeout, Yellow, YR1, YR2 (players) & Yellow, Red (coaches).
 - [ ] Card constraints: greyed out once given, granted in specific order, reversed in LIFO order.
-- [ ] Penalty point awarding: YR1 = 1 pt, YR2 = 2 pts (opponent). Handled up to game/match boundaries.
+- [ ] Penalty point awarding: YR1 = 1 pt, YR2 = 2 pts (opponent). Triggers standard serve rotation. Handled up to game/match boundaries.
 - [ ] Display assigned cards on the touchpad next to the toggle button.
 - [ ] Card alignments swap sides synchronously when players swap sides.
 - [ ] Timeout System: 1-minute cancelable countdown, restricted to the "Start of play" state.
