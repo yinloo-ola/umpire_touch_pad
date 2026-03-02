@@ -1,30 +1,47 @@
 # ROADMAP.md
 
-> **Current Phase**: v1.0 Complete ✅
-> **Milestone**: v1.0 — Complete Doubles Match Feature
-
+> **Current Milestone**: Card System
+> **Goal**: Implement the penalty card and timeout system natively into the touch pad, with automatic penalty point awarding and timeout management.
 
 ---
 
 ## Must-Haves (from SPEC)
 
-- [ ] Four-quadrant court for doubles (SetupView + Touchpad)
-- [ ] Left/Right "Swap Players" buttons (pre-warmup and during play)
-- [ ] ITTF doubles serve rotation (A→X→B→Y→A, auto + override)
-- [ ] Between-game serve setup (constrained by previous game)
-- [ ] Deciding-game mid-game side swap (at 5 points, doubles + singles)
+- [ ] Card modal UI with Timeout, Yellow, YR1, YR2 (players) & Yellow, Red (coaches).
+- [ ] Card constraints: greyed out once given, granted in specific order, reversed in LIFO order.
+- [ ] Penalty point awarding: YR1 = 1 pt, YR2 = 2 pts (opponent). Handled up to game/match boundaries.
+- [ ] Display assigned cards on the touchpad next to the toggle button.
+- [ ] Card alignments swap sides synchronously when players swap sides.
+- [ ] Timeout System: 1-minute cancelable countdown, restricted to the "Start of play" state.
 
 ---
 
 ## Phases
 
-*(No active phases. Run /new-milestone to plan next milestone.)*
+### Phase 1: State Management & Game Data Structure
+**Status**: ⬜ Not Started
+**Objective**: Update Pinia stores to handle card arrays (stack), ordered issuance limits, and logical ties to the Player/Side entities.
+
+### Phase 2: Penalty Points Tracking & Edge Cases
+**Status**: ⬜ Not Started
+**Objective**: Implement logical triggers to automatically award opponent points upon YR1/YR2 issuance. Resolve edge cases where penalty points cascade into game wins or carry over to the subsequent game.
+
+### Phase 3: Timeout Logic
+**Status**: ⬜ Not Started
+**Objective**: Build out the state and timer restrictions for match Timeouts (1 per match/player, 60s max, only in `Start Of Play`).
+
+### Phase 4: Modal UI (Cards & Timeout)
+**Status**: ⬜ Not Started
+**Objective**: Build the visual Card Modal and the Timeout Countdown Modal as outlined in screenshots, implementing grey-out behavior for used cards.
+
+### Phase 5: Display Indicators & Side-Swapping Integration
+**Status**: ⬜ Not Started
+**Objective**: Ensure given cards populate visually next to the card button on the touchpad, and successfully swap visual sides alongside player side-swaps.
 
 ---
 
 ## Deferred (Future Milestones)
 
-- Card system (yellow/red/white cards per player)
 - Expedite rule timer
 - Match result persistence (backend database)
 - Player profile lookup by ID

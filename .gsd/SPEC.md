@@ -10,6 +10,8 @@
 
 Complete the doubles match support in the Umpire Touchpad app so that umpires can officiate table tennis doubles matches with the correct ITTF serve/receive rotation, player position management on all four court quadrants, and mid-game player swap functionality — matching the full behaviour expected of a real digital umpire device.
 
+Implement a comprehensive Card System (Timeout and Penalty cards) to handle player and coach disciplinary actions, award penalty points automatically, and manage match timeouts, fully integrating with existing match and score state.
+
 ---
 
 ## Background
@@ -30,12 +32,15 @@ The app already handles singles matches end-to-end. For doubles, the match list 
 4. **Between-game serve choices** match ITTF rules (team that received first in previous game serves first; first receiver determined by who served to the current first server last game)
 5. **Deciding-game mid-game side swap** — at 5 points in the final game (game 5 of Best-of-5, game 7 of Best-of-7), both pairs swap sides AND the receiving pair additionally swaps their receive order
 6. **Singles deciding-game side swap** — same 5-point mid-game swap applies to singles (player swap left↔right)
+7. **Card System** — Implement Timeout, Yellow, Yellow Red 1, Yellow Red 2 (for players/pairs) and Yellow, Red (for coaches on the bench).
+8. **Penalty Points Logic** — YR1 awards 1 point, YR2 awards 2 points. Auto-resolve win conditions if penalty points push the score beyond game/match limits (e.g., carrying over points to next game).
+9. **Timeout Timer** — 1-minute countdown timer popup, cancelable, only triggerable during "Start of Play".
+10. **Card UI & State** — Visual representation of awarded cards next to the card button. Cards side-swap when players swap. Stack-based revert logic (last in, first out).
 
 ---
 
 ## Non-Goals (Out of Scope)
 
-- Card system (yellow/red cards) — already a debt item, not in this feature
 - Expedite rule implementation
 - Match result persistence to database
 - Multi-device sync or real-time updates
