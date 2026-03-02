@@ -57,6 +57,9 @@ export const useMatchStore = defineStore('match', {
     // Deciding-game mid-game swap alert state
     midGameSwapPending: false,
 
+    // Undo history
+    gameHistory: [],
+
     // Cards & Timeouts
     team1Cards: [],
     team2Cards: [],
@@ -275,6 +278,8 @@ export const useMatchStore = defineStore('match', {
       this.prevDoublesInitialReceiver = null
       this.midGameSwapPending = false
 
+      this.gameHistory = []
+
       this.team1Cards = []
       this.team2Cards = []
       this.team1CoachCards = []
@@ -293,6 +298,31 @@ export const useMatchStore = defineStore('match', {
           this.prevDoublesInitialServer = { ...this.doublesInitialServer }
           this.prevDoublesInitialReceiver = { ...this.doublesInitialReceiver }
         }
+
+        // Snapshot state for Undo Next Game
+        this.gameHistory.push({
+          game: this.game,
+          p1Score: this.p1Score,
+          p2Score: this.p2Score,
+          initialServer: this.initialServer,
+          server: this.server,
+          swappedSides: this.swappedSides,
+          pointStarted: this.pointStarted,
+          isGameOver: this.isGameOver,
+          carryOverPoints: { ...this.carryOverPoints },
+          p1Top: this.p1Top,
+          p1Bot: this.p1Bot,
+          p2Top: this.p2Top,
+          p2Bot: this.p2Bot,
+          decidingSwapDone: this.decidingSwapDone,
+          midGameSwapPending: this.midGameSwapPending,
+          doublesInitialServer: { ...this.doublesInitialServer },
+          doublesInitialReceiver: { ...this.doublesInitialReceiver },
+          prevDoublesInitialServer: this.prevDoublesInitialServer ? { ...this.prevDoublesInitialServer } : null,
+          prevDoublesInitialReceiver: this.prevDoublesInitialReceiver ? { ...this.prevDoublesInitialReceiver } : null,
+          doublesNextServingTeam: this.doublesNextServingTeam,
+          scores: JSON.parse(JSON.stringify(this.scores))
+        })
 
         this.game++
         this.p1Score = this.carryOverPoints.p1
@@ -327,6 +357,41 @@ export const useMatchStore = defineStore('match', {
         // Initialize next game score in proxy
         this.scores[`g${this.game}`] = { p1: this.p1Score, p2: this.p2Score }
       }
+    },
+
+    undoNextGame() {
+      if (!this.gameHistory || this.gameHistory.length === 0) return
+
+      const prev = this.gameHistory.pop()
+
+      this.game = prev.game
+      this.p1Score = prev.p1Score
+      this.p2Score = prev.p2Score
+      this.initialServer = prev.initialServer
+      this.server = prev.server
+      this.swappedSides = prev.swappedSides
+      this.pointStarted = prev.pointStarted
+      this.isGameOver = prev.isGameOver
+      this.carryOverPoints = { ...prev.carryOverPoints }
+      this.p1Top = prev.p1Top
+      this.p1Bot = prev.p1Bot
+      this.p2Top = prev.p2Top
+      this.p2Bot = prev.p2Bot
+      this.decidingSwapDone = prev.decidingSwapDone
+      this.midGameSwapPending = prev.midGameSwapPending
+
+      this.doublesInitialServer = { ...prev.doublesInitialServer }
+      this.doublesInitialReceiver = { ...prev.doublesInitialReceiver }
+      this.prevDoublesInitialServer = prev.prevDoublesInitialServer ? { ...prev.prevDoublesInitialServer } : null
+      this.prevDoublesInitialReceiver = prev.prevDoublesInitialReceiver ? { ...prev.prevDoublesInitialReceiver } : null
+      this.doublesNextServingTeam = prev.doublesNextServingTeam
+
+      this.scores = JSON.parse(JSON.stringify(prev.scores))
+
+      for (let i = this.game + 1; i <= 7; i++) {
+        this.scores[`g${i}`] = { p1: null, p2: null }
+      }
+      this.syncDoublesQuadrants()
     },
 
     syncDoublesQuadrants() {
@@ -688,6 +753,18 @@ export const useMatchStore = defineStore('match', {
     handleScore(player, delta) {
       if (!this.isStarted || (!this.pointStarted && delta > 0)) return
 
+      if (delta < 0) {
+        const playerScore = player === 1 ? this.p1Score : this.p2Score
+        if (playerScore === 0 && this.game > 1 && this.gameHistory && this.gameHistory.length > 0) {
+          const prev = this.gameHistory[this.gameHistory.length - 1]
+          if (this.p1Score <= prev.carryOverPoints.p1 && this.p2Score <= prev.carryOverPoints.p2) {
+            this.undoNextGame()
+            this.handleScore(player, delta)
+            return
+          }
+        }
+      }
+
       if (player === 1) {
         this.p1Score = Math.max(0, this.p1Score + delta)
       } else {
@@ -780,6 +857,24 @@ export const useMatchStore = defineStore('match', {
 
     revertPenaltyPoints(scoringTeamNum, points) {
       if (!this.currentMatch) return
+
+      const availableInCurrent = scoringTeamNum === 1
+        ? (this.carryOverPoints.p1 + this.p1Score)
+        : (this.carryOverPoints.p2 + this.p2Score)
+
+      let canUndo = false
+      if (this.game > 1 && this.gameHistory && this.gameHistory.length > 0) {
+        const prev = this.gameHistory[this.gameHistory.length - 1]
+        if (this.p1Score <= prev.carryOverPoints.p1 && this.p2Score <= prev.carryOverPoints.p2) {
+          canUndo = true
+        }
+      }
+
+      if (availableInCurrent < points && canUndo) {
+        this.undoNextGame()
+        this.revertPenaltyPoints(scoringTeamNum, points)
+        return
+      }
 
       for (let i = 0; i < points; i++) {
         const carry = scoringTeamNum === 1 ? this.carryOverPoints.p1 : this.carryOverPoints.p2
