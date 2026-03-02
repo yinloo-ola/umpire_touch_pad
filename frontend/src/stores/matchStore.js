@@ -55,6 +55,14 @@ export const useMatchStore = defineStore('match', {
 
     // Deciding-game mid-game swap alert state
     midGameSwapPending: false,
+
+    // Cards & Timeouts
+    team1Cards: [],
+    team2Cards: [],
+    team1CoachCards: [],
+    team2CoachCards: [],
+    team1Timeout: false,
+    team2Timeout: false,
   }),
 
   getters: {
@@ -264,6 +272,13 @@ export const useMatchStore = defineStore('match', {
       this.prevDoublesInitialServer = null
       this.prevDoublesInitialReceiver = null
       this.midGameSwapPending = false
+
+      this.team1Cards = []
+      this.team2Cards = []
+      this.team1CoachCards = []
+      this.team2CoachCards = []
+      this.team1Timeout = false
+      this.team2Timeout = false
     },
 
     nextGame() {
@@ -718,6 +733,41 @@ export const useMatchStore = defineStore('match', {
       }
       // Apply quadrant updates if scores changed
       this.syncDoublesQuadrants()
+    },
+
+    issueCard(teamNum, type, target = 'player') {
+      const arr = target === 'coach' ? this[`team${teamNum}CoachCards`] : this[`team${teamNum}Cards`]
+      
+      if (target === 'player') {
+        if (type === 'Yellow' && arr.length !== 0) return false
+        if (type === 'YR1' && (arr.length !== 1 || arr[0] !== 'Yellow')) return false
+        if (type === 'YR2' && (arr.length !== 2 || arr[1] !== 'YR1')) return false
+      } else if (target === 'coach') {
+        if (type === 'Yellow' && arr.length !== 0) return false
+        if (type === 'Red' && (arr.length !== 1 || arr[0] !== 'Yellow')) return false
+      } else {
+        return false
+      }
+      
+      arr.push(type)
+      return true
+    },
+
+    revertLastCard(teamNum, target = 'player') {
+      const arr = target === 'coach' ? this[`team${teamNum}CoachCards`] : this[`team${teamNum}Cards`]
+      if (arr.length > 0) {
+        arr.pop()
+      }
+    },
+
+    issueTimeout(teamNum) {
+      if (teamNum === 1) this.team1Timeout = true
+      if (teamNum === 2) this.team2Timeout = true
+    },
+
+    revertTimeout(teamNum) {
+      if (teamNum === 1) this.team1Timeout = false
+      if (teamNum === 2) this.team2Timeout = false
     },
   },
 })
