@@ -23,7 +23,7 @@
 **Objective**: Update Pinia stores to handle card arrays (stack), ordered issuance limits, and logical ties to the Player/Side entities.
 
 ### Phase 2: Penalty Points Tracking & Edge Cases
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Implement logical triggers to automatically award opponent points upon YR1/YR2 issuance. Resolve edge cases where penalty points cascade into game wins or carry over to the subsequent game.
 
 ### Phase 3: Timeout Logic
