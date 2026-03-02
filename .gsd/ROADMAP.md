@@ -19,7 +19,7 @@
 ## Phases
 
 ### Phase 1: State Management & Game Data Structure
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Update Pinia stores to handle card arrays (stack), ordered issuance limits, and logical ties to the Player/Side entities.
 
 ### Phase 2: Penalty Points Tracking & Edge Cases
