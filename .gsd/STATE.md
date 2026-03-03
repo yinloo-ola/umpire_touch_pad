@@ -3,24 +3,23 @@
 > Last updated: 2026-03-03
 
 ## Current Phase
-**Milestone Card System** — Phase 4 Planned
+**Milestone Card System** — Phase 4 COMPLETE, Phase 5 Planned
 
 ## Last Session Summary
-Phase 3 executed successfully: implemented timeout state management, interval timer, and lifecycle restrictions in `matchStore.js`. Phase 4 discussion held and plans created.
+Phase 4 executed and refined: implemented `CardModal.vue` and `TimeoutModal.vue`. Refined Timeout to a top-right circular widget with a darkened blocking overlay and simplified control flow (dismiss-only widget, revert-via-card). Verified via browser subagent and unit tests.
 
 ## Current Position
 - **Milestone**: Card System
-- **Phase**: 4 (planned, ready for execution)
-- **Task**: Modal UI (Cards & Timeout)
-- **Status**: Plans created, awaiting /execute 4
+- **Phase**: 4 (Complete)
+- **Task**: Display Indicators & Side-Swapping Integration
+- **Status**: Phase 4 Complete, awaiting Phase 5 planning
 
 ## Achievement Notes
-- Phase 2 complete: penalty points with carry-over + "Undo Next Game".
-- Phase 3 complete: timeout state, 60s timer, lifecycle restrictions.
-- Phase 4 DECISIONS.md created with full card modal layout reference.
+- Phase 4 complete: Modal UI (Cards & Timeout) with circular animations and auto-dismissal.
+- Refined Timeout: Widget design with blocking overlay and revert-via-modal flow.
 
 ## Next Steps
-1. /execute 4
+1. Plan Phase 5 (Display indicators on touchpad + Side-swapping integration).
 
 ## Known Blockers
 None

@@ -33,24 +33,49 @@ const cardState = (track, type) => {
   return 'locked'
 }
 
-// Tap handler: issue or LIFO-revert
+// Tap handler: issue or LIFO-revert, then dismiss
 const issueOrRevert = (track, type) => {
   const arr = track === 'coach' ? coachCards.value : playerCards.value
   if (arr.length > 0 && arr[arr.length - 1] === type) {
     matchStore.revertLastCard(props.teamNum, track)
+    emit('close')
   } else if (!arr.includes(type)) {
     matchStore.issueCard(props.teamNum, type, track)
+    emit('close')
   }
-  // else: issued but not last → ignore out-of-order revert
+  // else: issued but not last → ignore out-of-order revert (no close)
 }
 
 const handleTimeout = () => {
-  matchStore.issueTimeout(props.teamNum)
-  emit('close')  // card modal closes; timeout modal takes over
+  if (matchStore.timeoutActive || timeoutUsed.value) {
+    // Timeout currently running OR already dismissed but remains in 'used' state
+    // In both cases, the user wants to revert the fact that a timeout was taken.
+    matchStore.revertTimeout(props.teamNum)
+    emit('close')
+  } else {
+    // Issue a new timeout
+    matchStore.issueTimeout(props.teamNum)
+    emit('close')  // card modal closes; timeout widget appears
+  }
 }
 
-const timeoutDisabled = computed(
-  () => timeoutUsed.value || matchStore.pointStarted || matchStore.timerActive
+// Visual state for the T (timeout) card
+const timeoutCardState = computed(() => {
+  // If timeout is active (widget showing) OR if it was taken but dismissed (revertable)
+  if (matchStore.timeoutActive && matchStore.timeoutCallingTeam === props.teamNum) {
+    return 'issued'   // active — orange ring, tappable to revert
+  }
+  if (timeoutUsed.value) {
+    return 'issued'   // dismissed but remains 'taken' — orange ring, tappable to revert
+  }
+  return 'available'
+})
+
+// Whether the T card is interactive
+const timeoutInteractive = computed(() =>
+  // Can issue: not used, not pointStarted, not timerActive (warm-up timer)
+  // Can revert: timeout is taken (used)
+  timeoutUsed.value || (!timeoutUsed.value && !matchStore.pointStarted && !matchStore.timerActive)
 )
 </script>
 
@@ -71,8 +96,11 @@ const timeoutDisabled = computed(
           <!-- Timeout -->
           <div
             class="cm-card-item cm-timeout"
-            :class="{ 'cm-disabled': timeoutDisabled }"
-            @click="!timeoutDisabled && handleTimeout()"
+            :class="[
+              timeoutCardState,
+              { 'cm-disabled': !timeoutInteractive }
+            ]"
+            @click="timeoutInteractive && handleTimeout()"
           >
             <div class="cm-card-face cm-card-timeout">T</div>
             <span class="cm-card-label">Time<br>Out</span>
@@ -306,6 +334,13 @@ const timeoutDisabled = computed(
 
 /* timeout disabled */
 .cm-timeout.cm-disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* permanently consumed (timeout used and done) */
+.cm-card-item.used {
   opacity: 0.35;
   cursor: not-allowed;
   pointer-events: none;

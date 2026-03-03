@@ -31,8 +31,8 @@
 **Objective**: Build out the state and timer restrictions for match Timeouts (1 per match/player, 60s max, only in `Start Of Play`).
 
 ### Phase 4: Modal UI (Cards & Timeout)
-**Status**: ⬜ Not Started
-**Objective**: Build the visual Card Modal and the Timeout Countdown Modal as outlined in screenshots, implementing grey-out behavior for used cards.
+**Status**: ✅ Complete
+**Objective**: Build the visual Card Modal and the Timeout Countdown Modal as refined in Part 2, including the top-right widget style and auto-dismissal logic.
 
 ### Phase 5: Display Indicators & Side-Swapping Integration
 **Status**: ⬜ Not Started
