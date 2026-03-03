@@ -2,10 +2,28 @@
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMatchStore } from '../stores/matchStore'
+import CardModal from './CardModal.vue'
+import TimeoutModal from './TimeoutModal.vue'
 
 const router = useRouter()
 const matchStore = useMatchStore()
 const showWinnerModal = ref(false)
+
+// Card modal state
+const showCardModal = ref(false)
+const cardModalTeamNum = ref(1)
+
+const openCardModal = (side) => {
+  // Map visual side → logical team number (accounting for swapped sides)
+  cardModalTeamNum.value = side === 'left'
+    ? (matchStore.swappedSides ? 2 : 1)
+    : (matchStore.swappedSides ? 1 : 2)
+  showCardModal.value = true
+}
+
+const closeCardModal = () => {
+  showCardModal.value = false
+}
 
 // Auto-show winner modal when match ends
 watch(
@@ -202,10 +220,10 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
         <!-- Top Row -->
         <div class="grid-row top-row">
           <div class="side-controls left-side">
-            <button class="card-btn">Cards</button>
+            <button class="card-btn" @click="openCardModal('left')">Cards</button>
           </div>
           <div class="side-controls right-side">
-            <button class="card-btn">Cards</button>
+            <button class="card-btn" @click="openCardModal('right')">Cards</button>
           </div>
         </div>
 
@@ -463,6 +481,17 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
         </div>
       </div>
     </div>
+
+    <!-- Card Modal -->
+    <CardModal
+      v-if="showCardModal"
+      :teamNum="cardModalTeamNum"
+      @close="closeCardModal"
+    />
+
+    <!-- Timeout Modal -->
+    <TimeoutModal v-if="matchStore.timeoutActive" />
+
   </section>
 </template>
 
