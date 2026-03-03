@@ -7,12 +7,12 @@
 
 ## Must-Haves (from SPEC)
 
-- [ ] Card modal UI with Timeout, Yellow, YR1, YR2 (players) & Yellow, Red (coaches).
-- [ ] Card constraints: independent tracks for players vs. coaches, greyed out once given, granted in specific order, reversed in per-team LIFO order (Timeouts reverted independently).
-- [ ] Penalty point awarding & reverting: YR1 = 1 pt, YR2 = 2 pts (opponent), reverting cards also removes the awarded points. Triggers standard serve rotation. Handled up to game/match boundaries.
-- [ ] Display assigned cards on the touchpad next to the toggle button.
-- [ ] Card alignments swap sides synchronously when players swap sides.
-- [ ] Timeout System: 1-minute cancelable countdown, restricted to the "Start of play" state.
+- [x] Card modal UI with Timeout, Yellow, YR1, YR2 (players) & Yellow, Red (coaches).
+- [x] Card constraints: independent tracks for players vs. coaches, greyed out once given, granted in specific order, reversed in per-team LIFO order (Timeouts reverted independently).
+- [x] Penalty point awarding & reverting: YR1 = 1 pt, YR2 = 2 pts (opponent), reverting cards also removes the awarded points. Triggers standard serve rotation. Handled up to game/match boundaries.
+- [x] Display assigned cards on the touchpad next to the toggle button.
+- [x] Card alignments swap sides synchronously when players swap sides.
+- [x] Timeout System: 1-minute cancelable countdown, restricted to the "Start of play" state.
 
 ---
 
@@ -35,7 +35,7 @@
 **Objective**: Build the visual Card Modal and the Timeout Countdown Modal as refined in Part 2, including the top-right widget style and auto-dismissal logic.
 
 ### Phase 5: Display Indicators & Side-Swapping Integration
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Ensure given cards populate visually next to the card button on the touchpad, and successfully swap visual sides alongside player side-swaps.
 
 ---

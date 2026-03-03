@@ -48,7 +48,7 @@
 **Date:** 2026-03-03
 
 ### Scope & Layout
-- **Placement**: Card indicators will be placed to the **left** of the left-side "Cards" button and to the **right** of the right-side "Cards" button.
+- **Placement**: Card indicators will be placed to the **right** of the left-side "Cards" button and to the **left** of the right-side "Cards" button.
 - **Structure**: Two rows of indicators:
     - **Row 1 (Top)**: Timeout (T), Yellow (Y), Yellow-Red 1 (YR1), Yellow-Red 2 (YR2).
     - **Row 2 (Bottom)**: Coach Yellow (CY), Coach Red (CR).

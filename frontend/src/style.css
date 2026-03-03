@@ -439,7 +439,7 @@ button {
 .side-controls {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 1.25rem;
 }
 
 .card-btn {

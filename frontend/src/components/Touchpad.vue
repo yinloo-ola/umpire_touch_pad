@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useMatchStore } from '../stores/matchStore'
 import CardModal from './CardModal.vue'
 import TimeoutModal from './TimeoutModal.vue'
+import CardIndicators from './CardIndicators.vue'
 
 const router = useRouter()
 const matchStore = useMatchStore()
@@ -139,6 +140,10 @@ const swapServer = (side) => {
   }
 }
 
+// Side mapping for indicators
+const leftTeamNum = computed(() => matchStore.swappedSides ? 2 : 1)
+const rightTeamNum = computed(() => matchStore.swappedSides ? 1 : 2)
+
 // Display logic helpers
 const getScoreP1 = (g) => matchStore.scores[`g${g}`]?.p1
 const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
@@ -221,8 +226,10 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
         <div class="grid-row top-row">
           <div class="side-controls left-side">
             <button class="card-btn" @click="openCardModal('left')">Cards</button>
+            <CardIndicators :teamNum="leftTeamNum" align="left" />
           </div>
           <div class="side-controls right-side">
+            <CardIndicators :teamNum="rightTeamNum" align="right" />
             <button class="card-btn" @click="openCardModal('right')">Cards</button>
           </div>
         </div>
