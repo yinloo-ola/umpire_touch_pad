@@ -6,7 +6,7 @@
 **Milestone Card System** — ✅ COMPLETE
 
 ## Last Session Summary
-Phase 5 executed and verified: implemented `CardIndicators.vue` with two-row layout (Player/Timeout top, Coach bottom). Integrated into `Touchpad.vue` with side-swapping mapping (`leftTeamNum`/`rightTeamNum`) and alignment props (`align="left"`/`align="right"`) to ensure indicators hug the Card buttons. Verified via browser subagent.
+Phase 5 executed and verified. Also ran a debug session and resolved an issue where the mid-game side swap (in decider games) would not cleanly revert when the score dropped below 5 points. Fixed by introducing `midGameSwapSnapshot` and wiring it to `handleScore` / `revertPenaltyPoints`.
 
 ## Current Position
 - **Milestone**: Card System
