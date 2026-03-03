@@ -9,7 +9,7 @@ completed_at: 2026-03-03
 ## Work Completed
 1. Created `CardIndicators.vue` component:
     - Implemented a two-row layout: Row 1 (Player Cards + Timeout), Row 2 (Coach Cards).
-    - Styling reuses specific colors/gradients from `CardModal.vue` with reduced size (14x20px).
+    - Styling reuses specific colors/gradients from `CardModal.vue` with a enlarged 28x38px profile for high visibility.
     - Supports `align` prop ('left' or 'right') to ensure the stack "hugs" the button side of its container.
 2. Integrated into `Touchpad.vue`:
     - Cleaned up `.side-controls` grid.
@@ -21,8 +21,8 @@ completed_at: 2026-03-03
     - Confirmed indicators move sides correctly and update reactively during all scoring/carding/swapping actions.
 
 ## Evidence
-- Screenshot: [card_indicators_verification](file:///Users/yinlootan/.gemini/antigravity/brain/8f0bb5d4-fc27-419a-b7b0-77de9d4b2068/card_indicators_verification_1772551345155.png)
-- Recording: [verify_indicators_v24_v24_v24_v1_v1](file:///Users/yinlootan/.gemini/antigravity/brain/8f0bb5d4-fc27-419a-b7b0-77de9d4b2068/verify_indicators_v24_v24_v24_v1_v1_1772551149995.webp)
+- Screenshot: [card_indicators_check](file:///Users/yinlootan/.gemini/antigravity/brain/8f0bb5d4-fc27-419a-b7b0-77de9d4b2068/card_indicators_check_1772551640688.png)
+- Screenshot (Larger): [larger_card_indicators_verification](file:///Users/yinlootan/.gemini/antigravity/brain/8f0bb5d4-fc27-419a-b7b0-77de9d4b2068/larger_card_indicators_verification_1772551524767.png)
 
 ## Verdict: PASS
 Phase 5 is complete and verified. The Card System milestone is now fully implemented and integrated.
