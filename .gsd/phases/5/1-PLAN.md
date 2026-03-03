@@ -12,6 +12,7 @@ Ensure that issued cards and timeouts are visually represented on the touchpad n
 ## Context
 - .gsd/SPEC.md (Requirements)
 - .gsd/phases/5/RESEARCH.md (Design decisions)
+- .gsd/DECISIONS.md (Phase 5 Decisions: Display Indicators)
 - frontend/src/components/Touchpad.vue (Integration target)
 - frontend/src/components/CardModal.vue (Reference for card styles)
 - frontend/src/stores/matchStore.js (State source)

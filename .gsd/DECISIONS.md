@@ -40,3 +40,20 @@
 **Decision**: Use the formula approach (same pattern as existing singles logic): given `doublesInitialServer` and `servesPassed`, derive the current position in the 4-player cycle. This is idempotent and handles umpire corrections gracefully (recalibrate `doublesInitialServer/Receiver`).
 
 **Consequences**: Easier to test, no risk of "getting out of sync" with event chain; umpire override is a simple recalibration.
+
+---
+
+## Phase 5 Decisions: Display Indicators
+
+**Date:** 2026-03-03
+
+### Scope & Layout
+- **Placement**: Card indicators will be placed to the **left** of the left-side "Cards" button and to the **right** of the right-side "Cards" button.
+- **Structure**: Two rows of indicators:
+    - **Row 1 (Top)**: Timeout (T), Yellow (Y), Yellow-Red 1 (YR1), Yellow-Red 2 (YR2).
+    - **Row 2 (Bottom)**: Coach Yellow (CY), Coach Red (CR).
+- **Appearance**: Small, high-contrast indicators that mirror the colors and markings (1, 2, C, T) used in the Card Modal.
+- **Interactivity**: Read-only visual feedback only.
+
+### Side-Swapping
+- Derivation of "Left" and "Right" teams based on `matchStore.swappedSides` will be handled in `Touchpad.vue` and passed to a reusable `CardIndicators.vue` component.
