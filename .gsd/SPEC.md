@@ -183,6 +183,62 @@ The `cyclePos` maps to server/receiver relative to the initial pair:
 
 ## UX Design Notes
 
+### Card Modal (Phase 4)
+
+Triggered by the **Cards button** on the touchpad (one button per side/team). Opens `CardModal.vue`.
+
+**Header**: Player or pair name is displayed at the top of the modal.
+- Singles: `<Player Name>`
+- Doubles: `<Player A> / <Player B>`
+
+**Card Layout** — a single horizontal row, split into two sections by a vertical divider:
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  Chen Long / Ma Lin                                         [X]  │
+│                                                                   │
+│  [ T ]  [ Yellow ]  [ YR1 ]  [ YR2 ]  │  [ C-Yellow ]  [ C-Red ]│
+│  Time    Yellow     Yellow    Yellow   │  Yellow          Red    │
+│  Out     Card       Red 1     Red 2    │  Card            Card   │
+│  ←─ Player / Pair track ──────────────│──── Coach track ───────│
+└──────────────────────────────────────────────────────────────────┘
+```
+
+**Card Visual States:**
+
+| State | Appearance |
+|---|---|
+| Locked (not yet eligible) | Greyed out, reduced opacity, non-interactive |
+| Available to issue | Full color, tappable |
+| Already issued (last in stack, revertable) | Full color, tappable to revert |
+| Already issued (not last in stack) | Full color, non-interactive (cannot revert out of order) |
+
+**Revert Interaction (no Revert button):**
+- Umpire taps an **already-issued card** to revert it.
+- LIFO enforced: only the **last issued card on each track** responds to a tap.
+- Out-of-order taps are silently ignored (card stays highlighted, no action).
+
+**Issuance Order:**
+- Player track: `Yellow → YR1 → YR2` (each locks the previous)
+- Coach track: `Yellow → Red` (independent of player track)
+- Timeout (`T`): leftmost in player section; greyed once used (1 per match per team); only enabled in Start Of Play state
+
+**Close:** Orange ✕ button in top-right corner only (no tap-outside-to-close).
+
+---
+
+### Timeout Countdown Modal (Phase 4)
+
+Shown as a full-screen overlay when `issueTimeout` is called. Separate from the Card Modal (card modal closes first).
+
+**Contents:**
+- Label: which team called the timeout
+- Countdown display: counts down from 60s (format: `0:SS`)
+- **Cancel / Revert** button: calls `revertTimeout` — clears usage flag and timer. Available at any time.
+- **Dismiss** button: calls `dismissTimeout` — hides modal; timeout is consumed.
+
+---
+
 ### SetupView (Doubles)
 ```
 [← Back]   [Best of 5]   [⚽]
