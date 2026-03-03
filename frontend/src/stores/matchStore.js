@@ -56,6 +56,7 @@ export const useMatchStore = defineStore('match', {
 
     // Deciding-game mid-game swap alert state
     midGameSwapPending: false,
+    midGameSwapSnapshot: null,
 
     // Undo history
     gameHistory: [],
@@ -280,6 +281,7 @@ export const useMatchStore = defineStore('match', {
       this.prevDoublesInitialServer = null
       this.prevDoublesInitialReceiver = null
       this.midGameSwapPending = false
+      this.midGameSwapSnapshot = null
 
       this.gameHistory = []
 
@@ -335,6 +337,7 @@ export const useMatchStore = defineStore('match', {
           timeoutActive: this.timeoutActive,
           timeoutTimeLeft: this.timeoutTimeLeft,
           timeoutCallingTeam: this.timeoutCallingTeam,
+          midGameSwapSnapshot: this.midGameSwapSnapshot ? JSON.parse(JSON.stringify(this.midGameSwapSnapshot)) : null,
           scores: JSON.parse(JSON.stringify(this.scores))
         })
 
@@ -402,6 +405,7 @@ export const useMatchStore = defineStore('match', {
       this.timeoutActive = prev.timeoutActive
       this.timeoutTimeLeft = prev.timeoutTimeLeft
       this.timeoutCallingTeam = prev.timeoutCallingTeam
+      this.midGameSwapSnapshot = prev.midGameSwapSnapshot ? JSON.parse(JSON.stringify(prev.midGameSwapSnapshot)) : null
 
       this.scores = JSON.parse(JSON.stringify(prev.scores))
 
@@ -732,6 +736,19 @@ export const useMatchStore = defineStore('match', {
     },
 
     applyMidGameSwap() {
+      // Create snapshot to fully revert if score falls below 5
+      this.midGameSwapSnapshot = {
+        swappedSides: this.swappedSides,
+        p1Top: this.p1Top,
+        p1Bot: this.p1Bot,
+        p2Top: this.p2Top,
+        p2Bot: this.p2Bot,
+        doublesInitialServer: { ...this.doublesInitialServer },
+        doublesInitialReceiver: { ...this.doublesInitialReceiver },
+        server: this.server,
+        initialServer: this.initialServer
+      }
+
       this.swappedSides = !this.swappedSides
 
       if (this.currentMatch?.type === 'doubles') {
@@ -747,6 +764,25 @@ export const useMatchStore = defineStore('match', {
       this.syncDoublesQuadrants()
       this.midGameSwapPending = false
       this.decidingSwapDone = true
+    },
+
+    revertMidGameSwap() {
+      if (!this.midGameSwapSnapshot) return
+
+      this.swappedSides = this.midGameSwapSnapshot.swappedSides
+      this.p1Top = this.midGameSwapSnapshot.p1Top
+      this.p1Bot = this.midGameSwapSnapshot.p1Bot
+      this.p2Top = this.midGameSwapSnapshot.p2Top
+      this.p2Bot = this.midGameSwapSnapshot.p2Bot
+      this.doublesInitialServer = { ...this.midGameSwapSnapshot.doublesInitialServer }
+      this.doublesInitialReceiver = { ...this.midGameSwapSnapshot.doublesInitialReceiver }
+      this.server = this.midGameSwapSnapshot.server
+      this.initialServer = this.midGameSwapSnapshot.initialServer
+
+      this.decidingSwapDone = false
+      this.midGameSwapPending = false
+      this.midGameSwapSnapshot = null
+      this.syncDoublesQuadrants()
     },
 
     startTimer(callback) {
@@ -825,7 +861,16 @@ export const useMatchStore = defineStore('match', {
 
       // Deciding-game mid-game side swap: triggers when first team reaches 5 points
       const isDecidingGame = this.game === (this.currentMatch?.bestOf ?? 5)
-      if (isDecidingGame && !this.decidingSwapDone && (this.p1Score === 5 || this.p2Score === 5)) {
+
+      if (delta < 0 && isDecidingGame && this.p1Score < 5 && this.p2Score < 5) {
+        if (this.midGameSwapPending) {
+          this.midGameSwapPending = false
+        } else if (this.decidingSwapDone && this.midGameSwapSnapshot) {
+          this.revertMidGameSwap()
+        }
+      }
+
+      if (delta > 0 && isDecidingGame && !this.decidingSwapDone && (this.p1Score >= 5 || this.p2Score >= 5)) {
         this.midGameSwapPending = true
       }
       // Apply quadrant updates if scores changed
@@ -866,7 +911,8 @@ export const useMatchStore = defineStore('match', {
       }
 
       const isDecidingGame = this.game === (this.currentMatch?.bestOf ?? 5)
-      if (isDecidingGame && !this.decidingSwapDone && (this.p1Score === 5 || this.p2Score === 5)) {
+
+      if (isDecidingGame && !this.decidingSwapDone && (this.p1Score >= 5 || this.p2Score >= 5)) {
         this.midGameSwapPending = true
       }
       this.syncDoublesQuadrants()
@@ -929,6 +975,15 @@ export const useMatchStore = defineStore('match', {
           servesPassed = Math.floor(totalPoints / 2)
         }
         this.server = (servesPassed % 2 === 0) ? this.initialServer : (this.initialServer === 1 ? 2 : 1)
+      }
+
+      const isDecidingGame = this.game === (this.currentMatch?.bestOf ?? 5)
+      if (isDecidingGame && this.p1Score < 5 && this.p2Score < 5) {
+        if (this.midGameSwapPending) {
+          this.midGameSwapPending = false
+        } else if (this.decidingSwapDone && this.midGameSwapSnapshot) {
+          this.revertMidGameSwap()
+        }
       }
 
       this.syncDoublesQuadrants()

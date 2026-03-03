@@ -1,34 +1,37 @@
-# Debug Session: Cross-Game Revert Boundary
+# Debug Session: Mid-Game Side Swap Undo Revert
 
 ## Symptom
-The user inquired whether undoing/reverting points when a new game has already started (e.g., at 1-0 due to carry-overs) will appropriately revert the match back to the previous game (Game 1 at 10-0).
+In the final deciding game, a modal is shown when 1 player reaches 5 points. After the modal is dismissed, the players' sides are swapped (and server/receiver swapped correctly for Doubles). However, when the score is later reduced below 5 points (due to an umpire correction or penalty revert), the side is not swapped back.
 
-**When:** A game ends and `Next Game` is clicked, but an umpire wants to revert the scoring action that ended the previous game.
-**Expected:** State should revert across the `this.game` boundary.
-**Actual:** Implemented and Verified.
+**When:** An umpire uses the "minus" point button (or undoes a penalty point) after sides have already been swapped at 5 points in a deciding game.
+**Expected:** The sides and player quadrants should be perfectly reverted back to the pre-swap state, and the deciding swap status reset.
+**Actual:** The minus went through, but the players remained swapped.
 
 ## Hypotheses
 
 | # | Hypothesis | Likelihood | Status |
 |---|------------|------------|--------|
-| 1 | `matchStore` does not track previous game states to fully re-hydrate. | 100% | FIXED |
+| 1 | The `handleScore()` logic simply did not contain reverting logic for the side swap when the score drops below 5. | 100% | FIXED |
 
 ## Attempts
 
 ### Attempt 1
-**Testing:** H1 — Reverting a penalty point in Game 2.
-**Action:** Wrote `matchStore.debug.test.js`.
-**Result:** Initial implementation did not support boundary crossing.
-**Conclusion:** Confirmed need for `gameHistory` snapshotting.
+**Testing:** H1 — The missing snapshot/revert mechanism inside the game state for `midGameSwap`.
+**Action:** 
+1. Added `midGameSwapSnapshot` to capture state immediately before the side swap is applied.
+2. Modified `revertMidGameSwap()` to pull from this snapshot, fully restoring `swappedSides`, the quadrants (`p1Top`, `p1Bot`, etc.), and `server` settings.
+3. Hooked `revertMidGameSwap()` into `handleScore` (when `delta < 0`) and `revertPenaltyPoints` (when decreasing the opponent's score) when both scores fall below 5.
+**Result:** Worked perfectly. We also updated the swap conditions (`>= 5`) in case jumping the score triggers it.
+**Conclusion:** CONFIRMED.
 
 ## Resolution
 
-**Root Cause:** The `matchStore` was not snapshotting state on `nextGame()`, making reverts bounded to the current game frame (minimum 0 points).
-**Fix:** 
-1. Added `gameHistory` array to state.
-2. `nextGame()` now pushes a snapshot including `scores`, `server`, `quadrants`, and `carryOverPoints`.
-3. Added `undoNextGame()` to pop and restore state.
-4. Integrated `undoNextGame()` call natively into both `handleScore` (minus) and `revertPenaltyPoints` if current points are insufficient for a reduction.
-**Verified:** `matchStore.debug.test.js` passes. 9-0 -> YR1 (10-0) -> YR2 (11-0) -> Next Game (Game 2 1-0) -> Revert YR2 -> Game 1 10-0.
+**Root Cause:** No snapshotting logic existed to capture the exact player quadrants right before the deciding game swap, nor was there code to reverse it when falling below 5 points.
+**Fix:**
+1. Introduced `midGameSwapSnapshot` to capture pre-swap sides and combinations.
+2. Added `revertMidGameSwap()` action.
+3. Updated `handleScore()` and `revertPenaltyPoints()` to check if scores fall below 5 and cleanly reverse the swap.
+4. Added Vitest unit test coverage via `matchStore.midgame.test.js`.
+**Verified:** `npm test` passed 80/80 tests, including explicit verifying that the side swap undoes properly.
 
-**Regression Check:** All 55 tests pass (Cards, Doubles, Penalty, Debug).
+**Regression Check:** Confirmed `matchStore.cards.test.js`, `matchStore.timeout.test.js`, and `matchStore.doubles.test.js` all pass without issue.
