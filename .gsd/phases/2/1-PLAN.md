@@ -18,6 +18,22 @@ Establish the Admin Portal layout and a central Dashboard view listing all match
 ## Tasks
 
 <task type="auto">
+  <name>Create Admin Store & Auth Logic</name>
+  <files>
+    - frontend/src/stores/adminStore.js
+    - frontend/src/components/admin/AdminLogin.vue
+  </files>
+  <action>
+    - Create `adminStore.js` (Pinia) to manage an `isAuthenticated` boolean and cache `matches` fetched from the API.
+    - Implement an `adminStore.login(password)` function that checks against a hardcoded string (e.g. `'admin123'`) and sets `isAuthenticated = true` if successful.
+    - Implement `adminStore.fetchMatches()` which calls `http://localhost:8080/api/matches` and stores the resulting array.
+    - Create `AdminLogin.vue` showing a simple password input and login button, calling `adminStore.login()`.
+  </action>
+  <verify>ls frontend/src/stores/adminStore.js frontend/src/components/admin/AdminLogin.vue</verify>
+  <done>adminStore.js structure validates.</done>
+</task>
+
+<task type="auto">
   <name>Create Admin Layout & Dashboard Structure</name>
   <files>
     - frontend/src/components/admin/AdminLayout.vue
@@ -25,29 +41,31 @@ Establish the Admin Portal layout and a central Dashboard view listing all match
   </files>
   <action>
     - Create `frontend/src/components/admin` folder natively if it doesn't exist.
-    - `AdminLayout.vue`: Implement a basic wrapper featuring a fixed sidebar or top nav bar with links to `Admin Dashboard` and an `Exit to App` routing back to `/`. Ensure a `<router-view />` manages internal admin content.
-    - `AdminDashboard.vue`: Connect a `fetch` directly to `http://localhost:8080/api/matches`, displaying a table of matches similar to `MatchList.vue` but with styling fit for a management console. Include a placeholder button for "Create Match".
+    - `AdminLayout.vue`: Implement a wrapper featuring a fixed **top bar navigation** with links to `Dashboard` and `New Match`, plus an `Exit to App` button returning to `/`. Use `<router-view />` below the top navigation to host internal admin content.
+    - `AdminDashboard.vue`: Display the cached `matches` from `adminStore` in a table view. Call `adminStore.fetchMatches()` on mount. Include a placeholder button or router-link for "Create Match".
   </action>
   <verify>ls frontend/src/components/admin/AdminLayout.vue frontend/src/components/admin/AdminDashboard.vue</verify>
   <done>AdminLayout and AdminDashboard Vue component files are written correctly.</done>
 </task>
 
 <task type="auto">
-  <name>Register Admin Routes</name>
+  <name>Register Admin Routes & Guards</name>
   <files>
     - frontend/src/router/index.js
   </files>
   <action>
-    - Import `AdminLayout` and `AdminDashboard`.
-    - Add a new top-level route `/admin` pointing to the `AdminLayout` component.
-    - Map children routes under `/admin`:
-      - Path `''` (empty) to `AdminDashboard` with a name of `admin-dashboard`.
+    - Import `AdminLayout`, `AdminDashboard`, and `AdminLogin`.
+    - Map routes:
+      - `/admin/login` -> `AdminLogin`
+      - `/admin` -> `AdminLayout` (redirects empty to `/admin/dashboard`)
+        - children: `path: 'dashboard'` -> `AdminDashboard`
+    - Implement a `router.beforeEach` globally. If the target route starts with `/admin` and is NOT `/admin/login`, check `adminStore().isAuthenticated`. If false, redirect to `/admin/login`.
   </action>
-  <verify>grep "path: '/admin'" frontend/src/router/index.js</verify>
-  <done>The router correctly nests the admin dashboard inside the admin layout.</done>
+  <verify>grep "beforeEach" frontend/src/router/index.js</verify>
+  <done>Router logic prevents unwanted access to the administration dashboard without auth.</done>
 </task>
 
 ## Success Criteria
-- [ ] `/admin` route loads successfully.
-- [ ] `AdminDashboard` displays matches from the API.
-- [ ] Users can navigate between the main MatchList app and the Admin Portal.
+- [ ] Unauthorized users attempting to hit `/admin` are redirected to `/admin/login`.
+- [ ] Top-nav `AdminLayout` cleanly displays the `AdminDashboard`.
+- [ ] `AdminDashboard` renders fetched list of stored matches from `adminStore`.

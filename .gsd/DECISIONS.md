@@ -75,3 +75,17 @@
 
 ### Constraints
 - The backend API must map the flattened DB rows into the nested `Team1: []Player` and `Team2: []Player` JSON structure required by the existing frontend store.
+
+---
+
+## Phase 2 Decisions
+
+**Date:** 2026-03-04
+
+### Scope
+- **Layout Approach:** Use a Top Navigation Bar in `AdminLayout.vue` instead of a sidebar, allowing more horizontal width for displaying match tables.
+- **Security:** Requires an authentication layer for the admin panel. Will implement a simple login page and router guards to restrict access to `/admin` routes.
+
+### Approach
+- **State Management:** Creates and utilizes a new Pinia store (`adminStore.js`) for the Admin portal independently from the live-play `matchStore.js`. `adminStore` handles authentication state and fetching/caching the match list for the dashboard.
+- **Timezone Discrepancy Recommendation:** Recommends formatting the HTML5 `<input type="datetime-local">` directly into naive string sequences matching local server time without "Z" trailing UTC identifiers before they hit the API. This guarantees SQLite string checks naturally align with the server's Start of Day/End of Day limits.
