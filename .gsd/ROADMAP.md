@@ -20,7 +20,7 @@
 **Objective**: Integrate a CGO-free SQLite driver (e.g., `modernc.org/sqlite`) into the Go backend. Define the schema and write migration scripts for `matches`, `games`, and `cards`. Implement `GET /matches` (to fetch today's unstarted matches) and `POST /matches` (to create matches).
 
 ### Phase 2: Admin Portal Frontend (UI)
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Build out the Admin frontend layout. Add a dashboard view to list matches, a form to create new matches (singles/doubles), and a view to update/edit completed match data.
 
 ### Phase 3: Live Match Sync API & Touchpad Integration
