@@ -57,3 +57,21 @@
 
 ### Side-Swapping
 - Derivation of "Left" and "Right" teams based on `matchStore.swappedSides` will be handled in `Touchpad.vue` and passed to a reusable `CardIndicators.vue` component.
+
+---
+
+## Phase 1 Decisions
+
+**Date:** 2026-03-04
+
+### Scope
+- **Database Location:** Configurable via environment variable.
+- **Date Filtering:** `GET /matches` will be timezone-aware to correctly resolve "today's matches".
+
+### Approach
+- **Chose:** `sqlc` combined with standard `database/sql` using the `modernc.org/sqlite` driver, structured using Clean Architecture (API, Service, Datastore layers).
+- **Reason:** `sqlc` provides type-safe code generation straight from SQL without the runtime bloat of a full ORM. It cleanly splits the Datastore concerns into an interface, forcing a strict separation between the API handlers, Business Logic API, and Data Access Logic.
+- **Migrations:** Handled via `initDB()` on startup using simple `CREATE TABLE IF NOT EXISTS...` queries for the immediate small-scale setup.
+
+### Constraints
+- The backend API must map the flattened DB rows into the nested `Team1: []Player` and `Team2: []Player` JSON structure required by the existing frontend store.

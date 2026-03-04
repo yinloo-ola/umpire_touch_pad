@@ -106,20 +106,24 @@
   - **Score guards**: `+` only works when `pointStarted=true`; `−` always works (umpire correction).
 
 
-### backend/main.go
-- **Purpose:** Lightweight Go HTTP server providing match data and a save endpoint. Currently serves hardcoded fixture data.
-- **Location:** `backend/main.go`
-- **Port:** `:8080`
+### Go Backend (Clean Architecture)
+- **Purpose:** Serve match REST API endpoints and connect to an SQLite database for persistence.
+- **Location:** `backend/` directory structure.
+- **Components:**
+  - `cmd/server/main.go`: Entry point, loads ENV config, initializes DB, and injects dependencies.
+  - `internal/api/`: HTTP Handlers and routers. Parses requests, calls services, sends JSON responses.
+  - `internal/service/`: Business logic. Maps nested JSON structs (Vue frontend format) to flat DB records, and defines timezone filtering logic.
+  - `internal/store/`: Datastore layer. Uses `sqlc` to generate type-safe Go struct methods from pure SQL queries using the CGO-free `modernc.org/sqlite` driver.
+- **Port:** `:8080` (or ENV defined)
 - **Endpoints:**
   | Endpoint | Method | Purpose |
   |----------|--------|---------|
   | `/api/health` | GET | Health check |
-  | `/api/matches` | GET | Returns hardcoded match list (JSON) |
-  | `/api/match` | POST | Stub — accepts but doesn't persist |
-- **Data Models:**
-  - `Match`: `{type, event, time, bestOf, team1[], team2[]}`
+  | `/api/matches` | GET | Returns today's unstarted matches (fetched from DB) |
+  | `/api/match` | POST | Creates a new scheduled match in DB |
+- **Data Models (API <-> Service):**
+  - `Match`: `{id, type, bestOf, time, team1[], team2[]}`
   - `Player`: `{name, country}`
-
 ---
 
 ## Data Flow
