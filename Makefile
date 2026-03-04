@@ -19,7 +19,7 @@ dev-frontend:
 
 dev-backend:
 	@echo "▶ Starting backend dev server…"
-	cd $(BACKEND_DIR) && go run .
+	cd $(BACKEND_DIR) && go run ./cmd/server
 
 # ── Linting ───────────────────────────────────────────────────────────────────
 ## Lint both frontend and backend
