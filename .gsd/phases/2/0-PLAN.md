@@ -38,10 +38,13 @@ Implement role-based JSON Web Token (JWT) authentication for the Go backend. Gua
     - backend/cmd/server/main.go
   </files>
   <action>
-    - Create `auth_handlers.go` with a unified `/api/login` endpoint that accepts `{ "username": "...", "password": "..." }`, checks credentials against `auth_svc.go`, and returns `{ "token": "...", "role": "..." }`.
-    - Create `middleware.go` providing `RequireAuth(role string, next http.HandlerFunc)` that parses the Authorization Bearer header, validates the JWT, and ensures the token claim role matches the required role.
-    - Update `cmd/server/main.go` / router logic to map `POST /api/login` as completely open.
-    - Wrap the existing `GET /api/matches` and `POST /api/match` endpoints with `RequireAuth(role...)` according to their needs (e.g. `POST /api/match` is probably admin-only, `GET /api/matches` might be either or specifically umpire). For now, align `POST /api/match` to admin.
+    - Create `auth_handlers.go` with a unified `/api/login` endpoint that accepts `{ "username": "...", "password": "..." }`, checks credentials against `auth_svc.go`.
+    - Upon successful login, set an `HttpOnly`, `Secure` (if in prod/or toggleable), `SameSite=Strict` cookie containing the token (e.g. `Set-Cookie: jwt=<token>; ...`). Return a basic `{ "role": "..." }` JSON payload.
+    - Create `/api/logout` that clears the cookie by setting an expired Max-Age.
+    - Create `middleware.go` providing `RequireAuth(role string, next http.HandlerFunc)` that reads the JWT from `r.Cookie("jwt")`, validates it, and ensures the token claim role matches the requirement.
+    - Update `cmd/server/main.go` / router logic to map `POST /api/login` and `POST /api/logout` as completely open.
+    - **Crucial CORS update:** Update `cors.Options` in `main.go` to have `AllowCredentials: true`.
+    - Wrap the existing `GET /api/matches` and `POST /api/match` endpoints with `RequireAuth(role...)`. Align `POST /api/match` to admin.
   </action>
   <verify>cd backend && go build ./cmd/server</verify>
   <done>JWT login endpoints and middleware compile securely.</done>

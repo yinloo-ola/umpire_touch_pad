@@ -24,10 +24,10 @@ Establish the Admin Portal layout and a central Dashboard view listing all match
     - frontend/src/components/admin/AdminLogin.vue
   </files>
   <action>
-    - Create `adminStore.js` (Pinia) to manage `token`, `role`, and `isAuthenticated` boolean, and cache `matches` fetched from the API.
-    - Implement an `adminStore.login(username, password)` function that posts to `http://localhost:8080/api/login`. On success, save the returned token and role into state (and `localStorage`), and set `isAuthenticated = true`.
-    - Implement `adminStore.logout()` functionality.
-    - Implement `adminStore.fetchMatches()` which calls `http://localhost:8080/api/matches`, passing the stored JWT as a `Bearer` token in the Authorization header.
+    - Create `adminStore.js` (Pinia) to manage `role` and an `isAuthenticated` boolean, and cache `matches` fetched from the API.
+    - Implement an `adminStore.login(username, password)` function that posts to `http://localhost:8080/api/login` using `credentials: 'include'`. On success, set `isAuthenticated = true` and store the returned `role`.
+    - Implement `adminStore.logout()` functionality which calls `POST /api/logout` and sets `isAuthenticated = false`.
+    - Implement `adminStore.fetchMatches()` which calls `http://localhost:8080/api/matches`, ensuring `credentials: 'include'` is added to the fetch options so the `httpOnly` cookie is passed automatically.
     - Create `AdminLogin.vue` showing a username/password input form and login button, calling `adminStore.login()`.
   </action>
   <verify>ls frontend/src/stores/adminStore.js frontend/src/components/admin/AdminLogin.vue</verify>

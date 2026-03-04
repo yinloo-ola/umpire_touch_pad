@@ -84,9 +84,9 @@
 
 ### Scope
 - **Layout Approach:** Use a Top Navigation Bar in `AdminLayout.vue` instead of a sidebar, allowing more horizontal width for displaying match tables.
-- **Security:** Requires a backend JWT authentication layer. Admin and Umpire credentials will be loaded from environment variables. Both admin APIs and umpire APIs will be guarded by auth middleware using JWT. The frontend will have a login page to obtain the JWT token and attach it to subsequent requests.
+- **Security:** Requires a backend JWT authentication layer. Admin and Umpire credentials will be loaded from environment variables. Both admin APIs and umpire APIs will be guarded by auth middleware using JWT. The frontend will have a login page. JWT tokens will be transmitted via highly secure `httpOnly` cookies to prevent XSS attacks.
 
 ### Approach
-- **Backend Auth:** Add `/api/admin/login` and `/api/umpire/login` endpoints (or a unified `/api/login` with roles). Implement JWT wrapper and middleware.
-- **State Management:** Creates and utilizes a new Pinia store (`adminStore.js`) for the Admin portal independently from the live-play `matchStore.js`. `adminStore` handles storing the JWT and fetching/caching the match list for the dashboard.
+- **Backend Auth:** Add `/api/admin/login` and `/api/umpire/login` endpoints (or a unified `/api/login` with roles). Implement JWT wrapper and middleware that reads from the `jwt` cookie. The login endpoint will issue a `Set-Cookie` header with `HttpOnly`, `Secure`, and `SameSite=Strict`. Also add a `/api/logout` endpoint to clear the cookie.
+- **State Management:** Creates and utilizes a new Pinia store (`adminStore.js`) for the Admin portal independently from the live-play `matchStore.js`. `adminStore` handles tracking `isAuthenticated`, logs in/out, and fetches/caches the match list for the dashboard (ensuring `{ credentials: 'include' }` is passed to `fetch`).
 - **Timezone Discrepancy Recommendation:** Recommends formatting the HTML5 `<input type="datetime-local">` directly into naive string sequences matching local server time without "Z" trailing UTC identifiers before they hit the API. This guarantees SQLite string checks naturally align with the server's Start of Day/End of Day limits.
