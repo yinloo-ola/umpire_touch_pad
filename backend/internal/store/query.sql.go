@@ -10,6 +10,43 @@ import (
 	"database/sql"
 )
 
+const clearCardsForMatch = `-- name: ClearCardsForMatch :exec
+DELETE FROM cards WHERE match_id = ?
+`
+
+func (q *Queries) ClearCardsForMatch(ctx context.Context, matchID string) error {
+	_, err := q.db.ExecContext(ctx, clearCardsForMatch, matchID)
+	return err
+}
+
+const createCard = `-- name: CreateCard :exec
+INSERT INTO cards (id, match_id, game_id, team_index, player_index, card_type, reason)
+VALUES (?, ?, ?, ?, ?, ?, ?)
+`
+
+type CreateCardParams struct {
+	ID          string         `json:"id"`
+	MatchID     string         `json:"match_id"`
+	GameID      sql.NullString `json:"game_id"`
+	TeamIndex   int64          `json:"team_index"`
+	PlayerIndex int64          `json:"player_index"`
+	CardType    string         `json:"card_type"`
+	Reason      sql.NullString `json:"reason"`
+}
+
+func (q *Queries) CreateCard(ctx context.Context, arg CreateCardParams) error {
+	_, err := q.db.ExecContext(ctx, createCard,
+		arg.ID,
+		arg.MatchID,
+		arg.GameID,
+		arg.TeamIndex,
+		arg.PlayerIndex,
+		arg.CardType,
+		arg.Reason,
+	)
+	return err
+}
+
 const createMatch = `-- name: CreateMatch :exec
 INSERT INTO matches (
     id, title, scheduled_date, status, current_game,
@@ -91,4 +128,52 @@ func (q *Queries) GetUnstartedMatchesForPeriod(ctx context.Context, arg GetUnsta
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateMatchStatus = `-- name: UpdateMatchStatus :exec
+UPDATE matches 
+SET status = ?, current_game = ?, updated_at = CURRENT_TIMESTAMP
+WHERE id = ?
+`
+
+type UpdateMatchStatusParams struct {
+	Status      string `json:"status"`
+	CurrentGame int64  `json:"current_game"`
+	ID          string `json:"id"`
+}
+
+func (q *Queries) UpdateMatchStatus(ctx context.Context, arg UpdateMatchStatusParams) error {
+	_, err := q.db.ExecContext(ctx, updateMatchStatus, arg.Status, arg.CurrentGame, arg.ID)
+	return err
+}
+
+const upsertGame = `-- name: UpsertGame :exec
+INSERT INTO games (id, match_id, game_number, team1_score, team2_score, status)
+VALUES (?, ?, ?, ?, ?, ?)
+ON CONFLICT(match_id, game_number) DO UPDATE SET
+    team1_score = excluded.team1_score,
+    team2_score = excluded.team2_score,
+    status = excluded.status,
+    updated_at = CURRENT_TIMESTAMP
+`
+
+type UpsertGameParams struct {
+	ID         string `json:"id"`
+	MatchID    string `json:"match_id"`
+	GameNumber int64  `json:"game_number"`
+	Team1Score int64  `json:"team1_score"`
+	Team2Score int64  `json:"team2_score"`
+	Status     string `json:"status"`
+}
+
+func (q *Queries) UpsertGame(ctx context.Context, arg UpsertGameParams) error {
+	_, err := q.db.ExecContext(ctx, upsertGame,
+		arg.ID,
+		arg.MatchID,
+		arg.GameNumber,
+		arg.Team1Score,
+		arg.Team2Score,
+		arg.Status,
+	)
+	return err
 }

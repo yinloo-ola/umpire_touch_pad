@@ -20,7 +20,8 @@ CREATE TABLE IF NOT EXISTS games (
     team2_score INTEGER NOT NULL DEFAULT 0,
     status TEXT NOT NULL DEFAULT 'in_progress',
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(match_id, game_number)
 );
 
 CREATE TABLE IF NOT EXISTS cards (

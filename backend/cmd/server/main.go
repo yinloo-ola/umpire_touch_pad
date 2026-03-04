@@ -55,7 +55,7 @@ func main() {
 	mux.HandleFunc("/api/health", healthCheck)
 
 	querier := store.New(db)
-	svc := service.NewMatchService(querier)
+	svc := service.NewMatchService(querier, db)
 	authSvc := service.NewAuthService()
 	api.SetupRoutes(mux, svc, authSvc)
 

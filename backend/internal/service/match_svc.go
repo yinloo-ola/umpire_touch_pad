@@ -27,10 +27,94 @@ type Match struct {
 
 type MatchService struct {
 	store store.Querier
+	db    *sql.DB
 }
 
-func NewMatchService(q store.Querier) *MatchService {
-	return &MatchService{store: q}
+func NewMatchService(q store.Querier, db *sql.DB) *MatchService {
+	return &MatchService{
+		store: q,
+		db:    db,
+	}
+}
+
+type SyncGameRequest struct {
+	GameNumber int    `json:"gameNumber"`
+	Team1Score int    `json:"team1Score"`
+	Team2Score int    `json:"team2Score"`
+	Status     string `json:"status"`
+}
+
+type SyncCardRequest struct {
+	TeamIndex   int    `json:"teamIndex"`
+	PlayerIndex int    `json:"playerIndex"`
+	CardType    string `json:"cardType"`
+	Reason      string `json:"reason,omitempty"`
+}
+
+type SyncMatchRequest struct {
+	MatchID     string            `json:"matchId"`
+	Status      string            `json:"status"`
+	CurrentGame int               `json:"currentGame"`
+	Game        SyncGameRequest   `json:"game"`
+	Cards       []SyncCardRequest `json:"cards"`
+}
+
+func (s *MatchService) SyncMatch(ctx context.Context, req SyncMatchRequest) error {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	// qtx allows using the generated store methods within a transaction
+	qtx := store.New(tx)
+
+	// 1. Update Match Status
+	err = qtx.UpdateMatchStatus(ctx, store.UpdateMatchStatusParams{
+		ID:          req.MatchID,
+		Status:      req.Status,
+		CurrentGame: int64(req.CurrentGame),
+	})
+	if err != nil {
+		return err
+	}
+
+	// 2. Upsert Current Game
+	gameID := uuid.New().String() // Use a new ID if it's inserted, though ON CONFLICT might ignore it if updating
+	err = qtx.UpsertGame(ctx, store.UpsertGameParams{
+		ID:         gameID,
+		MatchID:    req.MatchID,
+		GameNumber: int64(req.Game.GameNumber),
+		Team1Score: int64(req.Game.Team1Score),
+		Team2Score: int64(req.Game.Team2Score),
+		Status:     req.Game.Status,
+	})
+	if err != nil {
+		return err
+	}
+
+	// 3. Clear existing cards for the match and insert updated list
+	err = qtx.ClearCardsForMatch(ctx, req.MatchID)
+	if err != nil {
+		return err
+	}
+
+	for _, card := range req.Cards {
+		cardID := uuid.New().String()
+		err = qtx.CreateCard(ctx, store.CreateCardParams{
+			ID:          cardID,
+			MatchID:     req.MatchID,
+			TeamIndex:   int64(card.TeamIndex),
+			PlayerIndex: int64(card.PlayerIndex),
+			CardType:    card.CardType,
+			Reason:      sql.NullString{String: card.Reason, Valid: card.Reason != ""},
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
 }
 
 func (s *MatchService) CreateMatch(ctx context.Context, m Match) (string, error) {

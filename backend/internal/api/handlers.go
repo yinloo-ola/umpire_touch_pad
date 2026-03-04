@@ -55,9 +55,38 @@ func (h *APIHandler) handleCreateMatch(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"id": id})
 }
 
+func (h *APIHandler) handleSyncMatch(w http.ResponseWriter, r *http.Request) {
+	// Standard library ServeMux since 1.22 handles method matching in registration,
+	// but we'll check it here too for double safety if registered with HandleFunc.
+	if r.Method != http.MethodPut {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	id := r.PathValue("id")
+	if id == "" {
+		http.Error(w, "Match ID required", http.StatusBadRequest)
+		return
+	}
+
+	var req service.SyncMatchRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	req.MatchID = id // Ensure ID from path is used
+
+	if err := h.svc.SyncMatch(r.Context(), req); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 // SetupRoutes registers the API routes to the given mux.
 // Open routes: POST /api/login, POST /api/logout
-// Auth-guarded: GET /api/matches (any auth), POST /api/match (admin only)
+// Auth-guarded: GET /api/matches (any auth), POST /api/match (admin only), PUT /api/matches/{id}/sync (any auth)
 func SetupRoutes(mux *http.ServeMux, svc *service.MatchService, authSvc *service.AuthService) {
 	handler := NewAPIHandler(svc, authSvc)
 
@@ -69,4 +98,5 @@ func SetupRoutes(mux *http.ServeMux, svc *service.MatchService, authSvc *service
 	// Protected endpoints
 	mux.HandleFunc("/api/matches", RequireAuth(authSvc, "", handler.handleGetMatches))
 	mux.HandleFunc("/api/match", RequireAuth(authSvc, "admin", handler.handleCreateMatch))
+	mux.HandleFunc("PUT /api/matches/{id}/sync", RequireAuth(authSvc, "", handler.handleSyncMatch))
 }

@@ -9,8 +9,12 @@ import (
 )
 
 type Querier interface {
+	ClearCardsForMatch(ctx context.Context, matchID string) error
+	CreateCard(ctx context.Context, arg CreateCardParams) error
 	CreateMatch(ctx context.Context, arg CreateMatchParams) error
 	GetUnstartedMatchesForPeriod(ctx context.Context, arg GetUnstartedMatchesForPeriodParams) ([]Match, error)
+	UpdateMatchStatus(ctx context.Context, arg UpdateMatchStatusParams) error
+	UpsertGame(ctx context.Context, arg UpsertGameParams) error
 }
 
 var _ Querier = (*Queries)(nil)
