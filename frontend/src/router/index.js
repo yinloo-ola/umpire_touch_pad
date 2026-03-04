@@ -57,10 +57,11 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   if (to.path.startsWith('/admin') && to.path !== '/admin/login') {
     const adminStore = useAdminStore()
-    if (!adminStore.isAuthenticated) {
+    const authenticated = await adminStore.checkAuth()
+    if (!authenticated) {
       return { path: '/admin/login' }
     }
   }

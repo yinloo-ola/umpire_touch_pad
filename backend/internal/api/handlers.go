@@ -64,6 +64,7 @@ func SetupRoutes(mux *http.ServeMux, svc *service.MatchService, authSvc *service
 	// Open auth endpoints
 	mux.HandleFunc("/api/login", handleLogin(authSvc))
 	mux.HandleFunc("/api/logout", handleLogout())
+	mux.HandleFunc("/api/me", handleMe(authSvc))
 
 	// Protected endpoints
 	mux.HandleFunc("/api/matches", RequireAuth(authSvc, "", handler.handleGetMatches))

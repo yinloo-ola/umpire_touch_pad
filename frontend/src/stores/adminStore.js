@@ -58,6 +58,29 @@ export const useAdminStore = defineStore('admin', () => {
         return res.json()
     }
 
+    // checkAuth calls GET /api/me to rehydrate auth state from the existing
+    // HttpOnly JWT cookie. Called by the router guard on every navigation so
+    // that a page refresh doesn't wipe the in-memory isAuthenticated flag.
+    async function checkAuth() {
+        if (isAuthenticated.value) return true  // already hydrated this session
+        try {
+            const res = await fetch(`${API_BASE}/api/me`, {
+                credentials: 'include',
+            })
+            if (!res.ok) {
+                isAuthenticated.value = false
+                return false
+            }
+            const data = await res.json()
+            role.value = data.role
+            isAuthenticated.value = true
+            return true
+        } catch {
+            isAuthenticated.value = false
+            return false
+        }
+    }
+
     return {
         isAuthenticated,
         role,
@@ -66,5 +89,6 @@ export const useAdminStore = defineStore('admin', () => {
         logout,
         fetchMatches,
         createMatch,
+        checkAuth,
     }
 })
