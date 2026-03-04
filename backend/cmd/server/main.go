@@ -6,6 +6,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"umpire-backend/internal/api"
+	"umpire-backend/internal/service"
+	"umpire-backend/internal/store"
 
 	"github.com/rs/cors"
 	_ "modernc.org/sqlite"
@@ -50,7 +53,10 @@ func main() {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/api/health", healthCheck)
-	// api.RegisterRoutes(mux) // TODO: Mount in wave 2
+
+	querier := store.New(db)
+	svc := service.NewMatchService(querier)
+	api.SetupRoutes(mux, svc)
 
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{"http://localhost:5173", "http://127.0.0.1:5173"},
