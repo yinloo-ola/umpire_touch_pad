@@ -4,52 +4,36 @@ plan: 2
 wave: 1
 ---
 
-# Plan 1.2: Core APIs Read and Create Matches
+# Plan 1.2: Server Entrypoint & DB Wiring
 
 ## Objective
-Update the `GET /api/matches` and `POST /api/match` routes in the backend to interact with the SQLite database.
+Wire up the `cmd/server/main.go` entrypoint, initialize the SQLite connection pool using ENV variables, and automatically apply the `schema.sql`.
 
 ## Context
-- .gsd/ROADMAP.md
-- backend/main.go
+- .gsd/ARCHITECTURE.md
+- backend/main.go (existing flat structure)
 
 ## Tasks
 
 <task type="auto">
-  <name>Implement POST /api/matches</name>
+  <name>Refactor Server Entrypoint (`cmd/server/main.go`)</name>
   <files>
-    - backend/main.go
-    - backend/go.mod
-  </files>
-  <action>
-    - Run `cd backend && go get github.com/google/uuid` to generate match IDs.
-    - Note `saveMatch` is exported on `/api/match` endpoint in `mux.HandleFunc`. Let's rename the function to `createMatch`.
-    - Implement `createMatch` to parse a POST body mapping to a match structure.
-    - Generate a pseudo-random UUID for the match ID.
-    - Set default values: `status='unstarted'`, `teamX_games_won=0`, `scheduled_date=time.Now()`.
-    - Insert a new row into the `matches` table mapping `Team1` and `Team2` slices into the flat columns (`team1_p1_name`, `team1_p2_name` etc).
-    - Return the generated ID to the client as JSON `{ "id": "<uuid>" }`.
-  </action>
-  <verify>cd backend && go build</verify>
-  <done>createMatch endpoint successfully inserts into DB and returns ID.</done>
-</task>
-
-<task type="auto">
-  <name>Implement GET /api/matches</name>
-  <files>
+    - backend/cmd/server/main.go
     - backend/main.go
   </files>
   <action>
-    - Replace the hardcoded data in `getMatches` to SELECT from the `matches` table.
-    - Fetch matches where `status='unstarted'`.
-    - The returned JSON from `getMatches` must match the current frontend expectations (using the `Match` struct with `Team1 []Player`, `Team2 []Player`).
-    - Specifically, populate `Match.Team1` and `Match.Team2` correctly. If `p2_name` is empty/null, omit it.
-    - Construct the JSON payload and return it.
+    - Move `backend/main.go` to `backend/cmd/server/main.go`.
+    - Update the imports to include `database/sql`, `os`, and `_ "modernc.org/sqlite"`.
+    - Fetch DB path from `os.Getenv("DB_PATH")`, defaulting to `sqlite.db` in the local directory.
+    - Fetch Port from `os.Getenv("PORT")`, defaulting to `8080`.
+    - Use `sql.Open("sqlite", dbPath)` to connect.
+    - Read `backend/db/schema.sql` from disk and execute it against the open connection `db.Exec(...)` to autoupdate/initialize tables on startup.
+    - Strip out the old hardcoded endpoints for now, replacing them with a temporary placeholder or comment where `api.RegisterRoutes(mux)` will eventually spawn.
   </action>
-  <verify>cd backend && go build</verify>
-  <done>getMatches retrieves unstarted matches from the database instead of hardcoded data.</done>
+  <verify>cd backend && go build -o umpire_backend ./cmd/server</verify>
+  <done>cmd/server/main.go compiles and successfully connects/migrates the SQLite database upon startup.</done>
 </task>
 
 ## Success Criteria
-- [ ] POST `/api/match` inserts records to SQLite.
-- [ ] GET `/api/matches` reads records from SQLite and correctly constructs the `[]Player` layout required by the frontend.
+- [ ] Server configuration is driven by `os.Getenv` for dynamic injection.
+- [ ] The `modernc.org/sqlite` database creates `sqlite.db` and bootstraps `schema.sql` automatically when the application boots.
