@@ -78,8 +78,11 @@ func (s *MatchService) CreateMatch(ctx context.Context, m Match) (string, error)
 func (s *MatchService) GetTodayUnstartedMatches(ctx context.Context) ([]Match, error) {
 	now := time.Now()
 	y, m, d := now.Date()
-	startOfDay := time.Date(y, m, d, 0, 0, 0, 0, now.Location()).Format(time.RFC3339)
-	endOfDay := time.Date(y, m, d, 23, 59, 59, 999999999, now.Location()).Format(time.RFC3339)
+	// Use the same ISO 8601 local format that the frontend datetime-local input
+	// writes to the DB: "2026-03-05T00:00:00" — T separator, no timezone offset.
+	const naiveFmt = "2006-01-02T15:04:05"
+	startOfDay := time.Date(y, m, d, 0, 0, 0, 0, now.Location()).Format(naiveFmt)
+	endOfDay := time.Date(y, m, d, 23, 59, 59, 999999999, now.Location()).Format(naiveFmt)
 
 	dbMatches, err := s.store.GetUnstartedMatchesForPeriod(ctx, store.GetUnstartedMatchesForPeriodParams{
 		ScheduledDate:   startOfDay,
