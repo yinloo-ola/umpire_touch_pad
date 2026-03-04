@@ -1131,6 +1131,7 @@ export const useMatchStore = defineStore('match', {
       try {
         const resp = await fetch(`http://localhost:8080/api/matches/${this.currentMatch.id}/sync`, {
           method: 'PUT',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
           },

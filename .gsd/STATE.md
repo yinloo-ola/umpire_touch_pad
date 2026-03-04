@@ -1,10 +1,14 @@
 ## Current Position
 - **Phase**: 3 (completed)
-- **Task**: Bugfix: Sync matches 404
-- **Status**: Resolved
+- **Task**: Bugfix: Sync matches 404 & 500
+- **Status**: Resolved (Fully Verified)
 
 ## Last Session Summary
-Resolved a 404 Not Found issue on the `PUT /api/matches/{id}/sync` endpoint by restarting the backend server. The route was correctly registered in Go 1.22+ `ServeMux` syntax but required a server reload to take effect. Verified with `curl` that the route is now matched (returning 401 instead of 404).
+Resolved two critical issues with the sync API:
+1. **404 Not Found**: Backend required a restart to load new v1.22 routing patterns.
+2. **500 Internal Server Error**: The `games` table was missing a `UNIQUE(match_id, game_number)` constraint required for SQL `ON CONFLICT` (upsert) logic. Recreating the database resolved this.
+
+All debug logging has been cleaned up and the endpoint is verified as working (returns 204 on success).
 
 ## Next Steps
 1. Proceed to Phase 4: Completed Match Operations

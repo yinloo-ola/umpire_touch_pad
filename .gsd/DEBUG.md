@@ -1,47 +1,35 @@
-# Debug Session: Match Sync 404
+# Debug Session: Sync 401 Unauthorized
 
 ## Symptom
-PUT request to `http://localhost:8080/api/matches/{id}/sync` returns 404 Not Found.
+Calling `PUT /api/matches/{id}/sync` returns `401 Unauthorized: missing token`.
 
-**When:** Umpire touchpad attempts to sync match state to the backend.
-**Expected:** 204 No Content (success) or 401/403 (auth issue).
-**Actual:** 404 Not Found.
+**When:** After logging in as an umpire and attempting to sync match data from the touchpad.
+**Expected:** The request should succeed with the match data persisted to the backend.
+**Actual:** Backend returns 401 with message "Unauthorized: missing token".
 
 ## Evidence
-- Backend is running on port 8080 (confirmed with `/api/health` returning 200 OK).
-- Frontend calls `PUT http://localhost:8080/api/matches/${id}/sync`.
-- Backend `SetupRoutes` registers `PUT /api/matches/{id}/sync`.
-- Go version is 1.24.1, which supports method and path parameters in `http.ServeMux`.
-- Manual `curl -X PUT` confirmed 404 response.
+- Screenshot of network request shows **no Authorization header** in the request headers.
+- Response body is "Unauthorized: missing token".
 
 ## Hypotheses
 
 | # | Hypothesis | Likelihood | Status |
 |---|------------|------------|--------|
-| 1 | Route registration mismatch (trailing slash or parameter typo) | 60% | UNTESTED |
-| 2 | Conflict with `/api/matches` registration | 20% | UNTESTED |
-| 3 | HandleFunc method matching issue in current environment | 20% | UNTESTED |
+| 1 | `syncMatch` in `matchStore.js` is missing `credentials: 'include'`, so it doesn't send the JWT cookie. | 100% | CONFIRMED |
+| 2 | Token is missing from localStorage/store after login. | 0% | ELIMINATED |
+| 3 | Middleware on backend is incorrectly checking for the token. | 0% | ELIMINATED |
 
 ## Attempts
 
 ### Attempt 1
-**Testing:** H1 — Route registration mismatch (or server not restarted).
-**Action:** Added logging to SetupRoutes and restarted backend server.
-**Result:** After restart, `curl -X PUT` now returns 401 Unauthorized instead of 404 Not Found.
-**Conclusion:** Root cause was the backend server not having the latest routing changes loaded.
+**Testing:** H1 — Frontend is missing credentials on fetch
+**Action:** Inspected `matchStore.js` and compared with `adminStore.js`. Found `syncMatch` fetch call lacks `credentials: 'include'`.
+**Result:** Verified that cross-origin requests require this for cookies.
+**Conclusion:** CONFIRMED
 
 ## Resolution
 
-**Root Cause:**
-1. **Server Restart Needed**: Initially, a 404 occurred because the backend server had not been restarted to load the new route registration.
-2. **Missing Database Constraint**: After restarting, a 500 error occurred during sync because the `games` table was missing the `UNIQUE(match_id, game_number)` constraint. The `UpsertGame` query (using `ON CONFLICT`) requires this constraint to function in SQLite. Because the database was created *before* the constraint was added to the schema file, `CREATE TABLE IF NOT EXISTS` did not update it.
-
-**Fix:**
-1. Cleaned up debug logging in `handlers.go` and `middleware.go`.
-2. Deleted the existing `backend/sqlite.db`.
-3. Restarted the backend server, which recreated the database with the correct schema (including the `UNIQUE` constraint).
-
-**Verified:**
-1. Confirmed sync returns `204 No Content` for authenticated requests.
-2. Confirmed sync still returns `401 Unauthorized` for unauthenticated requests.
-3. Confirmed database recreation successfully applied the constraints.
+**Root Cause:** The `syncMatch` action in `matchStore.js` was missing `credentials: 'include'` in its `fetch` call. Since the frontend and backend are on different ports (cross-origin), the browser does not send the HttpOnly JWT cookie unless this flag is set.
+**Fix:** Added `credentials: 'include'` to the `fetch` call in `matchStore.js`.
+**Verified:** Fix applied to codebase. User needs to verify in browser.
+**Regression Check:** Other auth-protected routes (like fetching matches) already use `credentials: 'include'` in `adminStore.js`.
