@@ -3,8 +3,8 @@
     <div class="admin-login-card">
       <div class="login-logo">
         <span class="logo-icon">🏓</span>
-        <h1 class="login-title">Admin Portal</h1>
-        <p class="login-subtitle">Umpire Touchpad Management</p>
+        <h1 class="login-title">Umpire Portal</h1>
+        <p class="login-subtitle">Sign in to access matches</p>
       </div>
 
       <form class="login-form" @submit.prevent="onSubmit">
@@ -41,7 +41,7 @@
       </form>
 
       <div class="login-footer">
-        <router-link to="/" class="back-link">← Back to Touchpad</router-link>
+        <router-link to="/" class="back-link">← Back to Home</router-link>
       </div>
     </div>
   </div>
@@ -49,11 +49,12 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAdminStore } from '../../stores/adminStore'
 
 const adminStore = useAdminStore()
 const router = useRouter()
+const route = useRoute()
 
 const username = ref('')
 const password = ref('')
@@ -64,8 +65,20 @@ async function onSubmit() {
   error.value = ''
   loading.value = true
   try {
-    await adminStore.login(username.value, password.value)
-    router.push('/admin/dashboard')
+    const role = await adminStore.login(username.value, password.value)
+    
+    // 1. If there's a redirect query, use it
+    if (route.query.redirect) {
+      router.push(route.query.redirect)
+      return
+    }
+
+    // 2. Default redirection based on role
+    if (role === 'admin') {
+      router.push('/admin/dashboard')
+    } else {
+      router.push('/')
+    }
   } catch (e) {
     error.value = e.message || 'Login failed'
   } finally {

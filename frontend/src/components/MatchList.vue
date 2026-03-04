@@ -1,34 +1,22 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMatchStore } from '../stores/matchStore'
+import { useAdminStore } from '../stores/adminStore'
 
 const router = useRouter()
 const matchStore = useMatchStore()
-
-const matches = ref([])
+const adminStore = useAdminStore()
 
 onMounted(async () => {
   try {
-    const res = await fetch('http://localhost:8080/api/matches')
-    if (res.ok) {
-      matches.value = await res.json()
-    }
+    await adminStore.fetchMatches()
   } catch (err) {
     console.error('Failed to fetch matches:', err)
-    // fallback data
-    matches.value = [
-      {
-        type: 'singles',
-        event: "Men's Singles (Offline)",
-        time: '09:00',
-        bestOf: 5,
-        team1: [{ name: 'JEOUNG Youngsik', country: 'KOR' }],
-        team2: [{ name: 'SAMSONOV Vladimir', country: 'BLR' }],
-      },
-    ]
   }
 })
+
+const matches = computed(() => adminStore.matches)
 
 const selectedMatch = ref(null)
 const showModal = ref(false)

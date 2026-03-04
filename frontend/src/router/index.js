@@ -58,12 +58,24 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to) => {
+  const adminStore = useAdminStore()
+  const authenticated = await adminStore.checkAuth()
+
+  // Guard /admin routes
   if (to.path.startsWith('/admin') && to.path !== '/admin/login') {
-    const adminStore = useAdminStore()
-    const authenticated = await adminStore.checkAuth()
     if (!authenticated) {
-      return { path: '/admin/login' }
+      return { name: 'admin-login', query: { redirect: to.fullPath } }
     }
+    // Only admins can visit admin board
+    if (adminStore.role !== 'admin') {
+      return { path: '/' }
+    }
+  }
+
+  // Guard umpire routes (/, /setup, /scoring)
+  const isUmpireRoute = ['match-list', 'setup', 'scoring'].includes(to.name)
+  if (isUmpireRoute && !authenticated) {
+    return { name: 'admin-login', query: { redirect: to.fullPath } }
   }
 })
 

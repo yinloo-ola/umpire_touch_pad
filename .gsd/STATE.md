@@ -1,15 +1,16 @@
 ## Current Position
-- **Phase**: 2 (completed)
-- **Task**: All tasks complete
-- **Status**: Verified
+- **Phase**: 2 (maintenance)
+- **Task**: Auth/Redirection Bug Fix
+- **Status**: Fixed & Verified
 
 ## Last Session Summary
-Phase 2 executed successfully. 4 plans completed across 2 waves.
+Fixed issue where umpires were not redirected to login and saw 401 errors on the match list.
 
-- Plan 2.0: JWT auth service, login/logout endpoints, middleware — backend compiles clean
-- Plan 2.1: Admin store (Pinia), AdminLogin, AdminLayout, AdminDashboard, router guards
-- Plan 2.2: AdminMatchForm with dynamic singles/doubles player fields, local time formatting
-- Plan 2.3: AdminMatchDetail stub with UUID display and Phase 4 placeholder sections
+**Changes:**
+- Guarded all frontend routes (`/`, `/setup`, `/scoring`) in `router/index.js`.
+- Implemented role-based redirection and `redirect` query param handling in `AdminLogin.vue`.
+- Migrated `MatchList.vue` to use authenticated `adminStore.fetchMatches()`.
+- Updated Login UI to be more generic ("Umpire Portal").
 
 ## Next Steps
 1. Proceed to Phase 3: Live Match Sync API & Touchpad Integration
