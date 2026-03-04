@@ -24,7 +24,7 @@
 **Objective**: Build out the Admin frontend layout. Add a dashboard view to list matches, a form to create new matches (singles/doubles), and a view to update/edit completed match data.
 
 ### Phase 3: Live Match Sync API & Touchpad Integration
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Implement `PUT /matches/:id/sync` endpoint. Hook it up to the `matchStore.js` in the Umpire Touchpad so that whenever a score, game, or card changes, it asynchronously syncs the current state (or game state) to the database.
 
 ### Phase 4: Completed Match Operations
