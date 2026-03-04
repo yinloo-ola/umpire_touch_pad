@@ -33,10 +33,15 @@ PUT request to `http://localhost:8080/api/matches/{id}/sync` returns 404 Not Fou
 ## Resolution
 
 **Root Cause:**
-The backend server was likely running a stale build that did not include the new `PUT /api/matches/{id}/sync` route registration. Go `http.ServeMux` since 1.22 supports method and path parameters, but the server needs to be restarted for changes in `SetupRoutes` to take effect.
+1. **Server Restart Needed**: Initially, a 404 occurred because the backend server had not been restarted to load the new route registration.
+2. **Missing Database Constraint**: After restarting, a 500 error occurred during sync because the `games` table was missing the `UNIQUE(match_id, game_number)` constraint. The `UpsertGame` query (using `ON CONFLICT`) requires this constraint to function in SQLite. Because the database was created *before* the constraint was added to the schema file, `CREATE TABLE IF NOT EXISTS` did not update it.
 
 **Fix:**
-Restarted the backend server via `make dev-backend` (executed `go run ./cmd/server` after killing existing process).
+1. Cleaned up debug logging in `handlers.go` and `middleware.go`.
+2. Deleted the existing `backend/sqlite.db`.
+3. Restarted the backend server, which recreated the database with the correct schema (including the `UNIQUE` constraint).
 
 **Verified:**
-Verified that `PUT /api/matches/UUID/sync` now returns `401 Unauthorized` instead of `404 Not Found`, indicating the route is correctly registered and the authentication middleware is now the one intercepting the request.
+1. Confirmed sync returns `204 No Content` for authenticated requests.
+2. Confirmed sync still returns `401 Unauthorized` for unauthenticated requests.
+3. Confirmed database recreation successfully applied the constraints.

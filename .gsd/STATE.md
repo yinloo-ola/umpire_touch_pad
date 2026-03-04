@@ -1,10 +1,10 @@
 ## Current Position
 - **Phase**: 3 (completed)
-- **Task**: All tasks complete
-- **Status**: Verified
+- **Task**: Bugfix: Sync matches 404
+- **Status**: Resolved
 
 ## Last Session Summary
-Phase 3 executed successfully. 2 plans across 2 waves were implemented, integrating the Umpire Touchpad with a live backend sync API for real-time match data persistence.
+Resolved a 404 Not Found issue on the `PUT /api/matches/{id}/sync` endpoint by restarting the backend server. The route was correctly registered in Go 1.22+ `ServeMux` syntax but required a server reload to take effect. Verified with `curl` that the route is now matched (returning 401 instead of 404).
 
 ## Next Steps
 1. Proceed to Phase 4: Completed Match Operations
