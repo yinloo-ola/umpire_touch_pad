@@ -8,11 +8,12 @@ import (
 )
 
 type APIHandler struct {
-	svc *service.MatchService
+	svc     *service.MatchService
+	authSvc *service.AuthService
 }
 
-func NewAPIHandler(svc *service.MatchService) *APIHandler {
-	return &APIHandler{svc: svc}
+func NewAPIHandler(svc *service.MatchService, authSvc *service.AuthService) *APIHandler {
+	return &APIHandler{svc: svc, authSvc: authSvc}
 }
 
 func (h *APIHandler) handleGetMatches(w http.ResponseWriter, r *http.Request) {
@@ -54,9 +55,17 @@ func (h *APIHandler) handleCreateMatch(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"id": id})
 }
 
-// SetupRoutes registers the API routes to the given mux
-func SetupRoutes(mux *http.ServeMux, svc *service.MatchService) {
-	handler := NewAPIHandler(svc)
-	mux.HandleFunc("/api/matches", handler.handleGetMatches)
-	mux.HandleFunc("/api/match", handler.handleCreateMatch)
+// SetupRoutes registers the API routes to the given mux.
+// Open routes: POST /api/login, POST /api/logout
+// Auth-guarded: GET /api/matches (any auth), POST /api/match (admin only)
+func SetupRoutes(mux *http.ServeMux, svc *service.MatchService, authSvc *service.AuthService) {
+	handler := NewAPIHandler(svc, authSvc)
+
+	// Open auth endpoints
+	mux.HandleFunc("/api/login", handleLogin(authSvc))
+	mux.HandleFunc("/api/logout", handleLogout())
+
+	// Protected endpoints
+	mux.HandleFunc("/api/matches", RequireAuth(authSvc, "", handler.handleGetMatches))
+	mux.HandleFunc("/api/match", RequireAuth(authSvc, "admin", handler.handleCreateMatch))
 }

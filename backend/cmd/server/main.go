@@ -56,12 +56,14 @@ func main() {
 
 	querier := store.New(db)
 	svc := service.NewMatchService(querier)
-	api.SetupRoutes(mux, svc)
+	authSvc := service.NewAuthService()
+	api.SetupRoutes(mux, svc, authSvc)
 
 	c := cors.New(cors.Options{
-		AllowedOrigins: []string{"http://localhost:5173", "http://127.0.0.1:5173"},
-		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		AllowedOrigins:   []string{"http://localhost:5173", "http://127.0.0.1:5173"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		AllowCredentials: true,
 	})
 
 	handler := c.Handler(mux)
