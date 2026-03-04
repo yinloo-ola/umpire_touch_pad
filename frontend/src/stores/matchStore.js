@@ -71,6 +71,9 @@ export const useMatchStore = defineStore('match', {
     timeoutActive: false,
     timeoutTimeLeft: 60,
     timeoutCallingTeam: null,
+
+    // Sync state
+    syncStatus: 'synced', // 'synced', 'syncing', 'error'
   }),
 
   getters: {
@@ -373,6 +376,7 @@ export const useMatchStore = defineStore('match', {
 
         // Initialize next game score in proxy
         this.scores[`g${this.game}`] = { p1: this.p1Score, p2: this.p2Score }
+        this.syncMatch()
       }
     },
 
@@ -413,6 +417,7 @@ export const useMatchStore = defineStore('match', {
         this.scores[`g${i}`] = { p1: null, p2: null }
       }
       this.syncDoublesQuadrants()
+      this.syncMatch()
     },
 
     syncDoublesQuadrants() {
@@ -764,6 +769,7 @@ export const useMatchStore = defineStore('match', {
       this.syncDoublesQuadrants()
       this.midGameSwapPending = false
       this.decidingSwapDone = true
+      this.syncMatch()
     },
 
     revertMidGameSwap() {
@@ -783,6 +789,7 @@ export const useMatchStore = defineStore('match', {
       this.midGameSwapPending = false
       this.midGameSwapSnapshot = null
       this.syncDoublesQuadrants()
+      this.syncMatch()
     },
 
     startTimer(callback) {
@@ -875,6 +882,7 @@ export const useMatchStore = defineStore('match', {
       }
       // Apply quadrant updates if scores changed
       this.syncDoublesQuadrants()
+      this.syncMatch()
     },
 
     applyPenaltyPoints(scoringTeamNum, points) {
@@ -1015,6 +1023,7 @@ export const useMatchStore = defineStore('match', {
         }
       }
 
+      this.syncMatch()
       return true
     },
 
@@ -1032,6 +1041,7 @@ export const useMatchStore = defineStore('match', {
             this.revertPenaltyPoints(opponent, 2)
           }
         }
+        this.syncMatch()
       }
     },
 
@@ -1055,6 +1065,7 @@ export const useMatchStore = defineStore('match', {
           this.timeoutInterval = null
         }
       }, 1000)
+      this.syncMatch()
       return true
     },
 
@@ -1071,10 +1082,67 @@ export const useMatchStore = defineStore('match', {
         this.timeoutTimeLeft = 60
         this.timeoutCallingTeam = null
       }
+      this.syncMatch()
     },
 
     dismissTimeout() {
       this.timeoutActive = false
+      this.syncMatch()
+    },
+
+    async syncMatch() {
+      if (!this.currentMatch) return
+
+      this.syncStatus = 'syncing'
+
+      // Flatten and format cards for the backend
+      const cards = []
+
+      // Team 1 Player Cards
+      this.team1Cards.forEach((c) => {
+        cards.push({ teamIndex: 1, playerIndex: 0, cardType: c })
+      })
+      // Team 2 Player Cards
+      this.team2Cards.forEach((c) => {
+        cards.push({ teamIndex: 2, playerIndex: 0, cardType: c })
+      })
+      // Team 1 Coach Cards
+      this.team1CoachCards.forEach((c) => {
+        cards.push({ teamIndex: 1, playerIndex: -1, cardType: c })
+      })
+      // Team 2 Coach Cards
+      this.team2CoachCards.forEach((c) => {
+        cards.push({ teamIndex: 2, playerIndex: -1, cardType: c })
+      })
+
+      const payload = {
+        matchId: this.currentMatch.id,
+        status: this.isGameOver ? 'completed' : 'in_progress',
+        currentGame: this.game,
+        game: {
+          gameNumber: this.game,
+          team1Score: this.p1Score,
+          team2Score: this.p2Score,
+          status: this.isGameOver ? 'completed' : 'in_progress',
+        },
+        cards: cards,
+      }
+
+      try {
+        const resp = await fetch(`http://localhost:8080/api/matches/${this.currentMatch.id}/sync`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        })
+
+        if (!resp.ok) throw new Error('Sync failed')
+        this.syncStatus = 'synced'
+      } catch (err) {
+        console.error('Match sync error:', err)
+        this.syncStatus = 'error'
+      }
     },
   },
 })

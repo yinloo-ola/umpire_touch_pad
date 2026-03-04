@@ -158,6 +158,9 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
           <span id="tp-date">{{ time.date }}</span>
           <span id="tp-clock" class="accent-text">{{ time.clock }}</span>
         </div>
+        <div class="sync-status-indicator" :title="'Sync Status: ' + matchStore.syncStatus">
+          <i class="fa-solid fa-cloud" :class="matchStore.syncStatus"></i>
+        </div>
         <button @click="quitMatch" class="icon-btn power-btn tp-power-btn">
           <i class="fa-solid fa-power-off"></i>
         </button>
