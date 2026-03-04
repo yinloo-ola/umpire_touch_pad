@@ -84,8 +84,9 @@
 
 ### Scope
 - **Layout Approach:** Use a Top Navigation Bar in `AdminLayout.vue` instead of a sidebar, allowing more horizontal width for displaying match tables.
-- **Security:** Requires an authentication layer for the admin panel. Will implement a simple login page and router guards to restrict access to `/admin` routes.
+- **Security:** Requires a backend JWT authentication layer. Admin and Umpire credentials will be loaded from environment variables. Both admin APIs and umpire APIs will be guarded by auth middleware using JWT. The frontend will have a login page to obtain the JWT token and attach it to subsequent requests.
 
 ### Approach
-- **State Management:** Creates and utilizes a new Pinia store (`adminStore.js`) for the Admin portal independently from the live-play `matchStore.js`. `adminStore` handles authentication state and fetching/caching the match list for the dashboard.
+- **Backend Auth:** Add `/api/admin/login` and `/api/umpire/login` endpoints (or a unified `/api/login` with roles). Implement JWT wrapper and middleware.
+- **State Management:** Creates and utilizes a new Pinia store (`adminStore.js`) for the Admin portal independently from the live-play `matchStore.js`. `adminStore` handles storing the JWT and fetching/caching the match list for the dashboard.
 - **Timezone Discrepancy Recommendation:** Recommends formatting the HTML5 `<input type="datetime-local">` directly into naive string sequences matching local server time without "Z" trailing UTC identifiers before they hit the API. This guarantees SQLite string checks naturally align with the server's Start of Day/End of Day limits.
