@@ -1,32 +1,28 @@
 # STATE.md — Project Memory
 
-> Last updated: 2026-03-03
+> Last updated: 2026-03-04
 
 ## Current Phase
-**Milestone Card System** — ✅ COMPLETE
+**Milestone Admin Portal & Database Synchronization** — ⬜ Not Started
 
 ## Last Session Summary
-Phase 5 executed and verified. Also ran a debug session and resolved an issue where the mid-game side swap (in decider games) would not cleanly revert when the score dropped below 5 points. Fixed by introducing `midGameSwapSnapshot` and wiring it to `handleScore` / `revertPenaltyPoints`.
+Created the new milestone Admin Portal & Database Synchronization. Updated SPEC.md to remove database persistence from Non-Goals. Designed the phase breakdown and requirements for the CGO-free SQLite database.
 
 ## Current Position
-- **Milestone**: Card System
-- **Phase**: 5 (completed)
-- **Task**: All tasks complete
-- **Status**: Verified
+- **Milestone**: Admin Portal & Database Synchronization
+- **Phase**: Not started
+- **Status**: Milestone planned
 
 ## Achievement Notes
-- Phase 1-5 complete for Card System Milestone.
-- Full support for player/coach cards, timeouts, penalty point awarding, and visual indicators.
-- Robust side-swapping integration for all UI elements.
+- Defined the four phases for the Admin Portal & Database Synchronization milestone.
+- Removed the previous "Card System" milestone information into past conversations.
 
 ## Next Steps
-1. Review roadmap for future milestones (Expedite rule, Persistence, etc.).
+1. /plan 1 — Create Phase 1 execution plans to implement the SQLite go backend and API.
 
 ## Known Blockers
 None
 
 ## Context Notes
-- Card modal: tap to issue; tap issued card to revert.
-- Indicators: Reactive and side-agnostic (using `swappedSides`).
-- Frontend: Vue 3 + Pinia + Vue Router.
-- Backend: Go 1.24.1 (mocked data).
+- Database driver must be CGO-free (e.g. `modernc.org/sqlite` or `github.com/glebarez/sqlite`).
+- Database schema: `matches`, `games`, and `cards`.

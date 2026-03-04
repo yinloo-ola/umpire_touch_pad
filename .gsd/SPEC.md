@@ -42,7 +42,6 @@ The app already handles singles matches end-to-end. For doubles, the match list 
 ## Non-Goals (Out of Scope)
 
 - Expedite rule implementation
-- Match result persistence to database
 - Multi-device sync or real-time updates
 - Player profile database or ID lookup (winner modal player ID hardcoding is a pre-existing debt item)
 - UI for editing score history

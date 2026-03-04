@@ -1,49 +1,40 @@
 # ROADMAP.md
 
-> **Current Milestone**: Card System
-> **Goal**: Implement the penalty card and timeout system natively into the touch pad, with automatic penalty point awarding and timeout management.
+> **Current Milestone**: Admin Portal & Database Synchronization
+> **Goal**: Develop an admin portal for administrators to create and manage table tennis matches. Ensure all scheduled matches are stored in an SQLite database, and integrate the Umpire Touchpad to synchronize running match data (scores, games, and granted cards) with the database in real-time. The database driver must be CGO-free.
 
 ---
 
-## Must-Haves (from SPEC)
-
-- [x] Card modal UI with Timeout, Yellow, YR1, YR2 (players) & Yellow, Red (coaches).
-- [x] Card constraints: independent tracks for players vs. coaches, greyed out once given, granted in specific order, reversed in per-team LIFO order (Timeouts reverted independently).
-- [x] Penalty point awarding & reverting: YR1 = 1 pt, YR2 = 2 pts (opponent), reverting cards also removes the awarded points. Triggers standard serve rotation. Handled up to game/match boundaries.
-- [x] Display assigned cards on the touchpad next to the toggle button.
-- [x] Card alignments swap sides synchronously when players swap sides.
-- [x] Timeout System: 1-minute cancelable countdown, restricted to the "Start of play" state.
+## Must-Haves
+- [ ] `matches`, `games`, and `cards` tables stored in an SQLite database (using a CGO-free driver, e.g., `modernc.org/sqlite`).
+- [ ] Backend API endpoints to handle creating a new match, querying `getMatches` for unstarted matches for the current day, and updating match/game states.
+- [ ] Dedicated Admin Portal frontend UI to create matches and manually edit/update completed matches.
+- [ ] Real-time synchronization hooks from the Umpire Touchpad (Vue app) to the backend API.
 
 ---
 
 ## Phases
 
-### Phase 1: State Management & Game Data Structure
-**Status**: ✅ Complete
-**Objective**: Update Pinia stores to handle card arrays (stack), ordered issuance limits, and logical ties to the Player/Side entities.
+### Phase 1: Backend Database Setup & Core APIs
+**Status**: ⬜ Not Started
+**Objective**: Integrate a CGO-free SQLite driver (e.g., `modernc.org/sqlite`) into the Go backend. Define the schema and write migration scripts for `matches`, `games`, and `cards`. Implement `GET /matches` (to fetch today's unstarted matches) and `POST /matches` (to create matches).
 
-### Phase 2: Penalty Points Tracking & Edge Cases
-**Status**: ✅ Complete
-**Objective**: Implement logical triggers to automatically award opponent points upon YR1/YR2 issuance. Resolve edge cases where penalty points cascade into game wins or carry over to the subsequent game. (Achievement: Added "Undo Next Game" cross-game revert).
+### Phase 2: Admin Portal Frontend (UI)
+**Status**: ⬜ Not Started
+**Objective**: Build out the Admin frontend layout. Add a dashboard view to list matches, a form to create new matches (singles/doubles), and a view to update/edit completed match data.
 
-### Phase 3: Timeout Logic
-**Status**: ✅ Complete
-**Objective**: Build out the state and timer restrictions for match Timeouts (1 per match/player, 60s max, only in `Start Of Play`).
+### Phase 3: Live Match Sync API & Touchpad Integration
+**Status**: ⬜ Not Started
+**Objective**: Implement `PUT /matches/:id/sync` endpoint. Hook it up to the `matchStore.js` in the Umpire Touchpad so that whenever a score, game, or card changes, it asynchronously syncs the current state (or game state) to the database.
 
-### Phase 4: Modal UI (Cards & Timeout)
-**Status**: ✅ Complete
-**Objective**: Build the visual Card Modal and the Timeout Countdown Modal as refined in Part 2, including the top-right widget style and auto-dismissal logic.
-
-### Phase 5: Display Indicators & Side-Swapping Integration
-**Status**: ✅ Complete
-**Objective**: Ensure given cards populate visually next to the card button on the touchpad, and successfully swap visual sides alongside player side-swaps.
+### Phase 4: Completed Match Operations
+**Status**: ⬜ Not Started
+**Objective**: Implement a backend API for finishing a match that formally sets the `matches.status` to `completed`. Combine it with the "End Match" feature in the touchpad to finalize the match summary with its games, scores, and penalty cards.
 
 ---
 
 ## Deferred (Future Milestones)
 
 - Expedite rule timer
-- Match result persistence (backend database)
 - Player profile lookup by ID
 - Edit score history
-
