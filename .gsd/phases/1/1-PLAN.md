@@ -4,58 +4,49 @@ plan: 1
 wave: 1
 ---
 
-# Plan 1.1: Card State Management in matchStore
+# Plan 1.1: Database Initialization & Schema
 
 ## Objective
-Update `matchStore.js` to initialize card and timeout states, bound logically to teams (1 and 2), supporting per-team card tracking for players and coaches separately. Implement actions to issue and revert cards and timeouts, adhering to LIFO per-team and validation constraints.
+Initialize the SQLite database using a CGO-free driver and execute the schema migrations upon server startup.
 
 ## Context
-- .gsd/SPEC.md
 - .gsd/ROADMAP.md
-- frontend/src/stores/matchStore.js
+- backend/main.go
 
 ## Tasks
 
 <task type="auto">
-  <name>Card State Initialization</name>
-  <files>frontend/src/stores/matchStore.js</files>
+  <name>Install CGO-free SQLite Driver</name>
+  <files>
+    - backend/go.mod
+    - backend/go.sum
+  </files>
   <action>
-    Update state and reset logic in `useMatchStore`:
-    - Add arrays `team1Cards`, `team2Cards`, `team1CoachCards`, `team2CoachCards` initialized to empty arrays `[]`.
-    - Add boolean flags `team1Timeout: false`, `team2Timeout: false`.
-    - Ensure all the new state variables are fully cleared/reset inside `resetMatchState()`.
+    - Run `cd backend && go get modernc.org/sqlite`
+    - Run `cd backend && go mod tidy`
   </action>
-  <verify>grep -q "team1Cards" frontend/src/stores/matchStore.js</verify>
-  <done>All required fields exist in state and are cleared properly in resetMatchState.</done>
+  <verify>grep "modernc.org/sqlite" backend/go.mod</verify>
+  <done>The modernc.org/sqlite driver is present in the backend module.</done>
 </task>
 
 <task type="auto">
-  <name>Issue and Revert Actions</name>
-  <files>frontend/src/stores/matchStore.js; frontend/src/stores/__tests__/matchStore.cards.test.js</files>
+  <name>Init DB and Define Schema</name>
+  <files>
+    - backend/main.go
+  </files>
   <action>
-    Implement logic to manage cards securely per the spec rules (Wait with the penalty point granting/reverting for Phase 2, handle state arrays purely here):
-    
-    - `issueCard(teamNum, type, target = 'player')`: 
-       Validate order constraints before pushing to the appropriate array (`teamNCards` or `teamNCoachCards`).
-       Player sequence: 'Yellow' -> 'YR1' -> 'YR2'.
-       Coach sequence: 'Yellow' -> 'Red'.
-       Return false or error on invalid sequence. If valid, push to array.
-       
-    - `revertLastCard(teamNum, target = 'player')`: 
-       Pops the last item off the respective team array (LIFO behavior per-team, per-track).
-       
-    - `issueTimeout(teamNum)` & `revertTimeout(teamNum)`:
-       Manage the boolean state.
-       
-    - Create `frontend/src/stores/__tests__/matchStore.cards.test.js`:
-       Write tests covering the new state toggles, validation rules, independent tracking between players and coaches, and per-team LIFO reverts.
+    - Import `database/sql` and `_ "modernc.org/sqlite"`.
+    - Create a global `db *sql.DB` variable.
+    - Write an `initDB()` function called before starting the server in `main()`.
+    - `initDB` should open a connection to `sqlite.db` and execute the schema initialization:
+      - `CREATE TABLE IF NOT EXISTS matches (id TEXT PRIMARY KEY, type TEXT, best_of INTEGER, status TEXT, scheduled_date DATETIME, team1_p1_name TEXT, team1_p2_name TEXT, team2_p1_name TEXT, team2_p2_name TEXT, team1_games_won INTEGER, team2_games_won INTEGER)`
+      - `CREATE TABLE IF NOT EXISTS games (id INTEGER PRIMARY KEY AUTOINCREMENT, match_id TEXT, game_number INTEGER, team1_score INTEGER, team2_score INTEGER, status TEXT, FOREIGN KEY(match_id) REFERENCES matches(id))`
+      - `CREATE TABLE IF NOT EXISTS cards (id INTEGER PRIMARY KEY AUTOINCREMENT, match_id TEXT, team_index INTEGER, recipient TEXT, card_type TEXT, FOREIGN KEY(match_id) REFERENCES matches(id))`
   </action>
-  <verify>npx vitest run frontend/src/stores/__tests__/matchStore.cards.test.js</verify>
-  <done>Store actions correctly update state enforcing order and LIFO constraints, with all card unit tests passing.</done>
+  <verify>cd backend && go build -o umpire_backend .</verify>
+  <done>backend/main.go builds successfully and creates the sqlite.db file on startup.</done>
 </task>
 
 ## Success Criteria
-- [ ] Attempting to issue invalid cards returns early or throws error.
-- [ ] Reverting cards pops the last item from that specific team's specific track.
-- [ ] Coach and Player tracks are fully decoupled.
-- [ ] Timeouts manage their own individual flags without using the array stacks.
+- [ ] Database drivers are installed.
+- [ ] Database schema is initialized successfully on startup in `sqlite.db`.
