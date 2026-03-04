@@ -16,7 +16,7 @@
 ## Phases
 
 ### Phase 1: Backend Database Setup & Core APIs
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Integrate a CGO-free SQLite driver (e.g., `modernc.org/sqlite`) into the Go backend. Define the schema and write migration scripts for `matches`, `games`, and `cards`. Implement `GET /matches` (to fetch today's unstarted matches) and `POST /matches` (to create matches).
 
 ### Phase 2: Admin Portal Frontend (UI)
