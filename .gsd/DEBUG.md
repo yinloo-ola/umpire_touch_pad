@@ -1,35 +1,42 @@
-# Debug Session: Admin Redirection Issue
+# Debug Session: Match Sync 404
 
 ## Symptom
-Accessing `http://localhost:5173/admin` redirects to `http://localhost:5173/`.
+PUT request to `http://localhost:8080/api/matches/{id}/sync` returns 404 Not Found.
 
-**When:** Navigating to `/admin` or any `/admin/*` route.
-**Expected:** Show the admin dashboard if logged in as admin, otherwise show login page.
-**Actual:** Redirects to the root (`/`) page.
+**When:** Umpire touchpad attempts to sync match state to the backend.
+**Expected:** 204 No Content (success) or 401/403 (auth issue).
+**Actual:** 404 Not Found.
 
 ## Evidence
-- `router/index.js` contains a guard that redirects to `{ path: '/' }` if `adminStore.role !== 'admin'` for routes starting with `/admin`.
-- If the user is logged in as an `umpire`, this is the expected behavior.
-- If the user is trying to log in as an `admin` but still gets redirected, there might be a state issue or a session persistence issue.
+- Backend is running on port 8080 (confirmed with `/api/health` returning 200 OK).
+- Frontend calls `PUT http://localhost:8080/api/matches/${id}/sync`.
+- Backend `SetupRoutes` registers `PUT /api/matches/{id}/sync`.
+- Go version is 1.24.1, which supports method and path parameters in `http.ServeMux`.
+- Manual `curl -X PUT` confirmed 404 response.
 
 ## Hypotheses
 
+| # | Hypothesis | Likelihood | Status |
+|---|------------|------------|--------|
+| 1 | Route registration mismatch (trailing slash or parameter typo) | 60% | UNTESTED |
+| 2 | Conflict with `/api/matches` registration | 20% | UNTESTED |
+| 3 | HandleFunc method matching issue in current environment | 20% | UNTESTED |
+
+## Attempts
+
+### Attempt 1
+**Testing:** H1 — Route registration mismatch (or server not restarted).
+**Action:** Added logging to SetupRoutes and restarted backend server.
+**Result:** After restart, `curl -X PUT` now returns 401 Unauthorized instead of 404 Not Found.
+**Conclusion:** Root cause was the backend server not having the latest routing changes loaded.
+
 ## Resolution
 
-**Root Cause:** 
-The user was authenticated as an `umpire`. The `router/index.js` guard was correctly preventing non-admin users from accessing `/admin` routes and redirecting them to `/`. However, there was no way for an umpire to log out and switch to an admin account.
+**Root Cause:**
+The backend server was likely running a stale build that did not include the new `PUT /api/matches/{id}/sync` route registration. Go `http.ServeMux` since 1.22 supports method and path parameters, but the server needs to be restarted for changes in `SetupRoutes` to take effect.
 
 **Fix:**
-1. Added a header to `MatchList.vue` with a **Logout** button.
-2. Implemented role-based personalized greetings (e.g., "Welcome Admin" vs "Welcome Umpire").
-3. Added a conditional **Admin Dashboard** link in the header for users with the `admin` role.
+Restarted the backend server via `make dev-backend` (executed `go run ./cmd/server` after killing existing process).
 
 **Verified:**
-1. Confirmed that an authenticated `umpire` is redirected to `/` when trying to access `/admin`.
-2. Confirmed that clicking "Logout" clears the session and returns to the login page.
-3. Confirmed that logging in as `admin` allows access to `/admin/dashboard`.
-4. Visual proof captured: `umpire_match_list_with_header_1772641588956.png`.
-
-**Regression Check:**
-- All routes are still protected.
-- Admin dashboard remains accessible only to admins.
+Verified that `PUT /api/matches/UUID/sync` now returns `401 Unauthorized` instead of `404 Not Found`, indicating the route is correctly registered and the authentication middleware is now the one intercepting the request.
