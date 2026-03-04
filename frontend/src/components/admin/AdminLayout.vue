@@ -50,7 +50,7 @@ async function onLogout() {
 
 <style scoped>
 .admin-shell {
-  min-height: 100dvh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   background: #0f172a;
