@@ -37,11 +37,29 @@ const startMatch = () => {
     router.push('/setup')
   }
 }
+async function onLogout() {
+  await adminStore.logout()
+  router.push('/admin/login')
+}
 </script>
 
 <template>
+  <header class="app-header">
+    <div class="header-left">
+      <span class="logo-text">🏓 Umpire Touchpad</span>
+    </div>
+    <div class="header-right">
+      <router-link v-if="adminStore.role === 'admin'" to="/admin/dashboard" class="nav-link">
+        Admin Dashboard
+      </router-link>
+      <button @click="onLogout" class="logout-btn">
+        <i class="fa-solid fa-right-from-bracket"></i> Logout
+      </button>
+    </div>
+  </header>
+
   <section id="match-list-view" class="view active">
-    <h2 class="greeting">Welcome Umpire, today's matches are</h2>
+    <h2 class="greeting">Welcome {{ adminStore.role === 'admin' ? 'Admin' : 'Umpire' }}, today's matches are</h2>
     <div class="table-container glass-panel">
       <table class="match-table">
         <thead>
@@ -170,7 +188,66 @@ const startMatch = () => {
   opacity: 1;
   pointer-events: all;
   transform: scale(1);
+  padding-top: 2rem;
 }
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo-text {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: #f1f5f9;
+}
+
+.header-right {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.nav-link {
+  color: #219c06;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: opacity 0.2s;
+}
+
+.nav-link:hover {
+  opacity: 0.8;
+}
+
+.logout-btn {
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  color: #f87171;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logout-btn:hover {
+  background: rgba(248, 113, 113, 0.2);
+  border-color: rgba(248, 113, 113, 0.4);
+}
+
 .modal-overlay {
   opacity: 1;
   pointer-events: all;

@@ -1,35 +1,35 @@
-# Debug Session: Auth/Redirection Issue
+# Debug Session: Admin Redirection Issue
 
 ## Symptom
-Navigating to the umpire page does not forward to the umpire login. An API call to `http://localhost:8080/api/matches` returns 401 Unauthorized.
+Accessing `http://localhost:5173/admin` redirects to `http://localhost:5173/`.
 
-**When:** During navigation to `/umpire` (presumed route).
-**Expected:** Automatic redirection to login or display of login page if unauthorized.
-**Actual:** Navigation occurs but API call fails with 401.
+**When:** Navigating to `/admin` or any `/admin/*` route.
+**Expected:** Show the admin dashboard if logged in as admin, otherwise show login page.
+**Actual:** Redirects to the root (`/`) page.
 
 ## Evidence
+- `router/index.js` contains a guard that redirects to `{ path: '/' }` if `adminStore.role !== 'admin'` for routes starting with `/admin`.
+- If the user is logged in as an `umpire`, this is the expected behavior.
+- If the user is trying to log in as an `admin` but still gets redirected, there might be a state issue or a session persistence issue.
 
 ## Hypotheses
 
 ## Resolution
 
 **Root Cause:** 
-1. The root route (`/`) was not guarded in the frontend router, allowing unauthenticated users to access `MatchList.vue`.
-2. `MatchList.vue` performed a direct `fetch` call without credentials (`credentials: 'include'`), causing the backend to return 401 Unauthorized even if a session existed.
-3. `AdminLogin.vue` always redirected to the admin dashboard, breaking the flow for umpires.
+The user was authenticated as an `umpire`. The `router/index.js` guard was correctly preventing non-admin users from accessing `/admin` routes and redirecting them to `/`. However, there was no way for an umpire to log out and switch to an admin account.
 
 **Fix:**
-1. Updated `router/index.js` to guard all routes and redirect to `/admin/login` with a `redirect` query parameter.
-2. Updated `AdminLogin.vue` to handle the `redirect` query parameter and perform role-based default redirection.
-3. Updated `MatchList.vue` to use `adminStore.fetchMatches()` which correctly handles credentials and uses shared state.
-4. Updated `AdminLogin.vue` UI to use more generic "Umpire Portal" titles.
+1. Added a header to `MatchList.vue` with a **Logout** button.
+2. Implemented role-based personalized greetings (e.g., "Welcome Admin" vs "Welcome Umpire").
+3. Added a conditional **Admin Dashboard** link in the header for users with the `admin` role.
 
 **Verified:**
-1. Confirmed unauthenticated users are redirected to `/admin/login`.
-2. Confirmed logging in as `umpire`/`umpire123` redirects back to `/`.
-3. Confirmed match list is correctly populated (no more 401).
-4. Confirmed admins still get redirected to `/admin/dashboard`.
+1. Confirmed that an authenticated `umpire` is redirected to `/` when trying to access `/admin`.
+2. Confirmed that clicking "Logout" clears the session and returns to the login page.
+3. Confirmed that logging in as `admin` allows access to `/admin/dashboard`.
+4. Visual proof captured: `umpire_match_list_with_header_1772641588956.png`.
 
 **Regression Check:**
-- Admin dashboard still accessible and protected.
-- Scoring and Setup routes are now also protected.
+- All routes are still protected.
+- Admin dashboard remains accessible only to admins.

@@ -1,16 +1,16 @@
 ## Current Position
 - **Phase**: 2 (maintenance)
-- **Task**: Auth/Redirection Bug Fix
+- **Task**: Admin Access & Logout UX
 - **Status**: Fixed & Verified
 
 ## Last Session Summary
-Fixed issue where umpires were not redirected to login and saw 401 errors on the match list.
+Fixed issue where umpires were redirected away from admin pages but had no way to logout to switch accounts.
 
 **Changes:**
-- Guarded all frontend routes (`/`, `/setup`, `/scoring`) in `router/index.js`.
-- Implemented role-based redirection and `redirect` query param handling in `AdminLogin.vue`.
-- Migrated `MatchList.vue` to use authenticated `adminStore.fetchMatches()`.
-- Updated Login UI to be more generic ("Umpire Portal").
+- Added a global header to the `MatchList.vue` page.
+- Implemented a **Logout** button on the home page.
+- Added role-based redirection and dashboard links for admins.
+- Verified that redirection logic correctly separates umpires from admin areas.
 
 ## Next Steps
 1. Proceed to Phase 3: Live Match Sync API & Touchpad Integration
