@@ -24,15 +24,15 @@ const hasAny = computed(() => timeoutUsed.value || playerCards.value.length > 0 
       <div v-if="timeoutUsed" class="ci-icon ci-timeout">T</div>
 
       <!-- Player Cards -->
-      <div v-for="(card, index) in playerCards" :key="'p'+index" class="ci-icon" :class="'ci-' + card.toLowerCase()">
-        <span v-if="card === 'YR1'" class="ci-num">1</span>
-        <span v-if="card === 'YR2'" class="ci-num">2</span>
+      <div v-for="(card, index) in playerCards" :key="'p'+index" class="ci-icon" :class="'ci-' + card.type.toLowerCase()">
+        <span v-if="card.type === 'YR1'" class="ci-num">1</span>
+        <span v-if="card.type === 'YR2'" class="ci-num">2</span>
       </div>
     </div>
 
     <!-- Row 2: Coach Track (Coach Yellow, Coach Red) -->
     <div class="ci-row" v-if="coachCards.length > 0">
-      <div v-for="(card, index) in coachCards" :key="'c'+index" class="ci-icon ci-coach" :class="'ci-' + card.toLowerCase()">
+      <div v-for="(card, index) in coachCards" :key="'c'+index" class="ci-icon ci-coach" :class="'ci-' + card.type.toLowerCase()">
         C
       </div>
     </div>
