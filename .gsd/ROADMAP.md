@@ -37,7 +37,7 @@ Objective: Implement the full lifecycle of match status changes from match selec
 
 ### Phase 5: Match Lists & Frontend Organization
 **Status**: ⬜ Not Started
-**Objective**: Refine match selection logic to allow umpires to resume uncompleted matches from today's schedule, ensure the Admin Dashboard displays comprehensive match history, and reorganize frontend components for better structure.
+**Objective**: Refine match selection logic to allow umpires to see and resume uncompleted matches from today's schedule, ensure the Admin Dashboard displays comprehensive match history, and reorganize frontend components for better structure.
 **Depends on**: Phase 4
 
 **Tasks**:
