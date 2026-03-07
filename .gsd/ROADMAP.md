@@ -35,6 +35,17 @@
 Status: ✅ Complete
 Objective: Implement the full lifecycle of match status changes from match selection to final confirmation, ensuring the backend database reflects the current state of play.
 
+### Phase 5: Match Lists & Frontend Organization
+**Status**: ⬜ Not Started
+**Objective**: Enhance the umpire and admin dashboards with refined match listing filters (limiting umpire view to today's non-completed matches) and organize frontend components for better maintainability.
+**Depends on**: Phase 4
+
+**Tasks**:
+- [ ] TBD (run /plan 5 to create)
+
+**Verification**:
+- TBD
+
 ---
 
 ## Deferred (Future Milestones)
