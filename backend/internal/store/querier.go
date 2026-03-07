@@ -12,10 +12,15 @@ type Querier interface {
 	ClearCardsForMatch(ctx context.Context, matchID string) error
 	CreateCard(ctx context.Context, arg CreateCardParams) error
 	CreateMatch(ctx context.Context, arg CreateMatchParams) error
-	GetUnstartedMatchesForPeriod(ctx context.Context, arg GetUnstartedMatchesForPeriodParams) ([]Match, error)
+	GetAllMatchesForPeriod(ctx context.Context, arg GetAllMatchesForPeriodParams) ([]GetAllMatchesForPeriodRow, error)
+	GetCardsForMatch(ctx context.Context, matchID string) ([]Card, error)
+	GetGameIDByNumber(ctx context.Context, arg GetGameIDByNumberParams) (string, error)
+	GetGamesForMatch(ctx context.Context, matchID string) ([]Game, error)
+	GetIncompleteMatchesForPeriod(ctx context.Context, arg GetIncompleteMatchesForPeriodParams) ([]GetIncompleteMatchesForPeriodRow, error)
+	GetMatch(ctx context.Context, id string) (GetMatchRow, error)
+	UpdateMatchState(ctx context.Context, arg UpdateMatchStateParams) error
 	UpdateMatchStatus(ctx context.Context, arg UpdateMatchStatusParams) error
 	UpsertGame(ctx context.Context, arg UpsertGameParams) (string, error)
-	GetGameIDByNumber(ctx context.Context, arg GetGameIDByNumberParams) (string, error)
 }
 
 var _ Querier = (*Queries)(nil)

@@ -16,13 +16,15 @@ type Player struct {
 }
 
 type Match struct {
-	ID     string   `json:"id"`
-	Type   string   `json:"type"`
-	Event  string   `json:"event"`
-	Time   string   `json:"time"`
-	BestOf int      `json:"bestOf"`
-	Team1  []Player `json:"team1"`
-	Team2  []Player `json:"team2"`
+	ID        string   `json:"id"`
+	Type      string   `json:"type"`
+	Event     string   `json:"event"`
+	Time      string   `json:"time"`
+	BestOf    int      `json:"bestOf"`
+	Team1     []Player `json:"team1"`
+	Team2     []Player `json:"team2"`
+	Status    string   `json:"status,omitempty"`
+	StateJson string   `json:"stateJson,omitempty"`
 }
 
 type MatchService struct {
@@ -56,8 +58,15 @@ type SyncMatchRequest struct {
 	MatchID     string            `json:"matchId"`
 	Status      string            `json:"status"`
 	CurrentGame int               `json:"currentGame"`
+	StateJson   string            `json:"stateJson,omitempty"`
 	Game        SyncGameRequest   `json:"game"`
 	Cards       []SyncCardRequest `json:"cards"`
+}
+
+type MatchFullState struct {
+	Match Match             `json:"match"`
+	Games []SyncGameRequest `json:"games"`
+	Cards []SyncCardRequest `json:"cards"`
 }
 
 func (s *MatchService) SyncMatch(ctx context.Context, req SyncMatchRequest) error {
@@ -70,12 +79,21 @@ func (s *MatchService) SyncMatch(ctx context.Context, req SyncMatchRequest) erro
 	// qtx allows using the generated store methods within a transaction
 	qtx := store.New(tx)
 
-	// 1. Update Match Status
-	err = qtx.UpdateMatchStatus(ctx, store.UpdateMatchStatusParams{
-		ID:          req.MatchID,
-		Status:      req.Status,
-		CurrentGame: int64(req.CurrentGame),
-	})
+	// 1. Update Match Status & State
+	if req.StateJson != "" {
+		err = qtx.UpdateMatchState(ctx, store.UpdateMatchStateParams{
+			ID:          req.MatchID,
+			Status:      req.Status,
+			CurrentGame: int64(req.CurrentGame),
+			StateJson:   sql.NullString{String: req.StateJson, Valid: true},
+		})
+	} else {
+		err = qtx.UpdateMatchStatus(ctx, store.UpdateMatchStatusParams{
+			ID:          req.MatchID,
+			Status:      req.Status,
+			CurrentGame: int64(req.CurrentGame),
+		})
+	}
 	if err != nil {
 		return err
 	}
@@ -200,19 +218,72 @@ func (s *MatchService) CreateMatch(ctx context.Context, m Match) (string, error)
 	return id, nil
 }
 
-func (s *MatchService) GetTodayUnstartedMatches(ctx context.Context) ([]Match, error) {
+func (s *MatchService) GetTodayMatches(ctx context.Context, history bool) ([]Match, error) {
 	now := time.Now()
 	y, m, d := now.Date()
-	// Use the same ISO 8601 local format that the frontend datetime-local input
-	// writes to the DB: "2026-03-05T00:00:00" — T separator, no timezone offset.
 	const naiveFmt = "2006-01-02T15:04:05"
 	startOfDay := time.Date(y, m, d, 0, 0, 0, 0, now.Location()).Format(naiveFmt)
 	endOfDay := time.Date(y, m, d, 23, 59, 59, 999999999, now.Location()).Format(naiveFmt)
 
-	dbMatches, err := s.store.GetUnstartedMatchesForPeriod(ctx, store.GetUnstartedMatchesForPeriodParams{
-		ScheduledDate:   startOfDay,
-		ScheduledDate_2: endOfDay,
-	})
+	var dbMatches []MatchRow
+	var err error
+
+	if history {
+		rows, err2 := s.store.GetAllMatchesForPeriod(ctx, store.GetAllMatchesForPeriodParams{
+			ScheduledDate:   startOfDay,
+			ScheduledDate_2: endOfDay,
+		})
+		err = err2
+		if err == nil {
+			for _, r := range rows {
+				dbMatches = append(dbMatches, MatchRow{
+					ID:             r.ID,
+					Title:          r.Title,
+					ScheduledDate:  r.ScheduledDate,
+					Status:         r.Status,
+					CurrentGame:    r.CurrentGame,
+					Team1P1Name:    r.Team1P1Name,
+					Team1P2Name:    r.Team1P2Name,
+					Team2P1Name:    r.Team2P1Name,
+					Team2P2Name:    r.Team2P2Name,
+					BestOf:         r.BestOf,
+					Team1P1Country: r.Team1P1Country,
+					Team1P2Country: r.Team1P2Country,
+					Team2P1Country: r.Team2P1Country,
+					Team2P2Country: r.Team2P2Country,
+					StateJson:      r.StateJson,
+				})
+			}
+		}
+	} else {
+		rows, err2 := s.store.GetIncompleteMatchesForPeriod(ctx, store.GetIncompleteMatchesForPeriodParams{
+			ScheduledDate:   startOfDay,
+			ScheduledDate_2: endOfDay,
+		})
+		err = err2
+		if err == nil {
+			for _, r := range rows {
+				dbMatches = append(dbMatches, MatchRow{
+					ID:             r.ID,
+					Title:          r.Title,
+					ScheduledDate:  r.ScheduledDate,
+					Status:         r.Status,
+					CurrentGame:    r.CurrentGame,
+					Team1P1Name:    r.Team1P1Name,
+					Team1P2Name:    r.Team1P2Name,
+					Team2P1Name:    r.Team2P1Name,
+					Team2P2Name:    r.Team2P2Name,
+					BestOf:         r.BestOf,
+					Team1P1Country: r.Team1P1Country,
+					Team1P2Country: r.Team1P2Country,
+					Team2P1Country: r.Team2P1Country,
+					Team2P2Country: r.Team2P2Country,
+					StateJson:      r.StateJson,
+				})
+			}
+		}
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -242,10 +313,107 @@ func (s *MatchService) GetTodayUnstartedMatches(ctx context.Context) ([]Match, e
 			BestOf: int(dbm.BestOf),
 			Team1:  t1,
 			Team2:  t2,
+			Status: dbm.Status,
 		})
 	}
 	if results == nil {
 		results = []Match{}
 	}
 	return results, nil
+}
+
+// MatchRow is a helper to unify the different Row structs from sqlc
+type MatchRow struct {
+	ID             string
+	Title          string
+	ScheduledDate  string
+	Status         string
+	CurrentGame    int64
+	Team1P1Name    string
+	Team1P2Name    sql.NullString
+	Team2P1Name    string
+	Team2P2Name    sql.NullString
+	BestOf         int64
+	Team1P1Country sql.NullString
+	Team1P2Country sql.NullString
+	Team2P1Country sql.NullString
+	Team2P2Country sql.NullString
+	StateJson      sql.NullString
+}
+
+func (s *MatchService) GetMatchState(ctx context.Context, id string) (*MatchFullState, error) {
+	dbm, err := s.store.GetMatch(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	t1 := []Player{{Name: dbm.Team1P1Name, Country: dbm.Team1P1Country.String}}
+	if dbm.Team1P2Name.Valid && dbm.Team1P2Name.String != "" {
+		t1 = append(t1, Player{Name: dbm.Team1P2Name.String, Country: dbm.Team1P2Country.String})
+	}
+
+	t2 := []Player{{Name: dbm.Team2P1Name, Country: dbm.Team2P1Country.String}}
+	if dbm.Team2P2Name.Valid && dbm.Team2P2Name.String != "" {
+		t2 = append(t2, Player{Name: dbm.Team2P2Name.String, Country: dbm.Team2P2Country.String})
+	}
+
+	matchType := "singles"
+	if len(t1) > 1 {
+		matchType = "doubles"
+	}
+
+	m := Match{
+		ID:        dbm.ID,
+		Type:      matchType,
+		Event:     dbm.Title,
+		Time:      dbm.ScheduledDate,
+		BestOf:    int(dbm.BestOf),
+		Team1:     t1,
+		Team2:     t2,
+		Status:    dbm.Status,
+		StateJson: dbm.StateJson.String,
+	}
+
+	dbGames, err := s.store.GetGamesForMatch(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var games []SyncGameRequest
+	gameIDToNumber := make(map[string]int)
+	for _, g := range dbGames {
+		games = append(games, SyncGameRequest{
+			GameNumber: int(g.GameNumber),
+			Team1Score: int(g.Team1Score),
+			Team2Score: int(g.Team2Score),
+			Status:     g.Status,
+		})
+		gameIDToNumber[g.ID] = int(g.GameNumber)
+	}
+
+	dbCards, err := s.store.GetCardsForMatch(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var cards []SyncCardRequest
+	for _, c := range dbCards {
+		gameNum := 0
+		if c.GameID.Valid {
+			gameNum = gameIDToNumber[c.GameID.String]
+		}
+		cards = append(cards, SyncCardRequest{
+			TeamIndex:   int(c.TeamIndex),
+			PlayerIndex: int(c.PlayerIndex),
+			CardType:    c.CardType,
+			Reason:      c.Reason.String,
+			GameNumber:  gameNum,
+		})
+	}
+
+	return &MatchFullState{
+		Match: m,
+		Games: games,
+		Cards: cards,
+	}, nil
 }

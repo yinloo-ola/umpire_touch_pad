@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { useMatchStore } from '../stores/matchStore'
+import { useMatchStore } from '../../stores/matchStore'
 
 const matchStore = useMatchStore()
 

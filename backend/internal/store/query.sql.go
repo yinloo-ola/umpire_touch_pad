@@ -94,27 +94,46 @@ func (q *Queries) CreateMatch(ctx context.Context, arg CreateMatchParams) error 
 	return err
 }
 
-const getUnstartedMatchesForPeriod = `-- name: GetUnstartedMatchesForPeriod :many
-SELECT id, title, scheduled_date, status, current_game, team1_p1_name, team1_p2_name, team2_p1_name, team2_p2_name, best_of, team1_p1_country, team1_p2_country, team2_p1_country, team2_p2_country, created_at, updated_at FROM matches 
-WHERE status = 'unstarted' 
-  AND scheduled_date >= ? 
+const getAllMatchesForPeriod = `-- name: GetAllMatchesForPeriod :many
+SELECT id, title, scheduled_date, status, current_game, team1_p1_name, team1_p2_name, team2_p1_name, team2_p2_name, best_of, team1_p1_country, team1_p2_country, team2_p1_country, team2_p2_country, created_at, updated_at, state_json FROM matches 
+WHERE scheduled_date >= ? 
   AND scheduled_date <= ?
 `
 
-type GetUnstartedMatchesForPeriodParams struct {
+type GetAllMatchesForPeriodParams struct {
 	ScheduledDate   string `json:"scheduled_date"`
 	ScheduledDate_2 string `json:"scheduled_date_2"`
 }
 
-func (q *Queries) GetUnstartedMatchesForPeriod(ctx context.Context, arg GetUnstartedMatchesForPeriodParams) ([]Match, error) {
-	rows, err := q.db.QueryContext(ctx, getUnstartedMatchesForPeriod, arg.ScheduledDate, arg.ScheduledDate_2)
+type GetAllMatchesForPeriodRow struct {
+	ID             string         `json:"id"`
+	Title          string         `json:"title"`
+	ScheduledDate  string         `json:"scheduled_date"`
+	Status         string         `json:"status"`
+	CurrentGame    int64          `json:"current_game"`
+	Team1P1Name    string         `json:"team1_p1_name"`
+	Team1P2Name    sql.NullString `json:"team1_p2_name"`
+	Team2P1Name    string         `json:"team2_p1_name"`
+	Team2P2Name    sql.NullString `json:"team2_p2_name"`
+	BestOf         int64          `json:"best_of"`
+	Team1P1Country sql.NullString `json:"team1_p1_country"`
+	Team1P2Country sql.NullString `json:"team1_p2_country"`
+	Team2P1Country sql.NullString `json:"team2_p1_country"`
+	Team2P2Country sql.NullString `json:"team2_p2_country"`
+	CreatedAt      sql.NullString `json:"created_at"`
+	UpdatedAt      sql.NullString `json:"updated_at"`
+	StateJson      sql.NullString `json:"state_json"`
+}
+
+func (q *Queries) GetAllMatchesForPeriod(ctx context.Context, arg GetAllMatchesForPeriodParams) ([]GetAllMatchesForPeriodRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAllMatchesForPeriod, arg.ScheduledDate, arg.ScheduledDate_2)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Match
+	var items []GetAllMatchesForPeriodRow
 	for rows.Next() {
-		var i Match
+		var i GetAllMatchesForPeriodRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Title,
@@ -132,6 +151,7 @@ func (q *Queries) GetUnstartedMatchesForPeriod(ctx context.Context, arg GetUnsta
 			&i.Team2P2Country,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.StateJson,
 		); err != nil {
 			return nil, err
 		}
@@ -144,6 +164,245 @@ func (q *Queries) GetUnstartedMatchesForPeriod(ctx context.Context, arg GetUnsta
 		return nil, err
 	}
 	return items, nil
+}
+
+const getCardsForMatch = `-- name: GetCardsForMatch :many
+SELECT id, match_id, game_id, team_index, player_index, card_type, reason, created_at FROM cards 
+WHERE match_id = ?
+`
+
+func (q *Queries) GetCardsForMatch(ctx context.Context, matchID string) ([]Card, error) {
+	rows, err := q.db.QueryContext(ctx, getCardsForMatch, matchID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Card
+	for rows.Next() {
+		var i Card
+		if err := rows.Scan(
+			&i.ID,
+			&i.MatchID,
+			&i.GameID,
+			&i.TeamIndex,
+			&i.PlayerIndex,
+			&i.CardType,
+			&i.Reason,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getGameIDByNumber = `-- name: GetGameIDByNumber :one
+SELECT id FROM games WHERE match_id = ? AND game_number = ?
+`
+
+type GetGameIDByNumberParams struct {
+	MatchID    string `json:"match_id"`
+	GameNumber int64  `json:"game_number"`
+}
+
+func (q *Queries) GetGameIDByNumber(ctx context.Context, arg GetGameIDByNumberParams) (string, error) {
+	row := q.db.QueryRowContext(ctx, getGameIDByNumber, arg.MatchID, arg.GameNumber)
+	var id string
+	err := row.Scan(&id)
+	return id, err
+}
+
+const getGamesForMatch = `-- name: GetGamesForMatch :many
+SELECT id, match_id, game_number, team1_score, team2_score, status, created_at, updated_at FROM games 
+WHERE match_id = ? 
+ORDER BY game_number
+`
+
+func (q *Queries) GetGamesForMatch(ctx context.Context, matchID string) ([]Game, error) {
+	rows, err := q.db.QueryContext(ctx, getGamesForMatch, matchID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Game
+	for rows.Next() {
+		var i Game
+		if err := rows.Scan(
+			&i.ID,
+			&i.MatchID,
+			&i.GameNumber,
+			&i.Team1Score,
+			&i.Team2Score,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getIncompleteMatchesForPeriod = `-- name: GetIncompleteMatchesForPeriod :many
+SELECT id, title, scheduled_date, status, current_game, team1_p1_name, team1_p2_name, team2_p1_name, team2_p2_name, best_of, team1_p1_country, team1_p2_country, team2_p1_country, team2_p2_country, created_at, updated_at, state_json FROM matches 
+WHERE status != 'completed' 
+  AND scheduled_date >= ? 
+  AND scheduled_date <= ?
+`
+
+type GetIncompleteMatchesForPeriodParams struct {
+	ScheduledDate   string `json:"scheduled_date"`
+	ScheduledDate_2 string `json:"scheduled_date_2"`
+}
+
+type GetIncompleteMatchesForPeriodRow struct {
+	ID             string         `json:"id"`
+	Title          string         `json:"title"`
+	ScheduledDate  string         `json:"scheduled_date"`
+	Status         string         `json:"status"`
+	CurrentGame    int64          `json:"current_game"`
+	Team1P1Name    string         `json:"team1_p1_name"`
+	Team1P2Name    sql.NullString `json:"team1_p2_name"`
+	Team2P1Name    string         `json:"team2_p1_name"`
+	Team2P2Name    sql.NullString `json:"team2_p2_name"`
+	BestOf         int64          `json:"best_of"`
+	Team1P1Country sql.NullString `json:"team1_p1_country"`
+	Team1P2Country sql.NullString `json:"team1_p2_country"`
+	Team2P1Country sql.NullString `json:"team2_p1_country"`
+	Team2P2Country sql.NullString `json:"team2_p2_country"`
+	CreatedAt      sql.NullString `json:"created_at"`
+	UpdatedAt      sql.NullString `json:"updated_at"`
+	StateJson      sql.NullString `json:"state_json"`
+}
+
+func (q *Queries) GetIncompleteMatchesForPeriod(ctx context.Context, arg GetIncompleteMatchesForPeriodParams) ([]GetIncompleteMatchesForPeriodRow, error) {
+	rows, err := q.db.QueryContext(ctx, getIncompleteMatchesForPeriod, arg.ScheduledDate, arg.ScheduledDate_2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetIncompleteMatchesForPeriodRow
+	for rows.Next() {
+		var i GetIncompleteMatchesForPeriodRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.ScheduledDate,
+			&i.Status,
+			&i.CurrentGame,
+			&i.Team1P1Name,
+			&i.Team1P2Name,
+			&i.Team2P1Name,
+			&i.Team2P2Name,
+			&i.BestOf,
+			&i.Team1P1Country,
+			&i.Team1P2Country,
+			&i.Team2P1Country,
+			&i.Team2P2Country,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.StateJson,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getMatch = `-- name: GetMatch :one
+SELECT id, title, scheduled_date, status, current_game, team1_p1_name, team1_p2_name, team2_p1_name, team2_p2_name, best_of, team1_p1_country, team1_p2_country, team2_p1_country, team2_p2_country, created_at, updated_at, state_json FROM matches WHERE id = ?
+`
+
+type GetMatchRow struct {
+	ID             string         `json:"id"`
+	Title          string         `json:"title"`
+	ScheduledDate  string         `json:"scheduled_date"`
+	Status         string         `json:"status"`
+	CurrentGame    int64          `json:"current_game"`
+	Team1P1Name    string         `json:"team1_p1_name"`
+	Team1P2Name    sql.NullString `json:"team1_p2_name"`
+	Team2P1Name    string         `json:"team2_p1_name"`
+	Team2P2Name    sql.NullString `json:"team2_p2_name"`
+	BestOf         int64          `json:"best_of"`
+	Team1P1Country sql.NullString `json:"team1_p1_country"`
+	Team1P2Country sql.NullString `json:"team1_p2_country"`
+	Team2P1Country sql.NullString `json:"team2_p1_country"`
+	Team2P2Country sql.NullString `json:"team2_p2_country"`
+	CreatedAt      sql.NullString `json:"created_at"`
+	UpdatedAt      sql.NullString `json:"updated_at"`
+	StateJson      sql.NullString `json:"state_json"`
+}
+
+func (q *Queries) GetMatch(ctx context.Context, id string) (GetMatchRow, error) {
+	row := q.db.QueryRowContext(ctx, getMatch, id)
+	var i GetMatchRow
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.ScheduledDate,
+		&i.Status,
+		&i.CurrentGame,
+		&i.Team1P1Name,
+		&i.Team1P2Name,
+		&i.Team2P1Name,
+		&i.Team2P2Name,
+		&i.BestOf,
+		&i.Team1P1Country,
+		&i.Team1P2Country,
+		&i.Team2P1Country,
+		&i.Team2P2Country,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.StateJson,
+	)
+	return i, err
+}
+
+const updateMatchState = `-- name: UpdateMatchState :exec
+UPDATE matches 
+SET status = ?, 
+    current_game = ?, 
+    state_json = ?,
+    updated_at = CURRENT_TIMESTAMP
+WHERE id = ?
+`
+
+type UpdateMatchStateParams struct {
+	Status      string         `json:"status"`
+	CurrentGame int64          `json:"current_game"`
+	StateJson   sql.NullString `json:"state_json"`
+	ID          string         `json:"id"`
+}
+
+func (q *Queries) UpdateMatchState(ctx context.Context, arg UpdateMatchStateParams) error {
+	_, err := q.db.ExecContext(ctx, updateMatchState,
+		arg.Status,
+		arg.CurrentGame,
+		arg.StateJson,
+		arg.ID,
+	)
+	return err
 }
 
 const updateMatchStatus = `-- name: UpdateMatchStatus :exec
@@ -161,11 +420,7 @@ type UpdateMatchStatusParams struct {
 }
 
 func (q *Queries) UpdateMatchStatus(ctx context.Context, arg UpdateMatchStatusParams) error {
-	_, err := q.db.ExecContext(ctx, updateMatchStatus,
-		arg.Status,
-		arg.CurrentGame,
-		arg.ID,
-	)
+	_, err := q.db.ExecContext(ctx, updateMatchStatus, arg.Status, arg.CurrentGame, arg.ID)
 	return err
 }
 
@@ -198,22 +453,6 @@ func (q *Queries) UpsertGame(ctx context.Context, arg UpsertGameParams) (string,
 		arg.Team2Score,
 		arg.Status,
 	)
-	var id string
-	err := row.Scan(&id)
-	return id, err
-}
-
-const getGameIDByNumber = `-- name: GetGameIDByNumber :one
-SELECT id FROM games WHERE match_id = ? AND game_number = ?
-`
-
-type GetGameIDByNumberParams struct {
-	MatchID    string `json:"match_id"`
-	GameNumber int64  `json:"game_number"`
-}
-
-func (q *Queries) GetGameIDByNumber(ctx context.Context, arg GetGameIDByNumberParams) (string, error) {
-	row := q.db.QueryRowContext(ctx, getGameIDByNumber, arg.MatchID, arg.GameNumber)
 	var id string
 	err := row.Scan(&id)
 	return id, err

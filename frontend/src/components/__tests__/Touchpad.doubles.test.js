@@ -3,7 +3,7 @@ import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { nextTick } from 'vue'
-import Touchpad from '../Touchpad.vue'
+import Touchpad from '../../views/umpire/TouchpadView.vue'
 import { useMatchStore } from '../../stores/matchStore'
 
 const doublesMatch = {

@@ -38,8 +38,8 @@ Enhance the Admin Dashboard to display comprehensive match history and improve t
   <action>
     - Add a "History" toggle or filter to show all matches vs today's matches.
     - Add a "Status" filter (e.g., Scheduled, In Progress, Completed).
+    - **Live View**: In `AdminMatchDetail.vue`, add a section that displays the current live score and status if the match is `in_progress`.
     - Ensure the "Status" badges are consistently colored across the app.
-    - Improve the layout to handle larger lists of matches effectively.
   </action>
   <verify>Visual check of AdminDashboard.vue</verify>
   <done>Admin Dashboard displays match history with filtering.</done>

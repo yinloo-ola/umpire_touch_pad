@@ -4,11 +4,19 @@
     <div class="page-header">
       <div class="page-header-left">
         <h1 class="page-title">Match Dashboard</h1>
-        <p class="page-subtitle">Today's scheduled matches</p>
+        <div class="header-controls">
+          <p class="page-subtitle">{{ showHistory ? 'Full Match History' : 'Today\'s scheduled matches' }}</p>
+          <button @click="toggleHistory" class="history-toggle" :class="{ active: showHistory }">
+             <i class="fa-solid" :class="showHistory ? 'fa-calendar-check' : 'fa-clock-rotate-left'"></i>
+             {{ showHistory ? 'Showing History' : 'Show History' }}
+          </button>
+        </div>
       </div>
-      <router-link id="create-match-btn" to="/admin/match/new" class="create-btn">
-        <span>+</span> Create Match
-      </router-link>
+      <div class="header-actions">
+        <router-link id="create-match-btn" to="/admin/match/new" class="create-btn">
+          <span>+</span> Create Match
+        </router-link>
+      </div>
     </div>
 
     <!-- Loading State -->
@@ -24,18 +32,36 @@
       <button class="retry-btn" @click="load">Retry</button>
     </div>
 
-    <!-- Empty State -->
-    <div v-else-if="!adminStore.matches || adminStore.matches.length === 0" class="state-card empty-state">
-      <span class="empty-icon">🏓</span>
-      <p class="empty-title">No matches scheduled today</p>
-      <p class="empty-sub">Create a new match to get started.</p>
-      <router-link to="/admin/match/new" class="create-btn">
-        + Create Match
-      </router-link>
-    </div>
+    <template v-else>
+      <!-- Filter Bar -->
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label>Status Filter:</label>
+          <div class="filter-chips">
+            <button 
+              v-for="status in ['all', 'unstarted', 'starting', 'warming_up', 'in_progress', 'completed']" 
+              :key="status"
+              @click="statusFilter = status"
+              :class="['filter-chip', { active: statusFilter === status }]"
+            >
+              {{ status === 'all' ? 'All' : formatStatus(status) }}
+            </button>
+          </div>
+        </div>
+      </div>
 
-    <!-- Matches Table -->
-    <div v-else class="matches-panel">
+      <!-- Empty State -->
+      <div v-if="!filteredMatches || filteredMatches.length === 0" class="state-card empty-state">
+        <span class="empty-icon">🏓</span>
+        <p class="empty-title">{{ showHistory ? 'No matches found in history' : 'No matches scheduled today' }}</p>
+        <p class="empty-sub">Try changing your filters or create a new match.</p>
+        <router-link to="/admin/match/new" class="create-btn">
+          + Create Match
+        </router-link>
+      </div>
+
+      <!-- Matches Table -->
+      <div v-else class="matches-panel">
       <table class="admin-table">
         <thead>
           <tr>
@@ -50,7 +76,7 @@
         </thead>
         <tbody>
           <tr
-            v-for="match in adminStore.matches"
+            v-for="match in filteredMatches"
             :key="match.id"
             class="match-row"
             @click="goToMatch(match.id)"
@@ -59,15 +85,21 @@
             <td><span class="type-badge" :class="match.type">{{ match.type }}</span></td>
             <td class="time-cell">{{ formatTime(match.time) }}</td>
             <td>{{ formatTeam(match.team1) }}</td>
+            <td>{{ formatTeam(match.team1) }}</td>
             <td>{{ formatTeam(match.team2) }}</td>
-            <td><span class="status-badge" :class="match.status">{{ match.status }}</span></td>
+            <td>
+              <span class="status-badge" :class="match.status || 'unstarted'">
+                {{ formatStatus(match.status) }}
+              </span>
+            </td>
             <td class="action-cell">
               <span class="view-arrow">→</span>
             </td>
           </tr>
         </tbody>
       </table>
-    </div>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -80,18 +112,31 @@ const adminStore = useAdminStore()
 const router = useRouter()
 const loading = ref(false)
 const error = ref('')
+const showHistory = ref(false)
+const statusFilter = ref('all')
 
 async function load() {
   loading.value = true
   error.value = ''
   try {
-    await adminStore.fetchMatches()
+    await adminStore.fetchMatches(showHistory.value)
   } catch (e) {
     error.value = e.message || 'Failed to load matches'
   } finally {
     loading.value = false
   }
 }
+
+async function toggleHistory() {
+  showHistory.value = !showHistory.value
+  await load()
+}
+
+import { computed } from 'vue'
+const filteredMatches = computed(() => {
+  if (statusFilter.value === 'all') return adminStore.matches
+  return adminStore.matches.filter(m => (m.status || 'unstarted') === statusFilter.value)
+})
 
 function goToMatch(id) {
   router.push(`/admin/match/${id}`)
@@ -106,6 +151,11 @@ function formatTime(timeStr) {
 function formatTeam(players) {
   if (!players || players.length === 0) return '—'
   return players.map((p) => p.name).join(' / ')
+}
+
+function formatStatus(status) {
+  if (!status) return 'Unstarted'
+  return status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')
 }
 
 onMounted(load)
@@ -133,7 +183,39 @@ onMounted(load)
 .page-subtitle {
   font-size: 0.95rem;
   color: #64748b;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
   margin-top: 0.25rem;
+}
+
+.history-toggle {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.history-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+}
+
+.history-toggle.active {
+  background: rgba(33, 156, 6, 0.15);
+  color: #4ade80;
+  border-color: rgba(33, 156, 6, 0.3);
 }
 
 .create-btn {
@@ -154,6 +236,56 @@ onMounted(load)
 .create-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(33, 156, 6, 0.5);
+}
+
+.filter-bar {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.filter-group label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+}
+
+.filter-chips {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #64748b;
+  padding: 0.35rem 0.75rem;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-chip:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+}
+
+.filter-chip.active {
+  background: #219c06;
+  color: white;
+  border-color: #219c06;
 }
 
 .state-card {
@@ -283,20 +415,34 @@ onMounted(load)
   text-transform: capitalize;
 }
 
-.status-badge.scheduled,
-.status-badge.not_started {
-  background: rgba(245, 158, 11, 0.12);
-  color: #fbbf24;
+.status-badge.unstarted {
+  background: rgba(148, 163, 184, 0.1);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.status-badge.starting {
+  background: rgba(59, 130, 246, 0.1);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.status-badge.warming_up {
+  background: rgba(234, 179, 8, 0.1);
+  color: #facc15;
+  border: 1px solid rgba(234, 179, 8, 0.2);
 }
 
 .status-badge.in_progress {
-  background: rgba(33, 156, 6, 0.15);
+  background: rgba(34, 197, 94, 0.1);
   color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.2);
 }
 
 .status-badge.completed {
-  background: rgba(148, 163, 184, 0.1);
-  color: #64748b;
+  background: rgba(139, 92, 246, 0.1);
+  color: #a78bfa;
+  border: 1px solid rgba(139, 92, 246, 0.2);
 }
 
 .action-cell {

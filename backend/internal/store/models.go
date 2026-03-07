@@ -40,11 +40,12 @@ type Match struct {
 	Team1P2Name    sql.NullString `json:"team1_p2_name"`
 	Team2P1Name    string         `json:"team2_p1_name"`
 	Team2P2Name    sql.NullString `json:"team2_p2_name"`
+	CreatedAt      sql.NullString `json:"created_at"`
+	UpdatedAt      sql.NullString `json:"updated_at"`
 	BestOf         int64          `json:"best_of"`
 	Team1P1Country sql.NullString `json:"team1_p1_country"`
 	Team1P2Country sql.NullString `json:"team1_p2_country"`
 	Team2P1Country sql.NullString `json:"team2_p1_country"`
 	Team2P2Country sql.NullString `json:"team2_p2_country"`
-	CreatedAt      sql.NullString `json:"created_at"`
-	UpdatedAt      sql.NullString `json:"updated_at"`
+	StateJson      sql.NullString `json:"state_json"`
 }

@@ -27,8 +27,8 @@ Update the Umpire's match selection UI to allow resuming incomplete matches and 
       1. Call `GET /api/matches/{id}`.
       2. Set `currentMatch`.
       3. Populate points, game scores, and cards/timeouts based on the returned data.
-      4. Correctly set `matchStatus`, `isStarted`, etc.
-      5. Ensure doubles quadrant indices and serve rotation are correctly derived from the scores (or stored state if available).
+      4. **Extremely Important**: Load volatiles from `state_json` (p1Top, p1Bot, p2Top, p2Bot, doublesInitialServer/Receiver, swappedSides, initialServer, matchStatus, decidingSwapDone).
+      5. Correctly set `isStarted` based on match status.
   </action>
   <verify>Check matchStore.js for fetchMatchState implementation</verify>
   <done>matchStore can load its state from the backend API.</done>

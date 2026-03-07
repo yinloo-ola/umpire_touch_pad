@@ -34,8 +34,9 @@ export const useAdminStore = defineStore('admin', () => {
         matches.value = []
     }
 
-    async function fetchMatches() {
-        const res = await fetch(`${API_BASE}/api/matches`, {
+    async function fetchMatches(history = false) {
+        const url = history ? `${API_BASE}/api/matches?history=true` : `${API_BASE}/api/matches`
+        const res = await fetch(url, {
             credentials: 'include',
         })
         if (!res.ok) {

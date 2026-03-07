@@ -1,10 +1,10 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useMatchStore } from '../stores/matchStore'
-import CardModal from './CardModal.vue'
-import TimeoutModal from './TimeoutModal.vue'
-import CardIndicators from './CardIndicators.vue'
+import { useMatchStore } from '../../stores/matchStore'
+import CardModal from '../../components/umpire/CardModal.vue'
+import TimeoutModal from '../../components/umpire/TimeoutModal.vue'
+import CardIndicators from '../../components/umpire/CardIndicators.vue'
 
 const router = useRouter()
 const matchStore = useMatchStore()

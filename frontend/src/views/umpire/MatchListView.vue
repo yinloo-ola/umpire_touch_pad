@@ -1,8 +1,8 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useMatchStore } from '../stores/matchStore'
-import { useAdminStore } from '../stores/adminStore'
+import { useMatchStore } from '../../stores/matchStore'
+import { useAdminStore } from '../../stores/adminStore'
 
 const router = useRouter()
 const matchStore = useMatchStore()
@@ -31,12 +31,33 @@ const closeMatchConfirm = () => {
   selectedMatch.value = null
 }
 
-const startMatch = () => {
+const startMatch = async () => {
   if (selectedMatch.value) {
-    matchStore.selectMatch(selectedMatch.value)
-    router.push('/umpire/setup')
+    if (selectedMatch.value.status === 'unstarted' || !selectedMatch.value.status) {
+      matchStore.selectMatch(selectedMatch.value)
+      router.push('/umpire/setup')
+    } else {
+      loading.value = true
+      const ok = await matchStore.fetchMatchState(selectedMatch.value.id)
+      loading.value = false
+      if (ok) {
+        if (matchStore.matchStatus === 'in_progress') {
+          router.push('/umpire/scoring')
+        } else {
+          router.push('/umpire/setup')
+        }
+      }
+    }
   }
 }
+
+const loading = ref(false)
+
+const formatStatus = (status) => {
+  if (!status) return 'Unstarted'
+  return status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')
+}
+
 async function onLogout() {
   await adminStore.logout()
   router.push('/admin/login')
@@ -69,6 +90,7 @@ async function onLogout() {
             <th>Player 1</th>
             <th>Player 2</th>
             <th>Best Of</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
@@ -113,6 +135,11 @@ async function onLogout() {
             </td>
             <td>
               <strong>{{ match.bestOf }}</strong>
+            </td>
+            <td>
+              <span :class="['status-badge', match.status || 'unstarted']">
+                {{ formatStatus(match.status) }}
+              </span>
             </td>
           </tr>
         </tbody>
@@ -170,12 +197,16 @@ async function onLogout() {
                 </tr>
               </tbody>
             </table>
-            <p class="modal-prompt">Are you sure you want to start?</p>
+            <p class="modal-prompt">
+              Are you sure you want to {{ selectedMatch?.status === 'unstarted' || !selectedMatch?.status ? 'start' : 'resume' }}?
+            </p>
           </div>
         </div>
         <div class="modal-footer">
-          <button @click="startMatch" class="modal-btn primary-btn">Start</button>
-          <button @click="closeMatchConfirm" class="modal-btn secondary-btn">Reset</button>
+          <button @click="startMatch" class="modal-btn primary-btn" :disabled="loading">
+            {{ loading ? 'Loading...' : (selectedMatch?.status === 'unstarted' || !selectedMatch?.status ? 'Start' : 'Resume') }}
+          </button>
+          <button @click="closeMatchConfirm" class="modal-btn secondary-btn" :disabled="loading">Reset</button>
         </div>
       </div>
     </div>
@@ -251,5 +282,45 @@ async function onLogout() {
 .modal-overlay {
   opacity: 1;
   pointer-events: all;
+}
+
+.status-badge {
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-block;
+}
+
+.status-badge.unstarted {
+  background: rgba(148, 163, 184, 0.1);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.status-badge.starting {
+  background: rgba(59, 130, 246, 0.1);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.status-badge.warming_up {
+  background: rgba(234, 179, 8, 0.1);
+  color: #facc15;
+  border: 1px solid rgba(234, 179, 8, 0.2);
+}
+
+.status-badge.in_progress {
+  background: rgba(34, 197, 94, 0.1);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.status-badge.completed {
+  background: rgba(139, 92, 246, 0.1);
+  color: #a78bfa;
+  border: 1px solid rgba(139, 92, 246, 0.2);
 }
 </style>

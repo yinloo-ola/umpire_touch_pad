@@ -25,9 +25,10 @@ Enhance the backend to support fetching incomplete matches (for resume) and all 
   </files>
   <action>
     Add the following queries to `backend/db/query.sql`:
+    - `GetMatch`: Fetch a single match by ID (including `state_json`).
+    - `UpdateMatchState`: Update `status`, `current_game`, and `state_json` for a match.
     - `GetIncompleteMatchesForPeriod`: Fetch matches with status != 'completed'.
     - `GetAllMatchesForPeriod`: Fetch all matches in a date range.
-    - `GetMatch`: Fetch a single match by ID.
     - `GetGamesForMatch`: Fetch all games for a match ID ordered by game_number.
     - `GetCardsForMatch`: Fetch all cards for a match ID.
     
@@ -60,11 +61,11 @@ Enhance the backend to support fetching incomplete matches (for resume) and all 
   </files>
   <action>
     - In `match_svc.go`:
-      - Update `GetTodayUnstartedMatches` to use `GetIncompleteMatchesForPeriod` (and rename to `GetTodayIncompleteMatches` if appropriate).
-      - Add `GetAllMatches(ctx, start, end)` method.
-      - Add `GetMatchState(ctx, id)` method which returns the `Match` info along with its `Games` and `Cards` (reusing `SyncMatchRequest` or a similar struct).
+      - Add `StateJSON` field to `Match` and `SyncMatchRequest` structs.
+      - Update `SyncMatch` to persist `StateJSON` into the `matches` table.
+      - Add `GetMatchState(ctx, id)` method which returns the `Match` info (including `StateJSON`) along with its `Games` and `Cards`.
     - In `handlers.go`:
-      - Update `handleGetMatches` to support an optional `history=true` query param to return all matches.
+      - Update `handleGetMatches` to support an optional `history=true` query param.
       - Add `handleGetMatchState` for `GET /api/matches/{id}`.
       - Register the new route in `SetupRoutes`.
   </action>

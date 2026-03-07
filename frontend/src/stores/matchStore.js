@@ -249,13 +249,109 @@ export const useMatchStore = defineStore('match', {
   },
 
   actions: {
-    selectMatch(match) {
+    async selectMatch(match) {
       this.currentMatch = match
       this.resetMatchState()
       this.matchStatus = 'starting'
       this.isCompleted = false
       this.syncDoublesQuadrants()
-      this.syncMatch()
+      await this.syncMatch()
+    },
+
+    async fetchMatchState(id) {
+      try {
+        const resp = await fetch(`http://localhost:8080/api/matches/${id}`, {
+          credentials: 'include'
+        })
+        if (!resp.ok) throw new Error('Failed to fetch match state')
+        const data = await resp.json()
+
+        this.currentMatch = data.match
+        this.matchStatus = data.match.status
+        this.game = data.match.currentGame
+        this.isCompleted = data.match.status === 'completed'
+
+        // Load volatiles from stateJson
+        if (data.match.stateJson) {
+          const volatiles = JSON.parse(data.match.stateJson)
+          this.p1Top = volatiles.p1Top ?? 0
+          this.p1Bot = volatiles.p1Bot ?? 1
+          this.p2Top = volatiles.p2Top ?? 0
+          this.p2Bot = volatiles.p2Bot ?? 1
+          this.doublesInitialServer = volatiles.doublesInitialServer ?? { team: 1, player: 0 }
+          this.doublesInitialReceiver = volatiles.doublesInitialReceiver ?? { team: 2, player: 0 }
+          this.swappedSides = volatiles.swappedSides ?? false
+          this.initialServer = volatiles.initialServer ?? 1
+          this.decidingSwapDone = volatiles.decidingSwapDone ?? false
+          this.isStarted = volatiles.isStarted ?? false
+          if (volatiles.scores) {
+            this.scores = volatiles.scores
+          }
+        }
+
+        // Current game points from games list
+        const currentGameData = data.games.find(g => g.gameNumber === this.game)
+        if (currentGameData) {
+          this.p1Score = currentGameData.team1Score
+          this.p2Score = currentGameData.team2Score
+          this.isGameOver = currentGameData.status === 'completed'
+        }
+
+        // Cards & Timeouts
+        this.team1Cards = []
+        this.team2Cards = []
+        this.team1CoachCards = []
+        this.team2CoachCards = []
+        this.team1Timeout = false
+        this.team2Timeout = false
+
+        data.cards.forEach(c => {
+          const cardObj = { type: c.cardType, game: c.gameNumber }
+          if (c.playerIndex === -1) {
+            if (c.teamIndex === 1) this.team1CoachCards.push(cardObj)
+            else this.team2CoachCards.push(cardObj)
+          } else if (c.playerIndex === -2) {
+            if (c.teamIndex === 1) {
+              this.team1Timeout = true
+              this.team1TimeoutGame = c.gameNumber
+            } else {
+              this.team2Timeout = true
+              this.team2TimeoutGame = c.gameNumber
+            }
+          } else {
+            if (c.teamIndex === 1) this.team1Cards.push(cardObj)
+            else this.team2Cards.push(cardObj)
+          }
+        })
+
+        // Derive server for singles
+        if (this.currentMatch.type === 'singles') {
+          this.setServerFromScore()
+        }
+
+        return true
+      } catch (err) {
+        console.error('Fetch match state error:', err)
+        return false
+      }
+    },
+
+    setServerFromScore() {
+      if (!this.currentMatch || this.currentMatch.type === 'doubles') return
+
+      const totalPoints = this.p1Score + this.p2Score
+      let servesPassed = 0
+      if (this.p1Score >= 10 && this.p2Score >= 10) {
+        servesPassed = 10 + Math.max(0, totalPoints - 20)
+      } else {
+        servesPassed = Math.floor(totalPoints / 2)
+      }
+
+      if (servesPassed % 2 === 0) {
+        this.server = this.initialServer
+      } else {
+        this.server = this.initialServer === 1 ? 2 : 1
+      }
     },
 
     resetMatchState() {
@@ -1170,10 +1266,26 @@ export const useMatchStore = defineStore('match', {
         cards.push({ teamIndex: 2, playerIndex: -2, cardType: 'Timeout', gameNumber: this.team2TimeoutGame })
       }
 
+      // Volatiles for exact resume
+      const volatiles = {
+        p1Top: this.p1Top,
+        p1Bot: this.p1Bot,
+        p2Top: this.p2Top,
+        p2Bot: this.p2Bot,
+        doublesInitialServer: this.doublesInitialServer,
+        doublesInitialReceiver: this.doublesInitialReceiver,
+        swappedSides: this.swappedSides,
+        initialServer: this.initialServer,
+        decidingSwapDone: this.decidingSwapDone,
+        isStarted: this.isStarted,
+        scores: this.scores,
+      }
+
       const payload = {
         matchId: this.currentMatch.id,
         status: this.matchStatus,
         currentGame: this.game,
+        stateJson: JSON.stringify(volatiles),
         game: {
           gameNumber: this.game,
           team1Score: this.p1Score,

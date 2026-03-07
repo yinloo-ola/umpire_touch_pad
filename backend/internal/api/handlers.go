@@ -22,7 +22,8 @@ func (h *APIHandler) handleGetMatches(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	matches, err := h.svc.GetTodayUnstartedMatches(r.Context())
+	history := r.URL.Query().Get("history") == "true"
+	matches, err := h.svc.GetTodayMatches(r.Context(), history)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -30,6 +31,28 @@ func (h *APIHandler) handleGetMatches(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(matches)
+}
+
+func (h *APIHandler) handleGetMatchState(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	id := r.PathValue("id")
+	if id == "" {
+		http.Error(w, "Match ID required", http.StatusBadRequest)
+		return
+	}
+
+	state, err := h.svc.GetMatchState(r.Context(), id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(state)
 }
 
 func (h *APIHandler) handleCreateMatch(w http.ResponseWriter, r *http.Request) {
@@ -97,6 +120,7 @@ func SetupRoutes(mux *http.ServeMux, svc *service.MatchService, authSvc *service
 
 	// Protected endpoints
 	mux.HandleFunc("/api/matches", RequireAuth(authSvc, "", handler.handleGetMatches))
+	mux.HandleFunc("GET /api/matches/{id}", RequireAuth(authSvc, "", handler.handleGetMatchState))
 	mux.HandleFunc("/api/match", RequireAuth(authSvc, "admin", handler.handleCreateMatch))
 	mux.HandleFunc("PUT /api/matches/{id}/sync", RequireAuth(authSvc, "", handler.handleSyncMatch))
 }

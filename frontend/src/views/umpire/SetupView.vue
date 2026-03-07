@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useMatchStore } from '../stores/matchStore'
+import { useMatchStore } from '../../stores/matchStore'
 
 const router = useRouter()
 const matchStore = useMatchStore()
