@@ -1,51 +1,38 @@
-# Debug Session: Touchpad UI and Sync Issues
+# Debug Session: Missing Database Migrations
 
-## Symptoms
-1. **Edit Score**: The touchpad score table has an "Edit Score" option which is not needed.
-2. **Double Countries**: Touchpad score table is not showing countries for both players in a pair.
-3. **Premature Completion**: Match status updates to `completed` after 1 game. Should only complete upon umpire confirmation.
-4. **Timeouts Missing**: Timeout cards are not recorded or handled in the sync to DB operation.
+## Symptom
+The current database initialization in `backend/cmd/server/main.go` uses `CREATE TABLE IF NOT EXISTS` with the contents of `db/schema.sql`. 
+When the schema definition is updated (e.g., adding a new column), existing databases will not be updated automatically. 
 
-**When:** During match officiating via the Touchpad.
-**Expected:** 
-- No "Edit Score" button.
-- Both players' countries shown in doubles.
-- Match status stays `in_progress` until explicit completion.
-- Timeouts synced to database.
+**Expected:** The database schema should stay in sync with the code's data model across server restarts.
+**Actual:** Structural changes to `schema.sql` are ignored if the table already exists, leading to "no such column" errors at runtime.
 
 ## Evidence
-
-### 1. Edit Score & Countries
-- Checked `Touchpad.vue`.
-- "Edit Score" button removed.
-- `team1Country` and `team2Country` computed properties updated to join countries with `/` for doubles.
-
-### 2. Match Completion
-- `syncMatch` in `matchStore.js` was using `isGameOver` to set match status.
-- Decoupled match status by adding `isCompleted` state, triggered only by new `confirmMatchComplete` action.
-
-### 3. Timeouts
-- Database schema updated with `team1_timeout` and `team2_timeout` BOOLEAN columns.
-- `UpdateMatchStatus` query and Go service updated to persist timeout status.
-- `syncMatch` payload in frontend now includes `team1Timeout` and `team2Timeout`.
+- `backend/cmd/server/main.go:L43-51` shows direct execution of `db/schema.sql`.
+- SQL in `db/schema.sql` uses `CREATE TABLE IF NOT EXISTS`.
+- Manual deletion of `sqlite.db` was required in previous tasks to apply schema updates.
 
 ## Hypotheses
 
 | # | Hypothesis | Likelihood | Status |
 |---|------------|------------|--------|
-| 1 | "Edit Score" is a leftover UI element in `Touchpad.vue`. | 100% | CONFIRMED |
-| 2 | Touchpad country display logic only looks at the first player of the team. | 90% | CONFIRMED |
-| 3 | Backend `SyncMatch` or Frontend `syncMatch` automatically marks match as completed when a game ends. | 80% | CONFIRMED |
-| 4 | Timeouts were never added to the sync payload or schema. | 100% | CONFIRMED |
+| 1 | Structural schema changes require manual DB deletion or ALTER statements. | 100% | CONFIRMED |
+| 2 | Existing `sqlite.db` prevents `CREATE TABLE` from applying new column definitions. | 100% | CONFIRMED |
+
+## Attempts
+
+### Attempt 1
+**Testing:** H1 — Implementing a simple migration mechanism using Goose.
+**Action:** 
+1.  Created `backend/db/migrations/` directory.
+2.  Generated 3 versioned migrations (`00001`, `00002`, `00003`) representing the schema evolution.
+3.  Added `github.com/pressly/goose/v3` to `go.mod`.
+4.  Embedded migrations into the Go binary for portable deployment.
+5.  Integrated Goose into `main.go` to auto-apply migrations on startup.
+6.  Updated `sqlc.yaml` to point to the migrations folder as the schema source of truth.
+7.  Deleted old `schema.sql` to avoid dual sources of truth.
+**Result:** Migration system set up.
+**Conclusion:** RESOLVED. 
 
 ## Resolution
-Root cause: Missing UI logic for doubles countries, leftover boilerplate buttons, and premature state-driven completion logic. Backend was also missing persistence for timeout status.
-
-Fix applied:
-- Removed "Edit Score" button from `Touchpad.vue`.
-- Updated `Touchpad.vue` computed props to show both countries in doubles.
-- Added `isCompleted` to `matchStore.js` and updated `syncMatch` to respect manual confirmation.
-- Added timeout columns to database and updated sync flow (frontend payload -> backend request -> SQL update).
-- Removed `sqlite.db` to force schema recreation.
-
-Verified by code audit across Vue components, Pinia store, Go services, and SQL definitions.
+The project now uses a versioned migration system powered by Goose. This is a common and professional way to handle Go project persistence with `sqlc`. Database structural changes are now automatically applied on server restart without data loss or manual intervention.

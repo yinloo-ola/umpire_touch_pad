@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE IF NOT EXISTS matches (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
@@ -8,13 +9,6 @@ CREATE TABLE IF NOT EXISTS matches (
     team1_p2_name TEXT,
     team2_p1_name TEXT NOT NULL,
     team2_p2_name TEXT,
-    best_of INTEGER NOT NULL DEFAULT 5,
-    team1_p1_country TEXT,
-    team1_p2_country TEXT,
-    team2_p1_country TEXT,
-    team2_p2_country TEXT,
-    team1_timeout BOOLEAN NOT NULL DEFAULT FALSE,
-    team2_timeout BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
@@ -41,3 +35,8 @@ CREATE TABLE IF NOT EXISTS cards (
     reason TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
+
+-- +goose Down
+DROP TABLE IF EXISTS cards;
+DROP TABLE IF EXISTS games;
+DROP TABLE IF EXISTS matches;

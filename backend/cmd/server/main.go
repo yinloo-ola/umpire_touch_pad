@@ -6,10 +6,12 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"umpire-backend/db/migrations"
 	"umpire-backend/internal/api"
 	"umpire-backend/internal/service"
 	"umpire-backend/internal/store"
 
+	"github.com/pressly/goose/v3"
 	"github.com/rs/cors"
 	_ "modernc.org/sqlite"
 )
@@ -40,15 +42,17 @@ func main() {
 		log.Fatalf("failed to ping database: %v", err)
 	}
 
-	schema, err := os.ReadFile("db/schema.sql")
-	if err != nil {
-		log.Fatalf("failed to read schema.sql: %v", err)
+	// Run Goose migrations using embedded SQL files
+	goose.SetBaseFS(migrations.EmbedFS)
+
+	if err := goose.SetDialect("sqlite"); err != nil {
+		log.Fatalf("failed to set goose dialect: %v", err)
 	}
 
-	if _, err := db.Exec(string(schema)); err != nil {
-		log.Fatalf("failed to execute schema: %v", err)
+	if err := goose.Up(db, "."); err != nil {
+		log.Fatalf("failed to run goose migrations: %v", err)
 	}
-	log.Println("Database schema initialized successfully")
+	log.Println("Database migrations applied successfully")
 
 	mux := http.NewServeMux()
 
