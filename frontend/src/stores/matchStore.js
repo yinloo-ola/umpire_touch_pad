@@ -290,6 +290,9 @@ export const useMatchStore = defineStore('match', {
           this.initialServer = volatiles.initialServer ?? 1
           this.decidingSwapDone = volatiles.decidingSwapDone ?? false
           this.isStarted = volatiles.isStarted ?? false
+          this.prevDoublesInitialServer = volatiles.prevDoublesInitialServer || null
+          this.prevDoublesInitialReceiver = volatiles.prevDoublesInitialReceiver || null
+          this.doublesNextServingTeam = volatiles.doublesNextServingTeam || null
         }
 
         // Reconstruct this.scores from the actual games records
@@ -666,7 +669,7 @@ export const useMatchStore = defineStore('match', {
 
       if (isServerTeam) {
         // At start of game (before play), swap server triggers mandatory receiver recalibration
-        const isStartOfGame = this.p1Score === 0 && this.p2Score === 0
+        const isStartOfGame = !this.pointStarted && !this.isGameOver
         if (isStartOfGame && this.game > 1 && this.prevDoublesInitialServer) {
           this.setDoublesServerForNewGame(
             teamNum,
@@ -1291,6 +1294,9 @@ export const useMatchStore = defineStore('match', {
         initialServer: this.initialServer,
         decidingSwapDone: this.decidingSwapDone,
         isStarted: this.isStarted,
+        prevDoublesInitialServer: this.prevDoublesInitialServer,
+        prevDoublesInitialReceiver: this.prevDoublesInitialReceiver,
+        doublesNextServingTeam: this.doublesNextServingTeam,
       }
 
       const payload = {
