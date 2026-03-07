@@ -17,19 +17,18 @@ WHERE status = 'unstarted'
 UPDATE matches 
 SET status = ?, 
     current_game = ?, 
-    team1_timeout = ?, 
-    team2_timeout = ?, 
     updated_at = CURRENT_TIMESTAMP
 WHERE id = ?;
 
--- name: UpsertGame :exec
+-- name: UpsertGame :one
 INSERT INTO games (id, match_id, game_number, team1_score, team2_score, status)
 VALUES (?, ?, ?, ?, ?, ?)
 ON CONFLICT(match_id, game_number) DO UPDATE SET
     team1_score = excluded.team1_score,
     team2_score = excluded.team2_score,
     status = excluded.status,
-    updated_at = CURRENT_TIMESTAMP;
+    updated_at = CURRENT_TIMESTAMP
+RETURNING id;
 
 -- name: ClearCardsForMatch :exec
 DELETE FROM cards WHERE match_id = ?;
@@ -37,4 +36,7 @@ DELETE FROM cards WHERE match_id = ?;
 -- name: CreateCard :exec
 INSERT INTO cards (id, match_id, game_id, team_index, player_index, card_type, reason)
 VALUES (?, ?, ?, ?, ?, ?, ?);
+
+-- name: GetGameIDByNumber :one
+SELECT id FROM games WHERE match_id = ? AND game_number = ?;
 

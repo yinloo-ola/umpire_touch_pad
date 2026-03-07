@@ -67,7 +67,9 @@ export const useMatchStore = defineStore('match', {
     team1CoachCards: [],
     team2CoachCards: [],
     team1Timeout: false,
+    team1TimeoutGame: null,
     team2Timeout: false,
+    team2TimeoutGame: null,
     timeoutActive: false,
     timeoutTimeLeft: 60,
     timeoutCallingTeam: null,
@@ -296,7 +298,9 @@ export const useMatchStore = defineStore('match', {
       this.team1CoachCards = []
       this.team2CoachCards = []
       this.team1Timeout = false
+      this.team1TimeoutGame = null
       this.team2Timeout = false
+      this.team2TimeoutGame = null
       this.timeoutActive = false
       this.timeoutTimeLeft = 60
       this.timeoutCallingTeam = null
@@ -343,6 +347,10 @@ export const useMatchStore = defineStore('match', {
           timeoutActive: this.timeoutActive,
           timeoutTimeLeft: this.timeoutTimeLeft,
           timeoutCallingTeam: this.timeoutCallingTeam,
+          team1Timeout: this.team1Timeout,
+          team1TimeoutGame: this.team1TimeoutGame,
+          team2Timeout: this.team2Timeout,
+          team2TimeoutGame: this.team2TimeoutGame,
           midGameSwapSnapshot: this.midGameSwapSnapshot ? JSON.parse(JSON.stringify(this.midGameSwapSnapshot)) : null,
           scores: JSON.parse(JSON.stringify(this.scores))
         })
@@ -412,6 +420,10 @@ export const useMatchStore = defineStore('match', {
       this.timeoutActive = prev.timeoutActive
       this.timeoutTimeLeft = prev.timeoutTimeLeft
       this.timeoutCallingTeam = prev.timeoutCallingTeam
+      this.team1Timeout = prev.team1Timeout
+      this.team1TimeoutGame = prev.team1TimeoutGame
+      this.team2Timeout = prev.team2Timeout
+      this.team2TimeoutGame = prev.team2TimeoutGame
       this.midGameSwapSnapshot = prev.midGameSwapSnapshot ? JSON.parse(JSON.stringify(prev.midGameSwapSnapshot)) : null
 
       this.scores = JSON.parse(JSON.stringify(prev.scores))
@@ -1004,17 +1016,19 @@ export const useMatchStore = defineStore('match', {
       const arr = target === 'coach' ? this[`team${teamNum}CoachCards`] : this[`team${teamNum}Cards`]
 
       if (target === 'player') {
-        if (type === 'Yellow' && arr.length !== 0) return false
-        if (type === 'YR1' && (arr.length !== 1 || arr[0] !== 'Yellow')) return false
-        if (type === 'YR2' && (arr.length !== 2 || arr[1] !== 'YR1')) return false
+        const cardTypes = arr.map(c => c.type)
+        if (type === 'Yellow' && cardTypes.length !== 0) return false
+        if (type === 'YR1' && (cardTypes.length !== 1 || cardTypes[0] !== 'Yellow')) return false
+        if (type === 'YR2' && (cardTypes.length !== 2 || cardTypes[1] !== 'YR1')) return false
       } else if (target === 'coach') {
-        if (type === 'Yellow' && arr.length !== 0) return false
-        if (type === 'Red' && (arr.length !== 1 || arr[0] !== 'Yellow')) return false
+        const cardTypes = arr.map(c => c.type)
+        if (type === 'Yellow' && cardTypes.length !== 0) return false
+        if (type === 'Red' && (cardTypes.length !== 1 || cardTypes[0] !== 'Yellow')) return false
       } else {
         return false
       }
 
-      arr.push(type)
+      arr.push({ type, game: this.game })
 
       // Award penalty points for YR1 and YR2
       if (target === 'player') {
@@ -1034,13 +1048,14 @@ export const useMatchStore = defineStore('match', {
       const arr = target === 'coach' ? this[`team${teamNum}CoachCards`] : this[`team${teamNum}Cards`]
       if (arr.length > 0) {
         const popped = arr.pop()
+        const type = popped.type
 
         // Revert penalty points if applicable
         if (target === 'player') {
           const opponent = teamNum === 1 ? 2 : 1
-          if (popped === 'YR1') {
+          if (type === 'YR1') {
             this.revertPenaltyPoints(opponent, 1)
-          } else if (popped === 'YR2') {
+          } else if (type === 'YR2') {
             this.revertPenaltyPoints(opponent, 2)
           }
         }
@@ -1056,8 +1071,13 @@ export const useMatchStore = defineStore('match', {
       this.timeoutActive = true
       this.timeoutTimeLeft = 60
       this.timeoutCallingTeam = teamNum
-      if (teamNum === 1) this.team1Timeout = true
-      else this.team2Timeout = true
+      if (teamNum === 1) {
+        this.team1Timeout = true
+        this.team1TimeoutGame = this.game
+      } else {
+        this.team2Timeout = true
+        this.team2TimeoutGame = this.game
+      }
 
       if (this.timeoutInterval) clearInterval(this.timeoutInterval)
       this.timeoutInterval = setInterval(() => {
@@ -1073,8 +1093,13 @@ export const useMatchStore = defineStore('match', {
     },
 
     revertTimeout(teamNum) {
-      if (teamNum === 1) this.team1Timeout = false
-      else this.team2Timeout = false
+      if (teamNum === 1) {
+        this.team1Timeout = false
+        this.team1TimeoutGame = null
+      } else {
+        this.team2Timeout = false
+        this.team2TimeoutGame = null
+      }
 
       if (this.timeoutCallingTeam === teamNum) {
         if (this.timeoutInterval) {
@@ -1109,27 +1134,33 @@ export const useMatchStore = defineStore('match', {
 
       // Team 1 Player Cards
       this.team1Cards.forEach((c) => {
-        cards.push({ teamIndex: 1, playerIndex: 0, cardType: c })
+        cards.push({ teamIndex: 1, playerIndex: 0, cardType: c.type, gameNumber: c.game })
       })
       // Team 2 Player Cards
       this.team2Cards.forEach((c) => {
-        cards.push({ teamIndex: 2, playerIndex: 0, cardType: c })
+        cards.push({ teamIndex: 2, playerIndex: 0, cardType: c.type, gameNumber: c.game })
       })
       // Team 1 Coach Cards
       this.team1CoachCards.forEach((c) => {
-        cards.push({ teamIndex: 1, playerIndex: -1, cardType: c })
+        cards.push({ teamIndex: 1, playerIndex: -1, cardType: c.type, gameNumber: c.game })
       })
       // Team 2 Coach Cards
       this.team2CoachCards.forEach((c) => {
-        cards.push({ teamIndex: 2, playerIndex: -1, cardType: c })
+        cards.push({ teamIndex: 2, playerIndex: -1, cardType: c.type, gameNumber: c.game })
       })
+
+      // Timeouts as Cards
+      if (this.team1Timeout && this.team1TimeoutGame) {
+        cards.push({ teamIndex: 1, playerIndex: -2, cardType: 'Timeout', gameNumber: this.team1TimeoutGame })
+      }
+      if (this.team2Timeout && this.team2TimeoutGame) {
+        cards.push({ teamIndex: 2, playerIndex: -2, cardType: 'Timeout', gameNumber: this.team2TimeoutGame })
+      }
 
       const payload = {
         matchId: this.currentMatch.id,
         status: this.isCompleted ? 'completed' : 'in_progress',
         currentGame: this.game,
-        team1Timeout: this.team1Timeout,
-        team2Timeout: this.team2Timeout,
         game: {
           gameNumber: this.game,
           team1Score: this.p1Score,

@@ -1,10 +1,9 @@
-## Phase 3 Verification
-
-### Must-Haves
-- [x] Backend API endpoint `PUT /api/matches/:id/sync` implemented and registered — VERIFIED (backend/internal/api/handlers.go)
-- [x] Service layer logic for match/game/card sync with transactions — VERIFIED (backend/internal/service/match_svc.go)
-- [x] SQL queries with `UpsertGame` (ON CONFLICT) supporting SQLite — VERIFIED (backend/db/query.sql, backend/db/schema.sql)
-- [x] Vue matchStore.js pushes state automatically on changes — VERIFIED (frontend/src/stores/matchStore.js)
-- [x] Visual sync status icon (cloud) in touchpad header — VERIFIED (frontend/src/components/Touchpad.vue)
+- [x] Dedicated Admin Portal frontend UI to create/view matches — VERIFIED
+- [x] Double-confirm match status sync and real-time touchpad hooks — VERIFIED
+- [x] **Timeout Recording Refactor**:
+    - [x] Migration `00004` drops `teamX_timeout` from `matches` — VERIFIED
+    - [x] Timeouts recorded as cards in `cards` table with game context — VERIFIED
+    - [x] Pinia store tracks `timeoutGame` and sends it in `syncMatch` — VERIFIED (frontend/src/stores/matchStore.js)
+    - [x] Backend `SyncMatch` handler links cards (including timeouts) to correct `game_id` — VERIFIED (backend/internal/service/match_svc.go)
 
 ### Verdict: PASS

@@ -14,7 +14,8 @@ type Querier interface {
 	CreateMatch(ctx context.Context, arg CreateMatchParams) error
 	GetUnstartedMatchesForPeriod(ctx context.Context, arg GetUnstartedMatchesForPeriodParams) ([]Match, error)
 	UpdateMatchStatus(ctx context.Context, arg UpdateMatchStatusParams) error
-	UpsertGame(ctx context.Context, arg UpsertGameParams) error
+	UpsertGame(ctx context.Context, arg UpsertGameParams) (string, error)
+	GetGameIDByNumber(ctx context.Context, arg GetGameIDByNumberParams) (string, error)
 }
 
 var _ Querier = (*Queries)(nil)

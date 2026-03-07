@@ -45,8 +45,6 @@ type Match struct {
 	Team1P2Country sql.NullString `json:"team1_p2_country"`
 	Team2P1Country sql.NullString `json:"team2_p1_country"`
 	Team2P2Country sql.NullString `json:"team2_p2_country"`
-	Team1Timeout   bool           `json:"team1_timeout"`
-	Team2Timeout   bool           `json:"team2_timeout"`
 	CreatedAt      sql.NullString `json:"created_at"`
 	UpdatedAt      sql.NullString `json:"updated_at"`
 }

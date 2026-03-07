@@ -49,16 +49,15 @@ type SyncCardRequest struct {
 	PlayerIndex int    `json:"playerIndex"`
 	CardType    string `json:"cardType"`
 	Reason      string `json:"reason,omitempty"`
+	GameNumber  int    `json:"gameNumber"`
 }
 
 type SyncMatchRequest struct {
-	MatchID      string            `json:"matchId"`
-	Status       string            `json:"status"`
-	CurrentGame  int               `json:"currentGame"`
-	Team1Timeout bool              `json:"team1Timeout"`
-	Team2Timeout bool              `json:"team2Timeout"`
-	Game         SyncGameRequest   `json:"game"`
-	Cards        []SyncCardRequest `json:"cards"`
+	MatchID     string            `json:"matchId"`
+	Status      string            `json:"status"`
+	CurrentGame int               `json:"currentGame"`
+	Game        SyncGameRequest   `json:"game"`
+	Cards       []SyncCardRequest `json:"cards"`
 }
 
 func (s *MatchService) SyncMatch(ctx context.Context, req SyncMatchRequest) error {
@@ -73,20 +72,18 @@ func (s *MatchService) SyncMatch(ctx context.Context, req SyncMatchRequest) erro
 
 	// 1. Update Match Status
 	err = qtx.UpdateMatchStatus(ctx, store.UpdateMatchStatusParams{
-		ID:           req.MatchID,
-		Status:       req.Status,
-		CurrentGame:  int64(req.CurrentGame),
-		Team1Timeout: req.Team1Timeout,
-		Team2Timeout: req.Team2Timeout,
+		ID:          req.MatchID,
+		Status:      req.Status,
+		CurrentGame: int64(req.CurrentGame),
 	})
 	if err != nil {
 		return err
 	}
 
 	// 2. Upsert Current Game
-	gameID := uuid.New().String() // Use a new ID if it's inserted, though ON CONFLICT might ignore it if updating
-	err = qtx.UpsertGame(ctx, store.UpsertGameParams{
-		ID:         gameID,
+	newGameID := uuid.New().String()
+	gameID, err := qtx.UpsertGame(ctx, store.UpsertGameParams{
+		ID:         newGameID,
 		MatchID:    req.MatchID,
 		GameNumber: int64(req.Game.GameNumber),
 		Team1Score: int64(req.Game.Team1Score),
@@ -103,11 +100,31 @@ func (s *MatchService) SyncMatch(ctx context.Context, req SyncMatchRequest) erro
 		return err
 	}
 
+	// Cache for game IDs to avoid redundant lookups
+	gameIDCache := make(map[int]string)
+	gameIDCache[req.Game.GameNumber] = gameID
+
 	for _, card := range req.Cards {
+		targetGameID := ""
+		if id, ok := gameIDCache[card.GameNumber]; ok {
+			targetGameID = id
+		} else {
+			// Lookup game ID by number
+			id, err := qtx.GetGameIDByNumber(ctx, store.GetGameIDByNumberParams{
+				MatchID:    req.MatchID,
+				GameNumber: int64(card.GameNumber),
+			})
+			if err == nil {
+				targetGameID = id
+				gameIDCache[card.GameNumber] = id
+			}
+		}
+
 		cardID := uuid.New().String()
 		err = qtx.CreateCard(ctx, store.CreateCardParams{
 			ID:          cardID,
 			MatchID:     req.MatchID,
+			GameID:      sql.NullString{String: targetGameID, Valid: targetGameID != ""},
 			TeamIndex:   int64(card.TeamIndex),
 			PlayerIndex: int64(card.PlayerIndex),
 			CardType:    card.CardType,
