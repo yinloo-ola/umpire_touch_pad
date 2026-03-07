@@ -41,10 +41,15 @@ Objective: Implement the full lifecycle of match status changes from match selec
 **Depends on**: Phase 4
 
 **Tasks**:
-- [ ] TBD (run /plan 5 to create)
+- [ ] Backend infrastructure for resume & history (Plan 5.1)
+- [ ] Umpire match list refinement & resume logic (Plan 5.2)
+- [ ] Admin dashboard match history (Plan 5.3)
+- [ ] Frontend organization & routing refactor (Plan 5.4)
 
 **Verification**:
-- TBD
+- [ ] Emulate match selection and verify resume state.
+- [ ] Verify historical matches appear in Admin Dashboard.
+- [ ] Verify frontend build passes after reorganization.
 
 ---
 
