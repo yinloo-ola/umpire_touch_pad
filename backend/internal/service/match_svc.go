@@ -52,11 +52,13 @@ type SyncCardRequest struct {
 }
 
 type SyncMatchRequest struct {
-	MatchID     string            `json:"matchId"`
-	Status      string            `json:"status"`
-	CurrentGame int               `json:"currentGame"`
-	Game        SyncGameRequest   `json:"game"`
-	Cards       []SyncCardRequest `json:"cards"`
+	MatchID      string            `json:"matchId"`
+	Status       string            `json:"status"`
+	CurrentGame  int               `json:"currentGame"`
+	Team1Timeout bool              `json:"team1Timeout"`
+	Team2Timeout bool              `json:"team2Timeout"`
+	Game         SyncGameRequest   `json:"game"`
+	Cards        []SyncCardRequest `json:"cards"`
 }
 
 func (s *MatchService) SyncMatch(ctx context.Context, req SyncMatchRequest) error {
@@ -71,9 +73,11 @@ func (s *MatchService) SyncMatch(ctx context.Context, req SyncMatchRequest) erro
 
 	// 1. Update Match Status
 	err = qtx.UpdateMatchStatus(ctx, store.UpdateMatchStatusParams{
-		ID:          req.MatchID,
-		Status:      req.Status,
-		CurrentGame: int64(req.CurrentGame),
+		ID:           req.MatchID,
+		Status:       req.Status,
+		CurrentGame:  int64(req.CurrentGame),
+		Team1Timeout: req.Team1Timeout,
+		Team2Timeout: req.Team2Timeout,
 	})
 	if err != nil {
 		return err

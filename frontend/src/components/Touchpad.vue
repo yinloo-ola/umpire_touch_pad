@@ -71,8 +71,21 @@ const team2Name = computed(() => {
     : `${match.team2[0].name} / ${match.team2[1].name.split(' ')[0]}`
 })
 
-const team1Country = computed(() => matchStore.currentMatch?.team1[0].country || 'KOR')
-const team2Country = computed(() => matchStore.currentMatch?.team2[0].country || 'BLR')
+const team1Country = computed(() => {
+  if (!matchStore.currentMatch) return 'KOR'
+  const match = matchStore.currentMatch
+  const c1 = match.team1[0].country
+  const c2 = match.team1[1]?.country
+  return match.type === 'doubles' && c2 ? `${c1} / ${c2}` : (c1 || 'KOR')
+})
+
+const team2Country = computed(() => {
+  if (!matchStore.currentMatch) return 'BLR'
+  const match = matchStore.currentMatch
+  const c1 = match.team2[0].country
+  const c2 = match.team2[1]?.country
+  return match.type === 'doubles' && c2 ? `${c1} / ${c2}` : (c1 || 'BLR')
+})
 
 const leftPlayerName = computed(() => (matchStore.swappedSides ? team2Name.value : team1Name.value))
 const rightPlayerName = computed(() =>
@@ -99,8 +112,8 @@ const quitMatch = () => {
   router.push('/')
 }
 
-const confirmMatchResult = () => {
-  matchStore.resetMatchState()
+const confirmMatchResult = async () => {
+  await matchStore.confirmMatchComplete()
   router.push('/')
 }
 
@@ -171,11 +184,7 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
         <table class="score-summary-table">
           <thead>
             <tr>
-              <th class="tools-col">
-                <button class="text-btn edit-score-btn">
-                  <i class="fa-solid fa-pen-to-square"></i> Edit Score
-                </button>
-              </th>
+              <th class="tools-col"></th>
               <th v-for="g in games" :key="g" class="game-col">G{{ g }}</th>
             </tr>
           </thead>

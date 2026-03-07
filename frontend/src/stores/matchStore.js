@@ -74,6 +74,7 @@ export const useMatchStore = defineStore('match', {
 
     // Sync state
     syncStatus: 'synced', // 'synced', 'syncing', 'error'
+    isCompleted: false,
   }),
 
   getters: {
@@ -247,6 +248,7 @@ export const useMatchStore = defineStore('match', {
   actions: {
     selectMatch(match) {
       this.currentMatch = match
+      this.isCompleted = false
       this.resetMatchState()
       this.syncDoublesQuadrants()
     },
@@ -270,6 +272,7 @@ export const useMatchStore = defineStore('match', {
       this.swappedSides = false
       this.pointStarted = false
       this.isGameOver = false
+      this.isCompleted = false
       this.carryOverPoints = { p1: 0, p2: 0 }
       this.timerActive = false
       this.timeLeft = 120
@@ -1090,6 +1093,12 @@ export const useMatchStore = defineStore('match', {
       this.syncMatch()
     },
 
+    async confirmMatchComplete() {
+      this.isCompleted = true
+      await this.syncMatch()
+      this.resetMatchState()
+    },
+
     async syncMatch() {
       if (!this.currentMatch) return
 
@@ -1117,8 +1126,10 @@ export const useMatchStore = defineStore('match', {
 
       const payload = {
         matchId: this.currentMatch.id,
-        status: this.isGameOver ? 'completed' : 'in_progress',
+        status: this.isCompleted ? 'completed' : 'in_progress',
         currentGame: this.game,
+        team1Timeout: this.team1Timeout,
+        team2Timeout: this.team2Timeout,
         game: {
           gameNumber: this.game,
           team1Score: this.p1Score,

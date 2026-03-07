@@ -15,7 +15,11 @@ WHERE status = 'unstarted'
 
 -- name: UpdateMatchStatus :exec
 UPDATE matches 
-SET status = ?, current_game = ?, updated_at = CURRENT_TIMESTAMP
+SET status = ?, 
+    current_game = ?, 
+    team1_timeout = ?, 
+    team2_timeout = ?, 
+    updated_at = CURRENT_TIMESTAMP
 WHERE id = ?;
 
 -- name: UpsertGame :exec

@@ -31,20 +31,22 @@ type Game struct {
 }
 
 type Match struct {
-	ID            string         `json:"id"`
-	Title         string         `json:"title"`
-	ScheduledDate string         `json:"scheduled_date"`
-	Status        string         `json:"status"`
-	CurrentGame   int64          `json:"current_game"`
-	Team1P1Name   string         `json:"team1_p1_name"`
-	Team1P2Name   sql.NullString `json:"team1_p2_name"`
-	Team2P1Name   string         `json:"team2_p1_name"`
-	Team2P2Name   sql.NullString `json:"team2_p2_name"`
-	BestOf        int64          `json:"best_of"`
+	ID             string         `json:"id"`
+	Title          string         `json:"title"`
+	ScheduledDate  string         `json:"scheduled_date"`
+	Status         string         `json:"status"`
+	CurrentGame    int64          `json:"current_game"`
+	Team1P1Name    string         `json:"team1_p1_name"`
+	Team1P2Name    sql.NullString `json:"team1_p2_name"`
+	Team2P1Name    string         `json:"team2_p1_name"`
+	Team2P2Name    sql.NullString `json:"team2_p2_name"`
+	BestOf         int64          `json:"best_of"`
 	Team1P1Country sql.NullString `json:"team1_p1_country"`
 	Team1P2Country sql.NullString `json:"team1_p2_country"`
 	Team2P1Country sql.NullString `json:"team2_p1_country"`
 	Team2P2Country sql.NullString `json:"team2_p2_country"`
-	CreatedAt     sql.NullString `json:"created_at"`
-	UpdatedAt     sql.NullString `json:"updated_at"`
+	Team1Timeout   bool           `json:"team1_timeout"`
+	Team2Timeout   bool           `json:"team2_timeout"`
+	CreatedAt      sql.NullString `json:"created_at"`
+	UpdatedAt      sql.NullString `json:"updated_at"`
 }

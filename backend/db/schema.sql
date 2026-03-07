@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS matches (
     team1_p2_country TEXT,
     team2_p1_country TEXT,
     team2_p2_country TEXT,
+    team1_timeout BOOLEAN NOT NULL DEFAULT FALSE,
+    team2_timeout BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
