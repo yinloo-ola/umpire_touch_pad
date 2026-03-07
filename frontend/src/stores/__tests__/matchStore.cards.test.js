@@ -33,13 +33,13 @@ describe('matchStore - Cards and Timeouts', () => {
 
         // Valid sequence: Yellow -> YR1 -> YR2
         expect(store.issueCard(1, 'Yellow', 'player')).toBe(true)
-        expect(store.team1Cards).toEqual(['Yellow'])
+        expect(store.team1Cards).toEqual([{ type: 'Yellow', game: 1 }])
 
         expect(store.issueCard(1, 'YR1', 'player')).toBe(true)
-        expect(store.team1Cards).toEqual(['Yellow', 'YR1'])
+        expect(store.team1Cards).toEqual([{ type: 'Yellow', game: 1 }, { type: 'YR1', game: 1 }])
 
         expect(store.issueCard(1, 'YR2', 'player')).toBe(true)
-        expect(store.team1Cards).toEqual(['Yellow', 'YR1', 'YR2'])
+        expect(store.team1Cards).toEqual([{ type: 'Yellow', game: 1 }, { type: 'YR1', game: 1 }, { type: 'YR2', game: 1 }])
 
         // Cannot issue any more cards or invalid sequence
         // Although YR2 is the max, trying to issue another YR2 or Yellow should fail
@@ -62,10 +62,10 @@ describe('matchStore - Cards and Timeouts', () => {
         const store = useMatchStore()
 
         expect(store.issueCard(1, 'Yellow', 'coach')).toBe(true)
-        expect(store.team1CoachCards).toEqual(['Yellow'])
+        expect(store.team1CoachCards).toEqual([{ type: 'Yellow', game: 1 }])
 
         expect(store.issueCard(1, 'Red', 'coach')).toBe(true)
-        expect(store.team1CoachCards).toEqual(['Yellow', 'Red'])
+        expect(store.team1CoachCards).toEqual([{ type: 'Yellow', game: 1 }, { type: 'Red', game: 1 }])
 
         // Reject invalid sequences
         expect(store.issueCard(1, 'Yellow', 'coach')).toBe(false)
@@ -84,10 +84,10 @@ describe('matchStore - Cards and Timeouts', () => {
 
         store.issueCard(1, 'Yellow', 'player')
         store.issueCard(1, 'YR1', 'player')
-        expect(store.team1Cards).toEqual(['Yellow', 'YR1'])
+        expect(store.team1Cards).toEqual([{ type: 'Yellow', game: 1 }, { type: 'YR1', game: 1 }])
 
         store.revertLastCard(1, 'player')
-        expect(store.team1Cards).toEqual(['Yellow'])
+        expect(store.team1Cards).toEqual([{ type: 'Yellow', game: 1 }])
 
         store.revertLastCard(1, 'player')
         expect(store.team1Cards).toEqual([])
@@ -101,7 +101,7 @@ describe('matchStore - Cards and Timeouts', () => {
         const store = useMatchStore()
 
         store.issueCard(2, 'Yellow', 'coach')
-        expect(store.team2CoachCards).toEqual(['Yellow'])
+        expect(store.team2CoachCards).toEqual([{ type: 'Yellow', game: 1 }])
 
         store.revertLastCard(2, 'coach')
         expect(store.team2CoachCards).toEqual([])
