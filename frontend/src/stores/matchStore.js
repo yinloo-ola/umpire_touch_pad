@@ -668,8 +668,8 @@ export const useMatchStore = defineStore('match', {
       const nextPlayerIdx = 1 - currentPlayerIdx
 
       if (isServerTeam) {
-        // At start of game (before play), swap server triggers mandatory receiver recalibration
-        const isStartOfGame = !this.pointStarted && !this.isGameOver
+        // At start of game (before play OR at 0-0), swap server triggers mandatory receiver recalibration
+        const isStartOfGame = (!this.pointStarted || (this.p1Score === 0 && this.p2Score === 0)) && !this.isGameOver
         if (isStartOfGame && this.game > 1 && this.prevDoublesInitialServer) {
           this.setDoublesServerForNewGame(
             teamNum,
@@ -689,6 +689,7 @@ export const useMatchStore = defineStore('match', {
         }
         this.syncDoublesQuadrants()
       }
+      this.syncMatch()
     },
 
     setServer(s) {
