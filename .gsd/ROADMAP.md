@@ -27,9 +27,13 @@
 **Status**: ✅ Complete
 **Objective**: Implement `PUT /matches/:id/sync` endpoint. Hook it up to the `matchStore.js` in the Umpire Touchpad so that whenever a score, game, or card changes, it asynchronously syncs the current state (or game state) to the database.
 
-### Phase 4: Completed Match Operations
-**Status**: ⬜ Not Started
-**Objective**: Implement a backend API for finishing a match that formally sets the `matches.status` to `completed`. Combine it with the "End Match" feature in the touchpad to finalize the match summary with its games, scores, and penalty cards.
+### Phase 3.5: Umpire Routing & UX Polish
+**Status**: ✅ Complete
+**Objective**: Refactor the frontend routing to group umpire-specific views under the `/umpire/` prefix. Update the navigation guards and login redirection logic to ensure a seamless experience for umpires, separating their workspace from the admin portal.
+
+### Phase 4: Match Status Transitions & Completion
+Status: ✅ Complete
+Objective: Implement the full lifecycle of match status changes from match selection to final confirmation, ensuring the backend database reflects the current state of play.
 
 ---
 

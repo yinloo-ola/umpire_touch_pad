@@ -76,6 +76,7 @@ export const useMatchStore = defineStore('match', {
 
     // Sync state
     syncStatus: 'synced', // 'synced', 'syncing', 'error'
+    matchStatus: 'unstarted', // 'unstarted', 'starting', 'warming_up', 'in_progress', 'completed'
     isCompleted: false,
   }),
 
@@ -250,9 +251,11 @@ export const useMatchStore = defineStore('match', {
   actions: {
     selectMatch(match) {
       this.currentMatch = match
-      this.isCompleted = false
       this.resetMatchState()
+      this.matchStatus = 'starting'
+      this.isCompleted = false
       this.syncDoublesQuadrants()
+      this.syncMatch()
     },
 
     resetMatchState() {
@@ -275,6 +278,7 @@ export const useMatchStore = defineStore('match', {
       this.pointStarted = false
       this.isGameOver = false
       this.isCompleted = false
+      this.matchStatus = 'unstarted'
       this.carryOverPoints = { p1: 0, p2: 0 }
       this.timerActive = false
       this.timeLeft = 120
@@ -808,6 +812,8 @@ export const useMatchStore = defineStore('match', {
     },
 
     startTimer(callback) {
+      this.matchStatus = 'warming_up'
+      this.syncMatch()
       this.timerActive = true
       this.timeLeft = 120
       const interval = setInterval(() => {
@@ -818,6 +824,12 @@ export const useMatchStore = defineStore('match', {
           if (callback) callback()
         }
       }, 1000)
+    },
+
+    startMatch() {
+      this.matchStatus = 'in_progress'
+      this.isStarted = true
+      this.syncMatch()
     },
 
     startPoint() {
@@ -1119,6 +1131,7 @@ export const useMatchStore = defineStore('match', {
     },
 
     async confirmMatchComplete() {
+      this.matchStatus = 'completed'
       this.isCompleted = true
       await this.syncMatch()
       this.resetMatchState()
@@ -1159,7 +1172,7 @@ export const useMatchStore = defineStore('match', {
 
       const payload = {
         matchId: this.currentMatch.id,
-        status: this.isCompleted ? 'completed' : 'in_progress',
+        status: this.matchStatus,
         currentGame: this.game,
         game: {
           gameNumber: this.game,

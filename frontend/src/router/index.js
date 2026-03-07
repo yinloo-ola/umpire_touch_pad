@@ -14,18 +14,29 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'match-list',
-      component: MatchList,
+      redirect: '/umpire/match-list',
     },
     {
-      path: '/setup',
-      name: 'setup',
-      component: SetupView,
-    },
-    {
-      path: '/scoring',
-      name: 'scoring',
-      component: Touchpad,
+      path: '/umpire',
+      name: 'umpire',
+      redirect: '/umpire/match-list',
+      children: [
+        {
+          path: 'match-list',
+          name: 'umpire-match-list',
+          component: MatchList,
+        },
+        {
+          path: 'setup',
+          name: 'umpire-setup',
+          component: SetupView,
+        },
+        {
+          path: 'scoring',
+          name: 'umpire-scoring',
+          component: Touchpad,
+        },
+      ],
     },
     {
       path: '/admin/login',
@@ -68,14 +79,15 @@ router.beforeEach(async (to) => {
     }
     // Only admins can visit admin board
     if (adminStore.role !== 'admin') {
-      return { path: '/' }
+      return { name: 'umpire-match-list' }
     }
   }
 
-  // Guard umpire routes (/, /setup, /scoring)
-  const isUmpireRoute = ['match-list', 'setup', 'scoring'].includes(to.name)
-  if (isUmpireRoute && !authenticated) {
-    return { name: 'admin-login', query: { redirect: to.fullPath } }
+  // Guard umpire routes
+  if (to.path.startsWith('/umpire')) {
+    if (!authenticated) {
+      return { name: 'admin-login', query: { redirect: to.fullPath } }
+    }
   }
 })
 

@@ -1,12 +1,15 @@
-- **Phase**: 3 (RE-VERIFIED with Timeouts)
-- **Task**: Refactor timeout recording to track game context
-- **Status**: Resolved (Fully Verified)
+## Current Position
+- **Phase**: 4: Match Status Transitions & Completion (Completed)
+- **Task**: Phase 4 executed successfully.
+- **Status**: ✅ Verified
 
-6. **Timeouts as Cards**: Timeouts were moved from match-level booleans to the `cards` table. They now capture the specific game they were taken in, providing better historical data.
-7. **Game Context for Cards**: The `SyncMatch` service now correctly links all cards to their corresponding `game_id` using the current game number.
-
-Verified both backend (Go build) and frontend (Pinia state mapping) logic.
+## Session Updates
+1. **Match Status Lifecycle**: Decomposed the user requirements into four key transitions: `starting`, `warming_up`, `in_progress`, and `completed`.
+2. **Implementation Plan**: Created `.gsd/phases/4/1-PLAN.md` with detailed store and component updates.
+3. **Roadmap Update**: Refined Phase 4 objective in `ROADMAP.md`.
+4. **Execution**: Implemented `matchStatus` in `matchStore.js`, updated actions for status transitions, and hooked up `startMatch` in `SetupView.vue`.
+5. **Sync Logic**: Enhanced `syncMatch` to use the dynamic `matchStatus` for persistence.
 
 ## Next Steps
-1. Proceed to Phase 4: Completed Match Operations
-2. Implement backend logic for finishing matches and final match summary creation.
+1. All planned phases completed. 
+2. Consider future milestones (rule timer, etc.) or ask user for further instructions.

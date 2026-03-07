@@ -34,7 +34,7 @@ const closeMatchConfirm = () => {
 const startMatch = () => {
   if (selectedMatch.value) {
     matchStore.selectMatch(selectedMatch.value)
-    router.push('/setup')
+    router.push('/umpire/setup')
   }
 }
 async function onLogout() {

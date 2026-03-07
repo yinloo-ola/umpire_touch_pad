@@ -12,3 +12,7 @@
 - Created SPEC.md (finalized), ROADMAP.md (4 phases), DECISIONS.md, ARCHITECTURE.md, STACK.md
 - Biggest complexity: the A→X→B→Y→A rotation cycle + between-game constrained receiver rule
 - Decided on formula-based rotation (not event chain) for robustness
+
+## 2026-03-07 — Router Refactoring Planning
+
+- Captured a todo for refactoring `frontend/src/router/index.js` to structure umpire routes under `/umpire/` and handle post-login redirection to match-list view.

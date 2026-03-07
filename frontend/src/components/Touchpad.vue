@@ -105,16 +105,16 @@ const games = computed(() => {
 })
 
 // Actions
-const goBack = () => router.push('/setup')
+const goBack = () => router.push('/umpire/setup')
 
 const quitMatch = () => {
   matchStore.resetMatchState()
-  router.push('/')
+  router.push('/umpire/match-list')
 }
 
 const confirmMatchResult = async () => {
   await matchStore.confirmMatchComplete()
-  router.push('/')
+  router.push('/umpire/match-list')
 }
 
 const handleStartPlay = () => {

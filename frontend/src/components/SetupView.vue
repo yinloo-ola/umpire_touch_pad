@@ -63,7 +63,7 @@ const onLeftIndicatorClick  = () => matchStore.calibrateServeStateFromUI('left')
 const onRightIndicatorClick = () => matchStore.calibrateServeStateFromUI('right')
 
 // ── Shared actions ───────────────────────────────────────────────────────────
-const goBack = () => router.push('/')
+const goBack = () => router.push('/umpire/match-list')
 const toggleSwap = () => matchStore.toggleSwapSides()
 
 const promptWarmup = () => {
@@ -81,7 +81,8 @@ const startWarmupCountdown = () => {
 
 const proceedToMatch = () => {
   matchStore.timerActive = false
-  router.push('/scoring')
+  matchStore.startMatch()
+  router.push('/umpire/scoring')
 }
 
 // Circle SVG math

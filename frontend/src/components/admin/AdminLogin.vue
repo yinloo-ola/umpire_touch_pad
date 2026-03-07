@@ -41,7 +41,7 @@
       </form>
 
       <div class="login-footer">
-        <router-link to="/" class="back-link">← Back to Home</router-link>
+        <router-link to="/umpire/match-list" class="back-link">← Back to Home</router-link>
       </div>
     </div>
   </div>
@@ -77,7 +77,7 @@ async function onSubmit() {
     if (role === 'admin') {
       router.push('/admin/dashboard')
     } else {
-      router.push('/')
+      router.push('/umpire/match-list')
     }
   } catch (e) {
     error.value = e.message || 'Login failed'
