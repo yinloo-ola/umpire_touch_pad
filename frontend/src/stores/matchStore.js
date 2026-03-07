@@ -305,24 +305,26 @@ export const useMatchStore = defineStore('match', {
         this.team1Timeout = false
         this.team2Timeout = false
 
-        data.cards.forEach(c => {
-          const cardObj = { type: c.cardType, game: c.gameNumber }
-          if (c.playerIndex === -1) {
-            if (c.teamIndex === 1) this.team1CoachCards.push(cardObj)
-            else this.team2CoachCards.push(cardObj)
-          } else if (c.playerIndex === -2) {
-            if (c.teamIndex === 1) {
-              this.team1Timeout = true
-              this.team1TimeoutGame = c.gameNumber
+        if (data.cards) {
+          data.cards.forEach(c => {
+            const cardObj = { type: c.cardType, game: c.gameNumber }
+            if (c.playerIndex === -1) {
+              if (c.teamIndex === 1) this.team1CoachCards.push(cardObj)
+              else this.team2CoachCards.push(cardObj)
+            } else if (c.playerIndex === -2) {
+              if (c.teamIndex === 1) {
+                this.team1Timeout = true
+                this.team1TimeoutGame = c.gameNumber
+              } else {
+                this.team2Timeout = true
+                this.team2TimeoutGame = c.gameNumber
+              }
             } else {
-              this.team2Timeout = true
-              this.team2TimeoutGame = c.gameNumber
+              if (c.teamIndex === 1) this.team1Cards.push(cardObj)
+              else this.team2Cards.push(cardObj)
             }
-          } else {
-            if (c.teamIndex === 1) this.team1Cards.push(cardObj)
-            else this.team2Cards.push(cardObj)
-          }
-        })
+          })
+        }
 
         // Derive server for singles
         if (this.currentMatch.type === 'singles') {
