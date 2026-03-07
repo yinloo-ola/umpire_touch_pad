@@ -121,17 +121,23 @@ func (s *MatchService) CreateMatch(ctx context.Context, m Match) (string, error)
 	id := uuid.New().String()
 
 	var t1p1, t1p2, t2p1, t2p2 string
+	var t1p1c, t1p2c, t2p1c, t2p2c string
+
 	if len(m.Team1) > 0 {
 		t1p1 = m.Team1[0].Name
+		t1p1c = m.Team1[0].Country
 	}
 	if len(m.Team1) > 1 {
 		t1p2 = m.Team1[1].Name
+		t1p2c = m.Team1[1].Country
 	}
 	if len(m.Team2) > 0 {
 		t2p1 = m.Team2[0].Name
+		t2p1c = m.Team2[0].Country
 	}
 	if len(m.Team2) > 1 {
 		t2p2 = m.Team2[1].Name
+		t2p2c = m.Team2[1].Country
 	}
 
 	arg := store.CreateMatchParams{
@@ -142,6 +148,7 @@ func (s *MatchService) CreateMatch(ctx context.Context, m Match) (string, error)
 		CurrentGame:   1,
 		Team1P1Name:   t1p1,
 		Team2P1Name:   t2p1,
+		BestOf:        int64(m.BestOf),
 	}
 
 	if t1p2 != "" {
@@ -149,6 +156,19 @@ func (s *MatchService) CreateMatch(ctx context.Context, m Match) (string, error)
 	}
 	if t2p2 != "" {
 		arg.Team2P2Name = sql.NullString{String: t2p2, Valid: true}
+	}
+
+	if t1p1c != "" {
+		arg.Team1P1Country = sql.NullString{String: t1p1c, Valid: true}
+	}
+	if t1p2c != "" {
+		arg.Team1P2Country = sql.NullString{String: t1p2c, Valid: true}
+	}
+	if t2p1c != "" {
+		arg.Team2P1Country = sql.NullString{String: t2p1c, Valid: true}
+	}
+	if t2p2c != "" {
+		arg.Team2P2Country = sql.NullString{String: t2p2c, Valid: true}
 	}
 
 	err := s.store.CreateMatch(ctx, arg)
@@ -178,14 +198,14 @@ func (s *MatchService) GetTodayUnstartedMatches(ctx context.Context) ([]Match, e
 
 	var results []Match
 	for _, dbm := range dbMatches {
-		t1 := []Player{{Name: dbm.Team1P1Name, Country: ""}}
+		t1 := []Player{{Name: dbm.Team1P1Name, Country: dbm.Team1P1Country.String}}
 		if dbm.Team1P2Name.Valid && dbm.Team1P2Name.String != "" {
-			t1 = append(t1, Player{Name: dbm.Team1P2Name.String, Country: ""})
+			t1 = append(t1, Player{Name: dbm.Team1P2Name.String, Country: dbm.Team1P2Country.String})
 		}
 
-		t2 := []Player{{Name: dbm.Team2P1Name, Country: ""}}
+		t2 := []Player{{Name: dbm.Team2P1Name, Country: dbm.Team2P1Country.String}}
 		if dbm.Team2P2Name.Valid && dbm.Team2P2Name.String != "" {
-			t2 = append(t2, Player{Name: dbm.Team2P2Name.String, Country: ""})
+			t2 = append(t2, Player{Name: dbm.Team2P2Name.String, Country: dbm.Team2P2Country.String})
 		}
 
 		matchType := "singles"
@@ -198,7 +218,7 @@ func (s *MatchService) GetTodayUnstartedMatches(ctx context.Context) ([]Match, e
 			Type:   matchType,
 			Event:  dbm.Title,
 			Time:   dbm.ScheduledDate,
-			BestOf: 5,
+			BestOf: int(dbm.BestOf),
 			Team1:  t1,
 			Team2:  t2,
 		})

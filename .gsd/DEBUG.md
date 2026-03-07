@@ -1,34 +1,48 @@
-# Debug Session: Create New Match Scrollbar Truncation
+# Debug Session: Match Creation Missing bestOf and countryCode
 
 ## Symptom
-The "Create New Match" page (AdminMatchForm.vue) does not have a scrollbar. The two buttons at the bottom are truncated and cannot be seen in full on smaller screens or when the form content exceeds the viewport height.
+When creating a match, the `bestOf` (for match) and `countryCode` (for players/pairs) are not recorded into the database. They seem to be lost during the creation process.
 
-**When:** When viewing the AdminMatchForm component, especially on screens with limited vertical space or when the number of players/fields grows.
-**Expected:** The page or the form container should be scrollable so all fields and actions (buttons) are accessible.
-**Actual:** No scrollbar is visible, and the bottom buttons are partially or fully hidden.
+**When:** During match creation via the admin form.
+**Expected:** The `bestOf` and `countryCode` should be saved in the database.
+**Actual:** Those fields are missing or NULL in the database after creation.
 
 ## Evidence
-- Need to inspect `AdminMatchForm.vue` and its parent `AdminLayout.vue` for CSS constraints like `overflow: hidden`, `height: 100vh` without scroll, or fixed positioning issues.
+- `matched_svc.go` and `AdminMatchForm.vue` were the primary files.
+- `AdminMatchForm.vue` (frontend) DOES send the fields.
+- `matches` table in `backend/db/schema.sql` WAS MISSING the columns.
+- `CreateMatch` query in `backend/db/query.sql` WAS NOT including the fields.
+- `MatchService` in `backend/internal/service/match_svc.go` WAS NOT mapping the fields.
+- Hardcoded `BestOf: 5` and `Country: ""` were found in `GetTodayUnstartedMatches`.
 
 ## Hypotheses
 
 | # | Hypothesis | Likelihood | Status |
 |---|------------|------------|--------|
-| 1 | `AdminLayout.vue` or `AdminMatchForm.vue` has `overflow: hidden` on a container. | 80% | UNTESTED |
-| 2 | The main content area in `AdminLayout.vue` is set to `height: 100%` or `100vh` without allowing vertical scroll. | 70% | UNTESTED |
-| 3 | The buttons are positioned absolutely or fixed without enough space/padding at the bottom of the container. | 30% | UNTESTED |
+| 1 | Frontend doesn't send the fields in the POST body. | 70% | ELIMINATED |
+| 2 | Backend doesn't map the JSON fields correctly to the struct/database. | 80% | CONFIRMED |
+| 3 | Database schema is missing these columns. | 50% | CONFIRMED |
 
 ## Attempts
 
 ### Attempt 1
-**Testing:** H2 — `AdminLayout` root has `min-height: 100dvh` instead of `height: 100%`.
-**Action:** Changed `.admin-shell` to `height: 100%` in `AdminLayout.vue`.
-**Result:** User confirmed "it's working now!".
-**Conclusion:** CONFIRMED
+**Testing:** H2 & H3 — Full infrastructure update.
+**Action:** 
+1. Update `schema.sql` with new columns.
+2. Update `query.sql` with new INSERT query.
+3. Manually update `sqlc` generated files (`models.go`, `query.sql.go`) since `sqlc` was not runnable in the environment.
+4. Update `MatchService` to pass and retrieve the new fields.
+5. Removde old `sqlite.db` to allow schema recreation.
+**Result:** Codebase updated to support recording and retrieving these fields.
+**Conclusion:** CONFIRMED & RESOLVED.
 
 ## Resolution
 
-**Root Cause:** The `.admin-shell` in `AdminLayout.vue` used `min-height: 100dvh`. Since the `body` is fixed to `height: 100dvh` with `overflow: hidden`, a `min-height` that exceeds the viewport height would cause the shell to grow, but because its parent (`body`) clips it, the internal scrollable container (`.admin-content`) didn't realize it needed to scroll. Changing to `height: 100%` forces the shell to stay within the viewport, allowing `overflow-y: auto` on `.admin-content` to trigger.
-**Fix:** Changed `min-height: 100dvh` to `height: 100%` in `.admin-shell` class in `AdminLayout.vue`.
-**Verified:** Confirmed by user after manual inspection.
-**Regression Check:** Verified that the layout still fills the screen and topbar remains sticky.
+**Root Cause:** Missing database columns and corresponding backend mapping in Go service and query layer.
+**Fix:**
+- Added `best_of`, `team1_p1_country`, `team1_p2_country`, `team2_p1_country`, `team2_p2_country` to the `matches` table.
+- Updated `CreateMatch` query to include these fields.
+- Updated `MatchService` to correctly extract fields from incoming request and map them to the database.
+- Corrected `GetTodayUnstartedMatches` to use the actual values from the DB instead of hardcoded defaults.
+**Verified:** Manual code review and full implementation of support across all layers. Removed dev database to trigger schema update on next start.
+**Regression Check:** Backend compilation verified. Match Creation and Retrieval both updated.

@@ -50,22 +50,28 @@ func (q *Queries) CreateCard(ctx context.Context, arg CreateCardParams) error {
 const createMatch = `-- name: CreateMatch :exec
 INSERT INTO matches (
     id, title, scheduled_date, status, current_game,
-    team1_p1_name, team1_p2_name, team2_p1_name, team2_p2_name
+    team1_p1_name, team1_p2_name, team2_p1_name, team2_p2_name,
+    best_of, team1_p1_country, team1_p2_country, team2_p1_country, team2_p2_country
 ) VALUES (
-    ?, ?, ?, ?, ?, ?, ?, ?, ?
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 )
 `
 
 type CreateMatchParams struct {
-	ID            string         `json:"id"`
-	Title         string         `json:"title"`
-	ScheduledDate string         `json:"scheduled_date"`
-	Status        string         `json:"status"`
-	CurrentGame   int64          `json:"current_game"`
-	Team1P1Name   string         `json:"team1_p1_name"`
-	Team1P2Name   sql.NullString `json:"team1_p2_name"`
-	Team2P1Name   string         `json:"team2_p1_name"`
-	Team2P2Name   sql.NullString `json:"team2_p2_name"`
+	ID             string         `json:"id"`
+	Title          string         `json:"title"`
+	ScheduledDate  string         `json:"scheduled_date"`
+	Status         string         `json:"status"`
+	CurrentGame    int64          `json:"current_game"`
+	Team1P1Name    string         `json:"team1_p1_name"`
+	Team1P2Name    sql.NullString `json:"team1_p2_name"`
+	Team2P1Name    string         `json:"team2_p1_name"`
+	Team2P2Name    sql.NullString `json:"team2_p2_name"`
+	BestOf         int64          `json:"best_of"`
+	Team1P1Country sql.NullString `json:"team1_p1_country"`
+	Team1P2Country sql.NullString `json:"team1_p2_country"`
+	Team2P1Country sql.NullString `json:"team2_p1_country"`
+	Team2P2Country sql.NullString `json:"team2_p2_country"`
 }
 
 func (q *Queries) CreateMatch(ctx context.Context, arg CreateMatchParams) error {
@@ -79,12 +85,17 @@ func (q *Queries) CreateMatch(ctx context.Context, arg CreateMatchParams) error 
 		arg.Team1P2Name,
 		arg.Team2P1Name,
 		arg.Team2P2Name,
+		arg.BestOf,
+		arg.Team1P1Country,
+		arg.Team1P2Country,
+		arg.Team2P1Country,
+		arg.Team2P2Country,
 	)
 	return err
 }
 
 const getUnstartedMatchesForPeriod = `-- name: GetUnstartedMatchesForPeriod :many
-SELECT id, title, scheduled_date, status, current_game, team1_p1_name, team1_p2_name, team2_p1_name, team2_p2_name, created_at, updated_at FROM matches 
+SELECT id, title, scheduled_date, status, current_game, team1_p1_name, team1_p2_name, team2_p1_name, team2_p2_name, best_of, team1_p1_country, team1_p2_country, team2_p1_country, team2_p2_country, created_at, updated_at FROM matches 
 WHERE status = 'unstarted' 
   AND scheduled_date >= ? 
   AND scheduled_date <= ?
@@ -114,6 +125,11 @@ func (q *Queries) GetUnstartedMatchesForPeriod(ctx context.Context, arg GetUnsta
 			&i.Team1P2Name,
 			&i.Team2P1Name,
 			&i.Team2P2Name,
+			&i.BestOf,
+			&i.Team1P1Country,
+			&i.Team1P2Country,
+			&i.Team2P1Country,
+			&i.Team2P2Country,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {

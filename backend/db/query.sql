@@ -1,9 +1,10 @@
 -- name: CreateMatch :exec
 INSERT INTO matches (
     id, title, scheduled_date, status, current_game,
-    team1_p1_name, team1_p2_name, team2_p1_name, team2_p2_name
+    team1_p1_name, team1_p2_name, team2_p1_name, team2_p2_name,
+    best_of, team1_p1_country, team1_p2_country, team2_p1_country, team2_p2_country
 ) VALUES (
-    ?, ?, ?, ?, ?, ?, ?, ?, ?
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 );
 
 -- name: GetUnstartedMatchesForPeriod :many
