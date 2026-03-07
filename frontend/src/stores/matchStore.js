@@ -290,9 +290,14 @@ export const useMatchStore = defineStore('match', {
           this.initialServer = volatiles.initialServer ?? 1
           this.decidingSwapDone = volatiles.decidingSwapDone ?? false
           this.isStarted = volatiles.isStarted ?? false
-          if (volatiles.scores) {
-            this.scores = volatiles.scores
-          }
+        }
+
+        // Reconstruct this.scores from the actual games records
+        if (data.games) {
+          data.games.forEach(g => {
+            const key = `g${g.gameNumber}`
+            this.scores[key] = { p1: g.team1Score, p2: g.team2Score }
+          })
         }
 
         // Current game points from games list
@@ -1286,7 +1291,6 @@ export const useMatchStore = defineStore('match', {
         initialServer: this.initialServer,
         decidingSwapDone: this.decidingSwapDone,
         isStarted: this.isStarted,
-        scores: this.scores,
       }
 
       const payload = {
