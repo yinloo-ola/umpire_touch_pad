@@ -27,12 +27,12 @@ const router = createRouter({
           component: MatchList,
         },
         {
-          path: 'setup',
+          path: 'setup/:id?',
           name: 'umpire-setup',
           component: SetupView,
         },
         {
-          path: 'scoring',
+          path: 'scoring/:id?',
           name: 'umpire-scoring',
           component: Touchpad,
         },

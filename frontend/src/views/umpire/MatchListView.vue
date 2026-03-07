@@ -35,16 +35,16 @@ const startMatch = async () => {
   if (selectedMatch.value) {
     if (selectedMatch.value.status === 'unstarted' || !selectedMatch.value.status) {
       matchStore.selectMatch(selectedMatch.value)
-      router.push('/umpire/setup')
+      router.push(`/umpire/setup/${selectedMatch.value.id}`)
     } else {
       loading.value = true
       const ok = await matchStore.fetchMatchState(selectedMatch.value.id)
       loading.value = false
       if (ok) {
         if (matchStore.matchStatus === 'in_progress') {
-          router.push('/umpire/scoring')
+          router.push(`/umpire/scoring/${selectedMatch.value.id}`)
         } else {
-          router.push('/umpire/setup')
+          router.push(`/umpire/setup/${selectedMatch.value.id}`)
         }
       }
     }

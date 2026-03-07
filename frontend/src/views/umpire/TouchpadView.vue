@@ -1,13 +1,23 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, ref, watch, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useMatchStore } from '../../stores/matchStore'
 import CardModal from '../../components/umpire/CardModal.vue'
 import TimeoutModal from '../../components/umpire/TimeoutModal.vue'
 import CardIndicators from '../../components/umpire/CardIndicators.vue'
 
 const router = useRouter()
+const route = useRoute()
 const matchStore = useMatchStore()
+
+onMounted(async () => {
+  if (!matchStore.currentMatch && route.params.id) {
+    const ok = await matchStore.fetchMatchState(route.params.id)
+    if (!ok) {
+      router.push('/umpire/match-list')
+    }
+  }
+})
 const showWinnerModal = ref(false)
 
 // Card modal state
@@ -105,7 +115,7 @@ const games = computed(() => {
 })
 
 // Actions
-const goBack = () => router.push('/umpire/setup')
+const goBack = () => router.push(`/umpire/setup/${matchStore.currentMatch?.id || ''}`)
 
 const quitMatch = () => {
   matchStore.resetMatchState()

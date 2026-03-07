@@ -1,10 +1,20 @@
 <script setup>
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useMatchStore } from '../../stores/matchStore'
 
 const router = useRouter()
+const route = useRoute()
 const matchStore = useMatchStore()
+
+onMounted(async () => {
+  if (!matchStore.currentMatch && route.params.id) {
+    const ok = await matchStore.fetchMatchState(route.params.id)
+    if (!ok) {
+      router.push('/umpire/match-list')
+    }
+  }
+})
 const showWarmupModal = ref(false)
 
 const time = computed(() => {
@@ -82,7 +92,7 @@ const startWarmupCountdown = () => {
 const proceedToMatch = () => {
   matchStore.timerActive = false
   matchStore.startMatch()
-  router.push('/umpire/scoring')
+  router.push(`/umpire/scoring/${matchStore.currentMatch?.id || ''}`)
 }
 
 // Circle SVG math
