@@ -268,7 +268,13 @@ export const useMatchStore = defineStore('match', {
 
         this.currentMatch = data.match
         this.matchStatus = data.match.status
-        this.game = data.match.currentGame
+
+        let highestGame = 1
+        if (data.games && data.games.length > 0) {
+          highestGame = Math.max(...data.games.map(g => g.gameNumber))
+        }
+        this.game = highestGame
+
         this.isCompleted = data.match.status === 'completed'
 
         // Load volatiles from stateJson
