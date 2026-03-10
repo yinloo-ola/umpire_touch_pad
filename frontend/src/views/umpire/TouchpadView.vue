@@ -286,7 +286,7 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
             <span class="status-text-tp" v-else-if="!matchStore.pointStarted">Start Of Play</span>
 
             <!-- Player names when started -->
-            <div class="table-player-grid" v-if="!matchStore.isGameOver && isDoubles">
+            <div class="table-player-grid" v-if="!matchStore.isGameOver && isDoubles && matchStore.pointStarted">
               <div class="table-quad top-left">
                 <div class="table-player-info">
                   <span class="tp-p-label">{{ matchStore.swappedSides ? 'P2' : 'P1' }}</span>
@@ -315,7 +315,7 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
               </div>
             </div>
             <!-- Singles 2-slot layout -->
-            <div class="table-player-grid" v-if="!matchStore.isGameOver && !isDoubles">
+            <div class="table-player-grid" v-if="!matchStore.isGameOver && !isDoubles && matchStore.pointStarted">
               <div class="table-quad bottom-left">
                 <div class="table-player-info">
                   <span class="tp-p-label">{{
