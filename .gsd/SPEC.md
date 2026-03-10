@@ -177,6 +177,7 @@ The `cyclePos` maps to server/receiver relative to the initial pair:
 - [x] **Singles deciding game** triggers player swap at 5 points
 - [x] **Singles behaviour unchanged** — all existing singles tests pass visually unchanged
 - [x] **Swap Players buttons** remain functional during live scoring
+- [x] **Names hidden during SOP**: Player names are hidden when "Start of Play" is displayed; clicking SOP reveals names and hides text.
 
 ---
 
@@ -258,6 +259,7 @@ Shown as a full-screen overlay when `issueTimeout` is called. Separate from the 
 
 ### Touchpad (Doubles, during play)
 - Status box shows 4 mini-quadrants with player positions (same as singles but 4 slots)
+- **UX Rule**: Player names are hidden when the center status box says "Start Of Play". They are revealed once the status box is clicked.
 - Swap Players buttons remain visible on left/right sides of the court area
 
 ### Serve Indicator Detail (Doubles)
