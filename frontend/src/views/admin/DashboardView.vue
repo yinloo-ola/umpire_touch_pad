@@ -85,7 +85,6 @@
             <td><span class="type-badge" :class="match.type">{{ match.type }}</span></td>
             <td class="time-cell">{{ formatTime(match.time) }}</td>
             <td>{{ formatTeam(match.team1) }}</td>
-            <td>{{ formatTeam(match.team1) }}</td>
             <td>{{ formatTeam(match.team2) }}</td>
             <td>
               <span class="status-badge" :class="match.status || 'unstarted'">

@@ -7,6 +7,11 @@
 ## Backlog
 
 - [x] Implement card system (yellow/red/white) per player
+- [x] Admin dashboard "Show History" is restricted to today's completed matches; should show all matches. `high` — 2026-03-11
+- [x] Umpire Touchpad: Manual server change (clicking "R") does not trigger `syncMatch`. `high` — 2026-03-11
+- [x] Umpire Touchpad: Swap players (doubles) and Swap sides (all) do not trigger `syncMatch`, causing state to revert on refresh. `high` — 2026-03-11
+- [x] Admin dashboard has duplicate "Team 1" column in `DashboardView.vue`. `medium` — 2026-03-11
+- [x] Umpire Touchpad: Do not show countries if they are empty (currently defaults to KOR/BLR). `medium` — 2026-03-11
 - [ ] Implement Expedite rule (15-minute timer; serve rotation changes)
 - [ ] Wire up "Edit Score" button in score summary header
 - [ ] Replace hardcoded player ID `108246` in winner modal

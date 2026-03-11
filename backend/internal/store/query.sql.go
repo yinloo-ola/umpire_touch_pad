@@ -94,18 +94,12 @@ func (q *Queries) CreateMatch(ctx context.Context, arg CreateMatchParams) error 
 	return err
 }
 
-const getAllMatchesForPeriod = `-- name: GetAllMatchesForPeriod :many
+const getAllMatches = `-- name: GetAllMatches :many
 SELECT id, title, scheduled_date, status, current_game, team1_p1_name, team1_p2_name, team2_p1_name, team2_p2_name, best_of, team1_p1_country, team1_p2_country, team2_p1_country, team2_p2_country, created_at, updated_at, state_json FROM matches 
-WHERE scheduled_date >= ? 
-  AND scheduled_date <= ?
+ORDER BY scheduled_date DESC
 `
 
-type GetAllMatchesForPeriodParams struct {
-	ScheduledDate   string `json:"scheduled_date"`
-	ScheduledDate_2 string `json:"scheduled_date_2"`
-}
-
-type GetAllMatchesForPeriodRow struct {
+type GetAllMatchesRow struct {
 	ID             string         `json:"id"`
 	Title          string         `json:"title"`
 	ScheduledDate  string         `json:"scheduled_date"`
@@ -125,15 +119,15 @@ type GetAllMatchesForPeriodRow struct {
 	StateJson      sql.NullString `json:"state_json"`
 }
 
-func (q *Queries) GetAllMatchesForPeriod(ctx context.Context, arg GetAllMatchesForPeriodParams) ([]GetAllMatchesForPeriodRow, error) {
-	rows, err := q.db.QueryContext(ctx, getAllMatchesForPeriod, arg.ScheduledDate, arg.ScheduledDate_2)
+func (q *Queries) GetAllMatches(ctx context.Context) ([]GetAllMatchesRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAllMatches)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetAllMatchesForPeriodRow
+	var items []GetAllMatchesRow
 	for rows.Next() {
-		var i GetAllMatchesForPeriodRow
+		var i GetAllMatchesRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Title,

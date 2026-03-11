@@ -16,10 +16,9 @@ WHERE status != 'completed'
   AND scheduled_date >= ? 
   AND scheduled_date <= ?;
 
--- name: GetAllMatchesForPeriod :many
+-- name: GetAllMatches :many
 SELECT id, title, scheduled_date, status, current_game, team1_p1_name, team1_p2_name, team2_p1_name, team2_p2_name, best_of, team1_p1_country, team1_p2_country, team2_p1_country, team2_p2_country, created_at, updated_at, state_json FROM matches 
-WHERE scheduled_date >= ? 
-  AND scheduled_date <= ?;
+ORDER BY scheduled_date DESC;
 
 -- name: UpdateMatchStatus :exec
 UPDATE matches 

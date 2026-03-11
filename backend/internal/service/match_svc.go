@@ -229,10 +229,7 @@ func (s *MatchService) GetTodayMatches(ctx context.Context, history bool) ([]Mat
 	var err error
 
 	if history {
-		rows, err2 := s.store.GetAllMatchesForPeriod(ctx, store.GetAllMatchesForPeriodParams{
-			ScheduledDate:   startOfDay,
-			ScheduledDate_2: endOfDay,
-		})
+		rows, err2 := s.store.GetAllMatches(ctx)
 		err = err2
 		if err == nil {
 			for _, r := range rows {

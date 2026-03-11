@@ -290,6 +290,7 @@ export const useMatchStore = defineStore('match', {
           this.initialServer = volatiles.initialServer ?? 1
           this.decidingSwapDone = volatiles.decidingSwapDone ?? false
           this.isStarted = volatiles.isStarted ?? false
+          this.pointStarted = volatiles.pointStarted ?? false
           this.prevDoublesInitialServer = volatiles.prevDoublesInitialServer || null
           this.prevDoublesInitialReceiver = volatiles.prevDoublesInitialReceiver || null
           this.doublesNextServingTeam = volatiles.doublesNextServingTeam || null
@@ -632,6 +633,7 @@ export const useMatchStore = defineStore('match', {
 
       this.doublesInitialServer = A
       this.doublesInitialReceiver = X
+      this.syncMatch()
     },
 
     toggleSwapSides() {
@@ -710,6 +712,7 @@ export const useMatchStore = defineStore('match', {
       } else {
         this.initialServer = s === 1 ? 2 : 1 // at odd, initialServer is the OTHER player
       }
+      this.syncMatch()
     },
 
     // Doubles umpire correction: set a specific player as server right now.
@@ -781,6 +784,7 @@ export const useMatchStore = defineStore('match', {
       this.doublesInitialServer = newInitialServer
       this.doublesInitialReceiver = newInitialReceiver
       this.syncDoublesQuadrants()
+      this.syncMatch()
     },
 
     // Changes which team is serving without changing any player's quadrant position.
@@ -825,6 +829,7 @@ export const useMatchStore = defineStore('match', {
       this.doublesInitialServer = A
       this.doublesInitialReceiver = X
       this.syncDoublesQuadrants()
+      this.syncMatch()
     },
 
     // Called at the START of a new game once the serving team has chosen their server.
@@ -870,6 +875,7 @@ export const useMatchStore = defineStore('match', {
       this.doublesInitialServer = newServer
       this.doublesInitialReceiver = mandatoryReceiver
       this.syncDoublesQuadrants()
+      this.syncMatch()
     },
 
     applyMidGameSwap() {
@@ -948,6 +954,7 @@ export const useMatchStore = defineStore('match', {
     startPoint() {
       this.isStarted = true
       this.pointStarted = true
+      this.syncMatch()
     },
 
     handleScore(player, delta) {
@@ -1064,6 +1071,7 @@ export const useMatchStore = defineStore('match', {
         this.midGameSwapPending = true
       }
       this.syncDoublesQuadrants()
+      this.syncMatch()
     },
 
     revertPenaltyPoints(scoringTeamNum, points) {
@@ -1135,6 +1143,7 @@ export const useMatchStore = defineStore('match', {
       }
 
       this.syncDoublesQuadrants()
+      this.syncMatch()
     },
 
     issueCard(teamNum, type, target = 'player') {
@@ -1295,6 +1304,7 @@ export const useMatchStore = defineStore('match', {
         initialServer: this.initialServer,
         decidingSwapDone: this.decidingSwapDone,
         isStarted: this.isStarted,
+        pointStarted: this.pointStarted,
         prevDoublesInitialServer: this.prevDoublesInitialServer,
         prevDoublesInitialReceiver: this.prevDoublesInitialReceiver,
         doublesNextServingTeam: this.doublesNextServingTeam,

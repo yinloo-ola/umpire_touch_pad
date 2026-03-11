@@ -82,19 +82,19 @@ const team2Name = computed(() => {
 })
 
 const team1Country = computed(() => {
-  if (!matchStore.currentMatch) return 'KOR'
+  if (!matchStore.currentMatch) return ''
   const match = matchStore.currentMatch
   const c1 = match.team1[0].country
   const c2 = match.team1[1]?.country
-  return match.type === 'doubles' && c2 ? `${c1} / ${c2}` : (c1 || 'KOR')
+  return match.type === 'doubles' && c2 ? `${c1} / ${c2}` : (c1 || '')
 })
 
 const team2Country = computed(() => {
-  if (!matchStore.currentMatch) return 'BLR'
+  if (!matchStore.currentMatch) return ''
   const match = matchStore.currentMatch
   const c1 = match.team2[0].country
   const c2 = match.team2[1]?.country
-  return match.type === 'doubles' && c2 ? `${c1} / ${c2}` : (c1 || 'BLR')
+  return match.type === 'doubles' && c2 ? `${c1} / ${c2}` : (c1 || '')
 })
 
 const leftPlayerName = computed(() => (matchStore.swappedSides ? team2Name.value : team1Name.value))
