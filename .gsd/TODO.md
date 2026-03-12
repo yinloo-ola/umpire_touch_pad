@@ -14,7 +14,7 @@
 - [x] Umpire Touchpad: Do not show countries if they are empty (currently defaults to KOR/BLR). `medium` — 2026-03-11
 - [ ] Implement Expedite rule (15-minute timer; serve rotation changes)
 - [ ] Wire up "Edit Score" button in score summary header
-- [ ] Replace hardcoded player ID `108246` in winner modal
+- [x] Replace hardcoded player ID `108246` in winner modal
 - [x] Add match result persistence to Go backend (requires DB)
 - [ ] Add structured error logging (replace `console.error` in MatchList.vue)
 - [ ] Add input validation to backend `saveMatch` endpoint

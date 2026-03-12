@@ -447,8 +447,8 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
             </div>
             <div class="wp-info">
               <div class="wp-name">{{ matchStore.matchWinner === 1 ? team1Name : team2Name }}</div>
-              <div class="wp-id">108246</div>
               <div class="wp-country">
+
                 {{ matchStore.matchWinner === 1 ? team1Country : team2Country }}
               </div>
             </div>
@@ -693,8 +693,8 @@ button:disabled {
   font-weight: 700;
   letter-spacing: 0.5px;
 }
-.wp-id,
 .wp-country {
+
   font-size: 1.1rem;
   color: #ddd;
   font-weight: 700;
