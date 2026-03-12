@@ -1,23 +1,42 @@
 # ROADMAP.md
 
-> **Current Milestone**: Admin Portal & Database Synchronization — ✅ **COMPLETE**
-> **Summary**: [Admin Portal & Database Synchronization Summary](milestones/Admin-Portal-Sync-SUMMARY.md)
+> **Current Milestone**: Match Management & Public Viewer
+> **Goal**: Enable administrators to update matches, add table number properties, and provide a responsive public viewer page.
 
 ---
 
 ## Must-Haves
-- [ ] `matches`, `games`, and `cards` tables stored in an SQLite database (using a CGO-free driver, e.g., `modernc.org/sqlite`).
-- [ ] Backend API endpoints to handle creating a new match, querying `getMatches` for unstarted matches for the current day, and updating match/game states.
-- [ ] Dedicated Admin Portal frontend UI to create matches and manually edit/update completed matches.
-- [ ] Real-time synchronization hooks from the Umpire Touchpad (Vue app) to the backend API.
+- [ ] Admin can manually update a match's status.
+- [ ] Admin can edit scores of each game and add or delete games.
+- [ ] Admin can manually add or remove cards.
+- [ ] Ensure other match state components (timeouts, server/receiver allocations) are fully updateable.
+- [ ] A match has a Table Number property (Admin creation, Admin filter, Umpire filter).
+- [ ] A public viewable page showing complete, scheduled, and live matches without authentication.
+- [ ] The public page must be responsive, following provided design references.
 
 ---
 
 ## Phases
 
-### Phase 1: [Name]
-**Status**: Not Started
-**Objective**: [Objective]
+### Phase 1: Table Number Properties
+**Status**: ⬜ Not Started
+**Objective**: Introduce the `table_number` field to the match database. Update the Admin match creation form to include it. Allow filtering by table number on both the Admin Dashboard and Umpire Match List.
+
+### Phase 2: Admin Match Editing Capabilities (Scores & Status)
+**Status**: ⬜ Not Started
+**Objective**: Build backend endpoints and an administrative UI page to manually override a match's status, add or delete games, and edit any specific game score.
+
+### Phase 3: Admin Match Editing Capabilities (Cards & Advanced Status)
+**Status**: ⬜ Not Started
+**Objective**: Extend the administrative UI to allow an admin to issue or remove penalty cards and timeout properties.
+
+### Phase 4: Public Matches Dashboard (Backend & Structure)
+**Status**: ⬜ Not Started
+**Objective**: Create unauthenticated API endpoints that aggregate complete, scheduled, and live matches. Set up the Vue frontend routing and initial layout for the public viewer.
+
+### Phase 5: Public Matches Dashboard (UI & Responsiveness)
+**Status**: ⬜ Not Started
+**Objective**: Implement the detailed responsive UI referencing the sample designs. Organize matches visually into sections (Completed, Scheduled, Live). Ensure styling matches the premium design and search/filtering inputs are functional.
 
 ## Deferred (Future Milestones)
 

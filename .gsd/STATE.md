@@ -1,12 +1,9 @@
 # STATE.md
 
 ## Current Position
-- **Phase**: None
-- **Status**: Milestone Complete
+- **Milestone**: Match Management & Public Viewer
+- **Phase**: Not started
+- **Status**: Milestone planned
 
 ## Next Steps
-1. Run `/new-milestone` to start the next milestone.
-2. Run `/audit-milestone Admin-Portal-Sync` to review this milestone.
-
-## Session Updates
-1. Finished Milestone: Admin Portal & Database Synchronization
+1. Run `/plan 1` to create Phase 1 execution plans.
