@@ -1,5 +1,5 @@
 ---
-name: verifier
+name: GSD Verifier
 description: Validates implemented work against spec requirements with empirical evidence
 ---
 

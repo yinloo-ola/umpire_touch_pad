@@ -1,5 +1,5 @@
 ---
-name: codebase-mapper
+name: GSD Codebase Mapper
 description: Analyzes existing codebases to understand structure, patterns, and technical debt
 ---
 

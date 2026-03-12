@@ -1,5 +1,5 @@
 ---
-name: context-fetch
+name: Context Fetch
 description: Search-first skill to reduce unnecessary file reads by searching before loading
 ---
 

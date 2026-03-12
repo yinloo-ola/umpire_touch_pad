@@ -1,5 +1,5 @@
 ---
-name: context-health-monitor
+name: Context Health Monitor
 description: Monitors context complexity and triggers state dumps before quality degrades
 ---
 

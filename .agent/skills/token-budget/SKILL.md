@@ -1,5 +1,5 @@
 ---
-name: token-budget
+name: Token Budget
 description: Manages token budget estimation and tracking to prevent context overflow
 ---
 
