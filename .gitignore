@@ -5,3 +5,7 @@ cookies.txt
 .vscode/
 dist/
 *.log
+.DS_Store
+.env
+.env.*
+!.env.example
