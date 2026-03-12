@@ -1,0 +1,7 @@
+node_modules/
+backend/sqlite.db
+backend/umpire_backend
+cookies.txt
+.vscode/
+dist/
+*.log
