@@ -36,4 +36,4 @@
 - Audited and updated all `.gsd` state files to reflect completion of the Admin Portal & DB Sync milestone.
 
 - Fixed bug where clicking "Let" on the touchpad did not trigger a state synchronization with the backend. Added `triggerLet` action to Pinia store.
-- Performed git hygiene: created a root `.gitignore` and removed `backend/sqlite.db` from version control (untracked but preserved locally).
+- Performed git hygiene: created a root `.gitignore` and removed `backend/sqlite.db`, `backend/umpire_backend`, `cookies.txt`, and other ignored patterns from version control (untracked but preserved locally).
