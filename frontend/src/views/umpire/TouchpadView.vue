@@ -134,9 +134,7 @@ const handleStartPlay = () => {
 }
 
 const handleLet = () => {
-  if (matchStore.pointStarted && !matchStore.isGameOver) {
-    matchStore.pointStarted = false
-  }
+  matchStore.triggerLet()
 }
 
 const addLeft = () => matchStore.handleScore(matchStore.swappedSides ? 2 : 1, 1)

@@ -957,6 +957,13 @@ export const useMatchStore = defineStore('match', {
       this.syncMatch()
     },
 
+    triggerLet() {
+      if (this.pointStarted && !this.isGameOver) {
+        this.pointStarted = false
+        this.syncMatch()
+      }
+    },
+
     handleScore(player, delta) {
       if (!this.isStarted || (!this.pointStarted && delta > 0)) return
 

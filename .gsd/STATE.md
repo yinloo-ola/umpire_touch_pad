@@ -13,3 +13,4 @@
 3. **Fixed Doubles Player Swap Bug**: Resolved issue where opposing pair wouldn't swap automatically in subsequent games.
 4. **Fixed Player Name Visibility**: Hidden player names during "Start Of Play" state.
 5. **GSD Update**: Upgraded system to latest canonical rules and workflows.
+6. **Fixed Let Button Sync**: Added `triggerLet` action to `matchStore.js` and updated `TouchpadView.vue` to ensure state is synchronized with the backend when "Let" is clicked.

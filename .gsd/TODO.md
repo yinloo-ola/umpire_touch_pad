@@ -22,3 +22,5 @@
 - [ ] Add tests (Vitest for frontend store logic, Go table tests for backend)
 - [x] Doubles pre-warmup UI should be identical in style to singles pre-warmup — same dark background, same table court look — but with 4 players in 4 quadrants and "Swap Players" buttons (left/right sides) `medium` — 2026-02-27
 - [x] Refactor `frontend/src/router/index.js`: Move umpire routes under `/umpire/` and redirect to `/umpire/match-list` upon login. `medium` — 2026-03-07
+- [x] In the umpire touch pad, when Let is clicked, the state is not synced `medium` — 2026-03-12
+- [ ] add sqlite.db to gitignore and remove the file from git `medium` — 2026-03-12

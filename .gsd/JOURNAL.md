@@ -34,3 +34,5 @@
 
 - Updated GSD framework to latest version.
 - Audited and updated all `.gsd` state files to reflect completion of the Admin Portal & DB Sync milestone.
+
+- Fixed bug where clicking "Let" on the touchpad did not trigger a state synchronization with the backend. Added `triggerLet` action to Pinia store.
