@@ -2,7 +2,8 @@
 
 > **Status**: `FINALIZED`
 > **Created**: 2026-02-27
-> **Project**: Umpire Touchpad — Doubles Match Feature
+> **Updated**: 2026-03-12
+> **Project**: Umpire Touchpad — Full System
 
 ---
 
@@ -36,6 +37,10 @@ The app already handles singles matches end-to-end. For doubles, the match list 
 8. **Penalty Points Logic** — YR1 awards 1 point, YR2 awards 2 points. Penalty points behave identically to regular points regarding server rotation (e.g. at 2-1, a penalty point makes it 2-2, triggering a server change). Auto-resolve win conditions if penalty points push the score beyond game/match limits (e.g., carrying over points to next game). Reverting penalty cards will also remove the automatically awarded points.
 9. **Timeout Timer** — 1-minute countdown timer popup, cancelable, only triggerable during "Start of Play".
 10. **Card UI & State** — Visual representation of awarded cards next to the card button. Cards side-swap when players swap. Revert logic is per-team, last in, first out (LIFO), which will also revert any automatically awarded penalty points. Timeouts are undone individually outside the main card LIFO stack. Player cards and coach cards are maintained on independent tracks.
+40. **Match Persistence** — All match data (scores, games, cards) must be persisted to an SQLite database.
+41. **Real-time Sync** — The touchpad must synchronize its state to the backend after every significant event (point scored, card issued) to ensure the database is always up-to-date.
+42. **Match Recovery** — The system must support resuming matches from any point using the persisted state.
+43. **Admin Dashboard** — A dedicated interface for managing the match schedule, creating new matches, and viewing historical results.
 
 ---
 
@@ -62,7 +67,8 @@ Table tennis umpires using a touchpad device (tablet/touchscreen) to officiate m
 - **Frontend**: Vue 3 + Pinia + Vue Router (no framework change)
 - **State centralized**: all logic stays in `matchStore.js`; components only call actions
 - **CSS**: Vanilla CSS with existing design tokens; scoped styles per component
-- **No backend changes required** for this feature (match data structure already supports doubles via `team1[]`/`team2[]` arrays)
+- **Database Integration**: SQLite integration with CGO-free driver for the backend.
+- **Admin Frontend**: New dashboard views and match management forms.
 - **Backwards-compatible**: singles match behaviour must be unchanged
 
 ---
@@ -161,6 +167,18 @@ The `cyclePos` maps to server/receiver relative to the initial pair:
     - Body: "Decider game of Match, 5 points scored, swapping sides and players."
     - Button: "Close"
 - For **singles**: same trigger, just `swappedSides` toggles (no player-within-side swap needed)
+
+### Persistence & Sync Logic
+
+Each match in the database has a `state_json` column that stores a serialized snapshot of the match state.
+
+**Sync Protocol**:
+- Whenever `handleScore`, `issueCard`, or `nextGame` is called, the frontend triggers an async `PUT /api/matches/:id/sync`.
+- The sync payload includes the current `p1Score`, `p2Score`, `status`, and the full serialized state blob.
+
+**Resume Protocol**:
+- When an umpire selects an in-progress match, the frontend calls `GET /api/matches/:id`.
+- The store is initialized using the `state_json` from the response, ensuring perfect continuity.
 
 ---
 

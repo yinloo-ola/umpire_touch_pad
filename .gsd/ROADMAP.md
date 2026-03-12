@@ -1,7 +1,7 @@
 # ROADMAP.md
 
-> **Current Milestone**: Admin Portal & Database Synchronization
-> **Goal**: Develop an admin portal for administrators to create and manage table tennis matches. Ensure all scheduled matches are stored in an SQLite database, and integrate the Umpire Touchpad to synchronize running match data (scores, games, and granted cards) with the database in real-time. The database driver must be CGO-free.
+> **Current Milestone**: Admin Portal & Database Synchronization — ✅ **COMPLETE**
+> **Summary**: [Admin Portal & Database Synchronization Summary](milestones/Admin-Portal-Sync-SUMMARY.md)
 
 ---
 
@@ -41,10 +41,10 @@ Objective: Implement the full lifecycle of match status changes from match selec
 **Depends on**: Phase 4
 
 **Tasks**:
-- [ ] Backend infrastructure for resume & history (Plan 5.1)
-- [ ] Umpire match list refinement & resume logic (Plan 5.2)
-- [ ] Admin dashboard match history (Plan 5.3)
-- [ ] Frontend organization & routing refactor (Plan 5.4)
+- [x] Backend infrastructure for resume & history (Plan 5.1)
+- [x] Umpire match list refinement & resume logic (Plan 5.2)
+- [x] Admin dashboard match history (Plan 5.3)
+- [x] Frontend organization & routing refactor (Plan 5.4)
 
 **Verification**:
 - [ ] Emulate match selection and verify resume state.
