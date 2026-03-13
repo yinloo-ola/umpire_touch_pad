@@ -312,6 +312,7 @@ func (s *MatchService) GetTodayMatches(ctx context.Context, history bool) ([]Mat
 			Event:       dbm.Title,
 			Time:        dbm.ScheduledDate,
 			BestOf:      int(dbm.BestOf),
+			Team1:       t1,
 			Team2:       t2,
 			Status:      dbm.Status,
 			TableNumber: int(dbm.TableNumber.Int64),

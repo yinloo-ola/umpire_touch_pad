@@ -48,15 +48,12 @@
             </button>
           </div>
         </div>
-        <div class="filter-group">
+        <div class="filter-group table-filter-group">
           <label>Table:</label>
-          <input 
-            type="number" 
-            v-model="tableFilter" 
-            placeholder="Table #" 
-            class="filter-input"
-            min="1"
-          />
+          <select v-model="tableFilter" class="filter-input select-filter">
+            <option value="">All Tables</option>
+            <option v-for="t in availableTables" :key="t" :value="t">Table {{ t }}</option>
+          </select>
         </div>
       </div>
 
@@ -148,6 +145,13 @@ async function toggleHistory() {
 }
 
 import { computed } from 'vue'
+const availableTables = computed(() => {
+  const tables = adminStore.matches
+    .map(m => m.tableNumber)
+    .filter(t => t != null && t > 0)
+  return [...new Set(tables)].sort((a, b) => a - b)
+})
+
 const filteredMatches = computed(() => {
   let list = adminStore.matches
   
@@ -156,7 +160,8 @@ const filteredMatches = computed(() => {
   }
   
   if (tableFilter.value) {
-    list = list.filter(m => m.tableNumber === parseInt(tableFilter.value))
+    const tNum = parseInt(tableFilter.value)
+    list = list.filter(m => m.tableNumber === tNum)
   }
   
   return list
@@ -263,11 +268,20 @@ onMounted(load)
 }
 
 .filter-bar {
-  margin-bottom: 1.5rem;
-  padding: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2.5rem 2rem; /* Vertical 2.5rem, Horizontal 2rem */
+  margin-bottom: 2rem;
+  padding: 1.25rem 1.5rem;
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 12px;
+}
+
+.table-filter-group {
+  /* margin-left: auto; Removed to allow justify-content: space-between to handle it */
 }
 
 .filter-group {
@@ -317,9 +331,19 @@ onMounted(load)
   padding: 0.35rem 0.75rem;
   border-radius: 8px;
   font-size: 0.85rem;
-  width: 100px;
+  width: 120px;
   outline: none;
   font-family: inherit;
+}
+
+.select-filter {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
 }
 
 .filter-input:focus {

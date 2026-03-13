@@ -17,9 +17,18 @@ onMounted(async () => {
 })
 
 const tableFilter = ref('')
+
+const availableTables = computed(() => {
+  const tables = adminStore.matches
+    .map(m => m.tableNumber)
+    .filter(t => t != null && t > 0)
+  return [...new Set(tables)].sort((a, b) => a - b)
+})
+
 const matches = computed(() => {
   if (!tableFilter.value) return adminStore.matches
-  return adminStore.matches.filter(m => m.tableNumber === parseInt(tableFilter.value))
+  const tNum = parseInt(tableFilter.value)
+  return adminStore.matches.filter(m => m.tableNumber === tNum)
 })
 
 const selectedMatch = ref(null)
@@ -84,19 +93,17 @@ async function onLogout() {
   </header>
 
   <section id="match-list-view" class="view active">
-    <div class="list-header-row">
-      <h2 class="greeting">Welcome {{ adminStore.role === 'admin' ? 'Admin' : 'Umpire' }}, today's matches are</h2>
-      <div class="filter-box">
-        <label>Filter by Table:</label>
-        <input 
-          type="number" 
-          v-model="tableFilter" 
-          placeholder="Table #" 
-          class="table-filter-input"
-          min="1"
-        />
+    <div class="main-container">
+      <div class="list-header-row">
+        <h2 class="greeting">Welcome {{ adminStore.role === 'admin' ? 'Admin' : 'Umpire' }}, today's matches are</h2>
+        <div class="filter-box">
+          <label>Filter by Table:</label>
+          <select v-model="tableFilter" class="table-filter-input select-filter">
+            <option value="">All Tables</option>
+            <option v-for="t in availableTables" :key="t" :value="t">Table {{ t }}</option>
+          </select>
+        </div>
       </div>
-    </div>
     <div class="table-container glass-panel">
       <table class="match-table">
         <thead>
@@ -166,9 +173,10 @@ async function onLogout() {
         </tbody>
       </table>
     </div>
-    <div class="footer-actions">
-      <button class="text-btn back-btn"><i class="fa-solid fa-chevron-left"></i> Back</button>
-    </div>
+      <div class="footer-actions">
+        <button class="text-btn back-btn"><i class="fa-solid fa-chevron-left"></i> Back</button>
+      </div>
+    </div> <!-- end main-container -->
 
     <!-- Match Confirmation Modal -->
     <div v-if="showModal" id="match-confirm-modal" class="modal-overlay">
@@ -240,7 +248,14 @@ async function onLogout() {
   opacity: 1;
   pointer-events: all;
   transform: scale(1);
-  padding-top: 2rem;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.main-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .app-header {
@@ -259,7 +274,7 @@ async function onLogout() {
 .logo-text {
   font-weight: 700;
   font-size: 1.2rem;
-  color: #f1f5f9;
+  color: #334155;
 }
 
 .header-right {
@@ -347,19 +362,26 @@ async function onLogout() {
 
 .list-header-row {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 1rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+.greeting {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #334155; /* Darker color for visibility */
+  margin: 0;
+  text-align: left;
 }
 
 .filter-box {
   display: flex;
   align-items: center;
   gap: 1rem;
-  background: rgba(255, 255, 255, 0.03);
-  padding: 0.5rem 1rem;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 0;
 }
 
 .filter-box label {
@@ -370,14 +392,30 @@ async function onLogout() {
 }
 
 .table-filter-input {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #f1f5f9;
-  padding: 0.3rem 0.6rem;
+  background: white; /* White background for better contrast with dark text */
+  border: 1px solid #cbd5e1;
+  color: #334155; /* Dark text */
+  padding: 0.35rem 2.5rem 0.35rem 0.75rem;
   border-radius: 8px;
   font-size: 0.9rem;
-  width: 80px;
+  width: 140px;
   outline: none;
+  font-family: inherit;
+}
+
+.table-filter-input option {
+  color: #334155;
+  background: white;
+}
+
+.select-filter {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
 }
 
 .table-filter-input:focus {
