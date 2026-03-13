@@ -36,7 +36,7 @@
       <!-- Filter Bar -->
       <div class="filter-bar">
         <div class="filter-group">
-          <label>Status Filter:</label>
+          <label>Status:</label>
           <div class="filter-chips">
             <button 
               v-for="status in ['all', 'unstarted', 'starting', 'warming_up', 'in_progress', 'completed']" 
@@ -47,6 +47,16 @@
               {{ status === 'all' ? 'All' : formatStatus(status) }}
             </button>
           </div>
+        </div>
+        <div class="filter-group">
+          <label>Table:</label>
+          <input 
+            type="number" 
+            v-model="tableFilter" 
+            placeholder="Table #" 
+            class="filter-input"
+            min="1"
+          />
         </div>
       </div>
 
@@ -67,6 +77,7 @@
           <tr>
             <th>Event</th>
             <th>Type</th>
+            <th>Table</th>
             <th>Scheduled Time</th>
             <th>Team 1</th>
             <th>Team 2</th>
@@ -83,6 +94,10 @@
           >
             <td class="event-cell">{{ match.event || '—' }}</td>
             <td><span class="type-badge" :class="match.type">{{ match.type }}</span></td>
+            <td class="table-cell">
+              <span v-if="match.tableNumber" class="table-tag">T{{ match.tableNumber }}</span>
+              <span v-else>—</span>
+            </td>
             <td class="time-cell">{{ formatTime(match.time) }}</td>
             <td>{{ formatTeam(match.team1) }}</td>
             <td>{{ formatTeam(match.team2) }}</td>
@@ -113,6 +128,7 @@ const loading = ref(false)
 const error = ref('')
 const showHistory = ref(false)
 const statusFilter = ref('all')
+const tableFilter = ref('')
 
 async function load() {
   loading.value = true
@@ -133,8 +149,17 @@ async function toggleHistory() {
 
 import { computed } from 'vue'
 const filteredMatches = computed(() => {
-  if (statusFilter.value === 'all') return adminStore.matches
-  return adminStore.matches.filter(m => (m.status || 'unstarted') === statusFilter.value)
+  let list = adminStore.matches
+  
+  if (statusFilter.value !== 'all') {
+    list = list.filter(m => (m.status || 'unstarted') === statusFilter.value)
+  }
+  
+  if (tableFilter.value) {
+    list = list.filter(m => m.tableNumber === parseInt(tableFilter.value))
+  }
+  
+  return list
 })
 
 function goToMatch(id) {
@@ -282,9 +307,33 @@ onMounted(load)
 }
 
 .filter-chip.active {
-  background: #219c06;
-  color: white;
   border-color: #219c06;
+}
+
+.filter-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f1f5f9;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  width: 100px;
+  outline: none;
+  font-family: inherit;
+}
+
+.filter-input:focus {
+  border-color: #219c06;
+  background: rgba(33, 156, 6, 0.05);
+}
+
+.table-tag {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #94a3b8;
 }
 
 .state-card {

@@ -57,6 +57,17 @@
               <option :value="7">7</option>
             </select>
           </div>
+
+          <div class="form-group">
+            <label for="match-table-number">Table Number</label>
+            <input
+              id="match-table-number"
+              v-model="form.tableNumber"
+              type="number"
+              placeholder="e.g. 1"
+              min="1"
+            />
+          </div>
         </div>
       </section>
 
@@ -162,6 +173,7 @@ const form = ref({
   bestOf: 5,
   team1: [{ name: '', country: '' }],
   team2: [{ name: '', country: '' }],
+  tableNumber: null,
 })
 
 // Adjust team size on type change
@@ -203,6 +215,7 @@ function buildPayload() {
     bestOf: form.value.bestOf,
     team1: cleanPlayers(form.value.team1),
     team2: cleanPlayers(form.value.team2),
+    tableNumber: form.value.tableNumber ? parseInt(form.value.tableNumber) : null,
   }
 }
 

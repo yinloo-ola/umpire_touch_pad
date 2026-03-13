@@ -16,7 +16,11 @@ onMounted(async () => {
   }
 })
 
-const matches = computed(() => adminStore.matches)
+const tableFilter = ref('')
+const matches = computed(() => {
+  if (!tableFilter.value) return adminStore.matches
+  return adminStore.matches.filter(m => m.tableNumber === parseInt(tableFilter.value))
+})
 
 const selectedMatch = ref(null)
 const showModal = ref(false)
@@ -80,12 +84,25 @@ async function onLogout() {
   </header>
 
   <section id="match-list-view" class="view active">
-    <h2 class="greeting">Welcome {{ adminStore.role === 'admin' ? 'Admin' : 'Umpire' }}, today's matches are</h2>
+    <div class="list-header-row">
+      <h2 class="greeting">Welcome {{ adminStore.role === 'admin' ? 'Admin' : 'Umpire' }}, today's matches are</h2>
+      <div class="filter-box">
+        <label>Filter by Table:</label>
+        <input 
+          type="number" 
+          v-model="tableFilter" 
+          placeholder="Table #" 
+          class="table-filter-input"
+          min="1"
+        />
+      </div>
+    </div>
     <div class="table-container glass-panel">
       <table class="match-table">
         <thead>
           <tr>
             <th>Event</th>
+            <th>Table</th>
             <th>Time</th>
             <th>Player 1</th>
             <th>Player 2</th>
@@ -96,6 +113,10 @@ async function onLogout() {
         <tbody>
           <tr v-for="(match, index) in matches" :key="index" @click="openMatchConfirm(match)">
             <td>{{ match.event }}</td>
+            <td>
+              <span v-if="match.tableNumber" class="table-tag">T{{ match.tableNumber }}</span>
+              <span v-else>—</span>
+            </td>
             <td>{{ match.time }}</td>
             <td>
               <template v-if="match.type === 'singles'">
@@ -322,5 +343,53 @@ async function onLogout() {
   background: rgba(139, 92, 246, 0.1);
   color: #a78bfa;
   border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.list-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 1rem;
+}
+
+.filter-box {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.filter-box label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+}
+
+.table-filter-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f1f5f9;
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  width: 80px;
+  outline: none;
+}
+
+.table-filter-input:focus {
+  border-color: #219c06;
+}
+
+.table-tag {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #94a3b8;
 }
 </style>
