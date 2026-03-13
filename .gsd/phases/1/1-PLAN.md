@@ -25,7 +25,7 @@ Introduce the `table_number` field to the database schema, update the Go SQL que
   </files>
   <action>
     - Create a new migration file `00006_add_table_number.sql` via Goose.
-    - Write an `ALTER TABLE matches ADD COLUMN table_number TEXT` statement (Up) and appropriate drop/rollback (Down).
+    - Write an `ALTER TABLE matches ADD COLUMN table_number INTEGER` statement (Up) and appropriate drop/rollback (Down).
     - Update `backend/db/query.sql` to include `table_number` in SELECTs (`GetMatch`, `GetIncompleteMatchesForPeriod`, `GetAllMatches`) and INSERT (`CreateMatch`).
   </action>
   <verify>make sqlc</verify>

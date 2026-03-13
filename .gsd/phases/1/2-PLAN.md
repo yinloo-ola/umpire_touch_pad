@@ -25,8 +25,8 @@ Update the Vue frontend to allow administrators to assign a `tableNumber` during
     frontend/src/stores/adminStore.js
   </files>
   <action>
-    - Add a `tableNumber` input field to the Match Details section.
-    - Validate that it gets passed in the `buildPayload` object payload (string integer or text).
+    - Add a `tableNumber` input field to the Match Details section (type="number").
+    - Validate that it gets passed in the `buildPayload` object payload as a strict integer value, or null if left empty.
     - Ensure `adminStore.js` correctly sends this parameter down to the `POST /api/matches` endpoint.
   </action>
   <verify>npm run build</verify>

@@ -31,3 +31,15 @@
 
 ### Constraints
 - Timers (warmup/timeout) are not required to resume exactly.
+
+## Phase 1 Decisions
+
+**Date:** 2026-03-13
+
+### Scope
+- `table_number` is strictly an integer, avoiding arbitrary string names.
+- On the Umpire Match List and Admin Dashboard, the table number will be displayed to the right of the "Event" name column.
+
+### Approach
+- **Chose:** Strict Integer for Database and Vue store.
+- **Reason:** Simplifies filtering and sorting behavior across lists. Ensures strict schema constraints for data entries.
