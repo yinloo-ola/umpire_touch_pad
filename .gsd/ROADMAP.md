@@ -19,7 +19,7 @@
 ## Phases
 
 ### Phase 1: Table Number Properties
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Introduce the `table_number` field to the match database. Update the Admin match creation form to include it. Allow filtering by table number on both the Admin Dashboard and Umpire Match List.
 
 ### Phase 2: Admin Match Editing Capabilities (Scores & Status)
