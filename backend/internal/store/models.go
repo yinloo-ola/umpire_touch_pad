@@ -48,4 +48,5 @@ type Match struct {
 	Team2P1Country sql.NullString `json:"team2_p1_country"`
 	Team2P2Country sql.NullString `json:"team2_p2_country"`
 	StateJson      sql.NullString `json:"state_json"`
+	TableNumber    sql.NullInt64  `json:"table_number"`
 }

@@ -2,22 +2,23 @@
 INSERT INTO matches (
     id, title, scheduled_date, status, current_game,
     team1_p1_name, team1_p2_name, team2_p1_name, team2_p2_name,
-    best_of, team1_p1_country, team1_p2_country, team2_p1_country, team2_p2_country
+    best_of, team1_p1_country, team1_p2_country, team2_p1_country, team2_p2_country,
+    table_number
 ) VALUES (
-    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 );
 
 -- name: GetMatch :one
-SELECT id, title, scheduled_date, status, current_game, team1_p1_name, team1_p2_name, team2_p1_name, team2_p2_name, best_of, team1_p1_country, team1_p2_country, team2_p1_country, team2_p2_country, created_at, updated_at, state_json FROM matches WHERE id = ?;
+SELECT id, title, scheduled_date, status, current_game, team1_p1_name, team1_p2_name, team2_p1_name, team2_p2_name, best_of, team1_p1_country, team1_p2_country, team2_p1_country, team2_p2_country, created_at, updated_at, state_json, table_number FROM matches WHERE id = ?;
 
 -- name: GetIncompleteMatchesForPeriod :many
-SELECT id, title, scheduled_date, status, current_game, team1_p1_name, team1_p2_name, team2_p1_name, team2_p2_name, best_of, team1_p1_country, team1_p2_country, team2_p1_country, team2_p2_country, created_at, updated_at, state_json FROM matches 
+SELECT id, title, scheduled_date, status, current_game, team1_p1_name, team1_p2_name, team2_p1_name, team2_p2_name, best_of, team1_p1_country, team1_p2_country, team2_p1_country, team2_p2_country, created_at, updated_at, state_json, table_number FROM matches 
 WHERE status != 'completed' 
   AND scheduled_date >= ? 
   AND scheduled_date <= ?;
 
 -- name: GetAllMatches :many
-SELECT id, title, scheduled_date, status, current_game, team1_p1_name, team1_p2_name, team2_p1_name, team2_p2_name, best_of, team1_p1_country, team1_p2_country, team2_p1_country, team2_p2_country, created_at, updated_at, state_json FROM matches 
+SELECT id, title, scheduled_date, status, current_game, team1_p1_name, team1_p2_name, team2_p1_name, team2_p2_name, best_of, team1_p1_country, team1_p2_country, team2_p1_country, team2_p2_country, created_at, updated_at, state_json, table_number FROM matches 
 ORDER BY scheduled_date DESC;
 
 -- name: UpdateMatchStatus :exec

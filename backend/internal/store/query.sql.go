@@ -51,9 +51,10 @@ const createMatch = `-- name: CreateMatch :exec
 INSERT INTO matches (
     id, title, scheduled_date, status, current_game,
     team1_p1_name, team1_p2_name, team2_p1_name, team2_p2_name,
-    best_of, team1_p1_country, team1_p2_country, team2_p1_country, team2_p2_country
+    best_of, team1_p1_country, team1_p2_country, team2_p1_country, team2_p2_country,
+    table_number
 ) VALUES (
-    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 )
 `
 
@@ -72,6 +73,7 @@ type CreateMatchParams struct {
 	Team1P2Country sql.NullString `json:"team1_p2_country"`
 	Team2P1Country sql.NullString `json:"team2_p1_country"`
 	Team2P2Country sql.NullString `json:"team2_p2_country"`
+	TableNumber    sql.NullInt64  `json:"table_number"`
 }
 
 func (q *Queries) CreateMatch(ctx context.Context, arg CreateMatchParams) error {
@@ -90,12 +92,13 @@ func (q *Queries) CreateMatch(ctx context.Context, arg CreateMatchParams) error 
 		arg.Team1P2Country,
 		arg.Team2P1Country,
 		arg.Team2P2Country,
+		arg.TableNumber,
 	)
 	return err
 }
 
 const getAllMatches = `-- name: GetAllMatches :many
-SELECT id, title, scheduled_date, status, current_game, team1_p1_name, team1_p2_name, team2_p1_name, team2_p2_name, best_of, team1_p1_country, team1_p2_country, team2_p1_country, team2_p2_country, created_at, updated_at, state_json FROM matches 
+SELECT id, title, scheduled_date, status, current_game, team1_p1_name, team1_p2_name, team2_p1_name, team2_p2_name, best_of, team1_p1_country, team1_p2_country, team2_p1_country, team2_p2_country, created_at, updated_at, state_json, table_number FROM matches 
 ORDER BY scheduled_date DESC
 `
 
@@ -117,6 +120,7 @@ type GetAllMatchesRow struct {
 	CreatedAt      sql.NullString `json:"created_at"`
 	UpdatedAt      sql.NullString `json:"updated_at"`
 	StateJson      sql.NullString `json:"state_json"`
+	TableNumber    sql.NullInt64  `json:"table_number"`
 }
 
 func (q *Queries) GetAllMatches(ctx context.Context) ([]GetAllMatchesRow, error) {
@@ -146,6 +150,7 @@ func (q *Queries) GetAllMatches(ctx context.Context) ([]GetAllMatchesRow, error)
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.StateJson,
+			&i.TableNumber,
 		); err != nil {
 			return nil, err
 		}
@@ -252,7 +257,7 @@ func (q *Queries) GetGamesForMatch(ctx context.Context, matchID string) ([]Game,
 }
 
 const getIncompleteMatchesForPeriod = `-- name: GetIncompleteMatchesForPeriod :many
-SELECT id, title, scheduled_date, status, current_game, team1_p1_name, team1_p2_name, team2_p1_name, team2_p2_name, best_of, team1_p1_country, team1_p2_country, team2_p1_country, team2_p2_country, created_at, updated_at, state_json FROM matches 
+SELECT id, title, scheduled_date, status, current_game, team1_p1_name, team1_p2_name, team2_p1_name, team2_p2_name, best_of, team1_p1_country, team1_p2_country, team2_p1_country, team2_p2_country, created_at, updated_at, state_json, table_number FROM matches 
 WHERE status != 'completed' 
   AND scheduled_date >= ? 
   AND scheduled_date <= ?
@@ -281,6 +286,7 @@ type GetIncompleteMatchesForPeriodRow struct {
 	CreatedAt      sql.NullString `json:"created_at"`
 	UpdatedAt      sql.NullString `json:"updated_at"`
 	StateJson      sql.NullString `json:"state_json"`
+	TableNumber    sql.NullInt64  `json:"table_number"`
 }
 
 func (q *Queries) GetIncompleteMatchesForPeriod(ctx context.Context, arg GetIncompleteMatchesForPeriodParams) ([]GetIncompleteMatchesForPeriodRow, error) {
@@ -310,6 +316,7 @@ func (q *Queries) GetIncompleteMatchesForPeriod(ctx context.Context, arg GetInco
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.StateJson,
+			&i.TableNumber,
 		); err != nil {
 			return nil, err
 		}
@@ -325,7 +332,7 @@ func (q *Queries) GetIncompleteMatchesForPeriod(ctx context.Context, arg GetInco
 }
 
 const getMatch = `-- name: GetMatch :one
-SELECT id, title, scheduled_date, status, current_game, team1_p1_name, team1_p2_name, team2_p1_name, team2_p2_name, best_of, team1_p1_country, team1_p2_country, team2_p1_country, team2_p2_country, created_at, updated_at, state_json FROM matches WHERE id = ?
+SELECT id, title, scheduled_date, status, current_game, team1_p1_name, team1_p2_name, team2_p1_name, team2_p2_name, best_of, team1_p1_country, team1_p2_country, team2_p1_country, team2_p2_country, created_at, updated_at, state_json, table_number FROM matches WHERE id = ?
 `
 
 type GetMatchRow struct {
@@ -346,6 +353,7 @@ type GetMatchRow struct {
 	CreatedAt      sql.NullString `json:"created_at"`
 	UpdatedAt      sql.NullString `json:"updated_at"`
 	StateJson      sql.NullString `json:"state_json"`
+	TableNumber    sql.NullInt64  `json:"table_number"`
 }
 
 func (q *Queries) GetMatch(ctx context.Context, id string) (GetMatchRow, error) {
@@ -369,6 +377,7 @@ func (q *Queries) GetMatch(ctx context.Context, id string) (GetMatchRow, error) 
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.StateJson,
+		&i.TableNumber,
 	)
 	return i, err
 }

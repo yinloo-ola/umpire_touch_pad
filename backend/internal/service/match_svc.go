@@ -16,15 +16,16 @@ type Player struct {
 }
 
 type Match struct {
-	ID        string   `json:"id"`
-	Type      string   `json:"type"`
-	Event     string   `json:"event"`
-	Time      string   `json:"time"`
-	BestOf    int      `json:"bestOf"`
-	Team1     []Player `json:"team1"`
-	Team2     []Player `json:"team2"`
-	Status    string   `json:"status,omitempty"`
-	StateJson string   `json:"stateJson,omitempty"`
+	ID          string   `json:"id"`
+	Type        string   `json:"type"`
+	Event       string   `json:"event"`
+	Time        string   `json:"time"`
+	BestOf      int      `json:"bestOf"`
+	Team1       []Player `json:"team1"`
+	Team2       []Player `json:"team2"`
+	Status      string   `json:"status,omitempty"`
+	StateJson   string   `json:"stateJson,omitempty"`
+	TableNumber int      `json:"tableNumber,omitempty"`
 }
 
 type MatchService struct {
@@ -188,6 +189,7 @@ func (s *MatchService) CreateMatch(ctx context.Context, m Match) (string, error)
 		Team1P1Name:   t1p1,
 		Team2P1Name:   t2p1,
 		BestOf:        int64(m.BestOf),
+		TableNumber:   sql.NullInt64{Int64: int64(m.TableNumber), Valid: m.TableNumber > 0},
 	}
 
 	if t1p2 != "" {
@@ -249,6 +251,7 @@ func (s *MatchService) GetTodayMatches(ctx context.Context, history bool) ([]Mat
 					Team2P1Country: r.Team2P1Country,
 					Team2P2Country: r.Team2P2Country,
 					StateJson:      r.StateJson,
+					TableNumber:    r.TableNumber,
 				})
 			}
 		}
@@ -276,6 +279,7 @@ func (s *MatchService) GetTodayMatches(ctx context.Context, history bool) ([]Mat
 					Team2P1Country: r.Team2P1Country,
 					Team2P2Country: r.Team2P2Country,
 					StateJson:      r.StateJson,
+					TableNumber:    r.TableNumber,
 				})
 			}
 		}
@@ -303,14 +307,14 @@ func (s *MatchService) GetTodayMatches(ctx context.Context, history bool) ([]Mat
 		}
 
 		results = append(results, Match{
-			ID:     dbm.ID,
-			Type:   matchType,
-			Event:  dbm.Title,
-			Time:   dbm.ScheduledDate,
-			BestOf: int(dbm.BestOf),
-			Team1:  t1,
-			Team2:  t2,
-			Status: dbm.Status,
+			ID:          dbm.ID,
+			Type:        matchType,
+			Event:       dbm.Title,
+			Time:        dbm.ScheduledDate,
+			BestOf:      int(dbm.BestOf),
+			Team2:       t2,
+			Status:      dbm.Status,
+			TableNumber: int(dbm.TableNumber.Int64),
 		})
 	}
 	if results == nil {
@@ -336,6 +340,7 @@ type MatchRow struct {
 	Team2P1Country sql.NullString
 	Team2P2Country sql.NullString
 	StateJson      sql.NullString
+	TableNumber    sql.NullInt64
 }
 
 func (s *MatchService) GetMatchState(ctx context.Context, id string) (*MatchFullState, error) {
@@ -360,15 +365,16 @@ func (s *MatchService) GetMatchState(ctx context.Context, id string) (*MatchFull
 	}
 
 	m := Match{
-		ID:        dbm.ID,
-		Type:      matchType,
-		Event:     dbm.Title,
-		Time:      dbm.ScheduledDate,
-		BestOf:    int(dbm.BestOf),
-		Team1:     t1,
-		Team2:     t2,
-		Status:    dbm.Status,
-		StateJson: dbm.StateJson.String,
+		ID:          dbm.ID,
+		Type:        matchType,
+		Event:       dbm.Title,
+		Time:        dbm.ScheduledDate,
+		BestOf:      int(dbm.BestOf),
+		Team1:       t1,
+		Team2:       t2,
+		Status:      dbm.Status,
+		StateJson:   dbm.StateJson.String,
+		TableNumber: int(dbm.TableNumber.Int64),
 	}
 
 	dbGames, err := s.store.GetGamesForMatch(ctx, id)
