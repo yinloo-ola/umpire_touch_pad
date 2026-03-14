@@ -1,9 +1,9 @@
 # STATE.md
 
 ## Current Position
-- **Milestone**: Match Management & Public Viewer
-- **Phase**: 1 (completed)
-- **Status**: Verified
+- **Phase**: 2
+- **Task**: Planning complete
+- **Status**: Ready for execution
 
 ## Last Session Summary
 Phase 1 executed successfully, followed by a `/debug` session to fix UI regressions.
@@ -12,5 +12,4 @@ Phase 1 executed successfully, followed by a `/debug` session to fix UI regressi
 3. Implemented dynamic Table dropdown filters in both Admin and Umpire views.
 
 ## Next Steps
-1. Proceed to Phase 2: Admin Match Editing Capabilities (Scores & Status)
-2. Run `/plan 2` to create execution plans for Phase 2.
+1. /execute 2
