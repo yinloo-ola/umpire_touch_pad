@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"umpire-backend/internal/store"
@@ -68,6 +69,83 @@ type MatchFullState struct {
 	Match Match             `json:"match"`
 	Games []SyncGameRequest `json:"games"`
 	Cards []SyncCardRequest `json:"cards"`
+}
+
+type AdminMatchUpdateRequest struct {
+	Status  string            `json:"status"`
+	Remarks string            `json:"remarks"`
+	Games   []SyncGameRequest `json:"games"`
+}
+
+func (s *MatchService) AdminUpdateMatch(ctx context.Context, matchID string, req AdminMatchUpdateRequest) error {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	qtx := store.New(tx)
+
+	// 1. Re-index games
+	for i := range req.Games {
+		req.Games[i].GameNumber = i + 1
+	}
+
+	// 2. Strict Score Validation
+	if req.Remarks == "" {
+		for _, g := range req.Games {
+			maxScore := g.Team1Score
+			minScore := g.Team2Score
+			if g.Team2Score > maxScore {
+				maxScore = g.Team2Score
+				minScore = g.Team1Score
+			}
+
+			if maxScore < 11 {
+				return fmt.Errorf("invalid score: neither team reached 11 points in game %d", g.GameNumber)
+			}
+			if maxScore == 11 && minScore > 9 {
+				return fmt.Errorf("invalid score: winning by 11 requires a 2-point difference in game %d", g.GameNumber)
+			}
+			if maxScore > 11 && maxScore-minScore != 2 {
+				return fmt.Errorf("invalid score: deuce game requires exactly a 2-point difference in game %d", g.GameNumber)
+			}
+		}
+	}
+
+	// 3. Update match status & remarks via AdminUpdateMatch query
+	err = qtx.AdminUpdateMatch(ctx, store.AdminUpdateMatchParams{
+		Status:  req.Status,
+		Remarks: sql.NullString{String: req.Remarks, Valid: req.Remarks != ""},
+		ID:      matchID,
+	})
+	if err != nil {
+		return err
+	}
+
+	// 4. Clear all existing games for this match
+	err = qtx.DeleteGamesForMatch(ctx, matchID)
+	if err != nil {
+		return err
+	}
+
+	// 5. Insert the re-indexed games via UpsertGame
+	for _, g := range req.Games {
+		newGameID := uuid.New().String()
+		_, err := qtx.UpsertGame(ctx, store.UpsertGameParams{
+			ID:         newGameID,
+			MatchID:    matchID,
+			GameNumber: int64(g.GameNumber),
+			Team1Score: int64(g.Team1Score),
+			Team2Score: int64(g.Team2Score),
+			Status:     g.Status,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
 }
 
 func (s *MatchService) SyncMatch(ctx context.Context, req SyncMatchRequest) error {
