@@ -4,9 +4,23 @@
       <router-link to="/admin" class="back-link">← Back to Dashboard</router-link>
       <div v-if="matchData" class="header-row">
         <h1 class="page-title">{{ matchData.match.event || 'Match Detail' }}</h1>
-        <span :class="['status-badge', matchData.match.status || 'unstarted']">
+        <span v-if="!isEditing" :class="['status-badge', matchData.match.status || 'unstarted']">
           {{ formatStatus(matchData.match.status) }}
         </span>
+        <select v-else v-model="editForm.status" class="status-select">
+          <option value="unstarted">Unstarted</option>
+          <option value="warming_up">Warming Up</option>
+          <option value="in_progress">In Progress</option>
+          <option value="completed">Completed</option>
+        </select>
+        
+        <div class="header-actions">
+           <button v-if="!isEditing" @click="toggleEdit" class="edit-btn">Edit Match</button>
+           <template v-else>
+              <button @click="saveChanges" class="save-btn" :disabled="isSaving">{{ isSaving ? 'Saving...' : 'Save Changes' }}</button>
+              <button @click="toggleEdit" class="cancel-btn" :disabled="isSaving">Cancel</button>
+           </template>
+        </div>
       </div>
       <p class="page-subtitle">ID: <strong>{{ matchId }}</strong> • {{ matchData?.match.scheduled_date ? new Date(matchData.match.scheduled_date).toLocaleDateString() : '—' }}</p>
     </div>
@@ -23,6 +37,10 @@
     </div>
 
     <template v-else-if="matchData">
+      <div v-if="saveError" class="save-error-banner">
+        🛑 Error: {{ saveError }}
+      </div>
+      
       <div class="detail-grid">
         <!-- Match Info -->
         <section class="detail-card">
@@ -78,7 +96,7 @@
                   <th>Status</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody v-if="!isEditing">
                 <tr v-for="g in matchData.games" :key="g.gameNumber" :class="{ current: g.gameNumber === matchData.match.currentGame }">
                   <td>Game {{ g.gameNumber }}</td>
                   <td :class="{ winner: g.team1Score > g.team2Score && g.status === 'completed' }">{{ g.team1Score }}</td>
@@ -88,7 +106,33 @@
                   </td>
                 </tr>
               </tbody>
+              <tbody v-else>
+                 <tr v-for="(g, idx) in editForm.games" :key="idx">
+                   <td>Game {{ idx + 1 }}</td>
+                   <td><input type="number" v-model.number="g.team1Score" class="score-input" min="0" /></td>
+                   <td><input type="number" v-model.number="g.team2Score" class="score-input" min="0" /></td>
+                   <td>
+                     <select v-model="g.status" class="status-select-sm">
+                        <option value="unstarted">Unstarted</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                     </select>
+                   </td>
+                   <td>
+                      <button @click="deleteGame(idx)" class="delete-btn" title="Delete Game">🗑️</button>
+                   </td>
+                 </tr>
+              </tbody>
             </table>
+            
+            <div v-if="isEditing" class="edit-actions">
+              <button @click="addGame" class="add-game-btn">+ Add Game</button>
+            </div>
+
+            <div v-if="isEditing" class="edit-remarks">
+               <label>Remarks (Force End/Retirement Reason):</label>
+               <textarea v-model="editForm.remarks" placeholder="Enter reason if games don't follow normal scoring rules..." class="remarks-input"></textarea>
+            </div>
           </div>
         </section>
 
@@ -147,6 +191,81 @@ const matchData = ref(null)
 const loading = ref(true)
 const error = ref('')
 
+const isEditing = ref(false)
+const isSaving = ref(false)
+const saveError = ref('')
+const editForm = ref({
+  status: 'unstarted',
+  remarks: '',
+  games: []
+})
+
+function toggleEdit() {
+  if (isEditing.value) {
+    isEditing.value = false
+    saveError.value = ''
+    return
+  }
+  
+  if (matchData.value.match.status === 'in_progress') {
+    const ok = window.confirm("This match is currently live. Force Override?")
+    if (!ok) return
+  }
+  
+  editForm.value = {
+    status: matchData.value.match.status || 'unstarted',
+    remarks: '',
+    games: JSON.parse(JSON.stringify(matchData.value.games || []))
+  }
+  isEditing.value = true
+}
+
+function addGame() {
+  editForm.value.games.push({
+    gameNumber: editForm.value.games.length + 1,
+    team1Score: 0,
+    team2Score: 0,
+    status: 'unstarted'
+  })
+}
+
+function deleteGame(idx) {
+  editForm.value.games.splice(idx, 1)
+  editForm.value.games.forEach((g, i) => g.gameNumber = i + 1)
+}
+
+async function saveChanges() {
+  isSaving.value = true
+  saveError.value = ''
+  
+  try {
+    const resp = await fetch(`http://localhost:8080/api/admin/matches/${route.params.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        status: editForm.value.status,
+        remarks: editForm.value.remarks,
+        games: editForm.value.games
+      }),
+      credentials: 'include'
+    })
+    
+    if (!resp.ok) {
+      const errText = await resp.text()
+      throw new Error(errText || 'Failed to update match')
+    }
+    
+    isEditing.value = false
+    await load()
+  } catch (e) {
+    saveError.value = e.message
+  } finally {
+    isSaving.value = false
+  }
+}
+
 async function load() {
   loading.value = true
   error.value = ''
@@ -176,6 +295,124 @@ onMounted(load)
   max-width: 1000px;
   margin: 0 auto;
   padding-bottom: 4rem;
+}
+
+.save-error-banner {
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  color: #f87171;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.edit-btn, .save-btn, .cancel-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.edit-btn { background: #3b82f6; color: white; }
+.edit-btn:hover { background: #2563eb; }
+.save-btn { background: #22c55e; color: white; }
+.save-btn:hover { background: #16a34a; }
+.save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.cancel-btn { background: #475569; color: white; }
+.cancel-btn:hover { background: #334155; }
+
+.status-select {
+  padding: 0.35rem;
+  border-radius: 6px;
+  background: #1e293b;
+  color: #f1f5f9;
+  border: 1px solid #475569;
+}
+
+.score-input {
+  width: 60px;
+  padding: 0.35rem;
+  border-radius: 6px;
+  background: #0f172a;
+  color: white;
+  border: 1px solid #475569;
+  text-align: center;
+}
+
+.status-select-sm {
+  padding: 0.25rem;
+  border-radius: 4px;
+  background: #0f172a;
+  color: #f1f5f9;
+  border: 1px solid #475569;
+  font-size: 0.8rem;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+.delete-btn:hover { opacity: 1; }
+
+.edit-actions {
+  margin-top: 1rem;
+}
+
+.add-game-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed #475569;
+  color: #94a3b8;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.add-game-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f1f5f9;
+}
+
+.edit-remarks {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.edit-remarks label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #94a3b8;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+.remarks-input {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: #0f172a;
+  border: 1px solid #475569;
+  color: #f1f5f9;
+  font-family: inherit;
+  resize: vertical;
 }
 
 .detail-header {
