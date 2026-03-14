@@ -9,9 +9,11 @@ import (
 )
 
 type Querier interface {
+	AdminUpdateMatch(ctx context.Context, arg AdminUpdateMatchParams) error
 	ClearCardsForMatch(ctx context.Context, matchID string) error
 	CreateCard(ctx context.Context, arg CreateCardParams) error
 	CreateMatch(ctx context.Context, arg CreateMatchParams) error
+	DeleteGamesForMatch(ctx context.Context, matchID string) error
 	GetAllMatches(ctx context.Context) ([]GetAllMatchesRow, error)
 	GetCardsForMatch(ctx context.Context, matchID string) ([]Card, error)
 	GetGameIDByNumber(ctx context.Context, arg GetGameIDByNumberParams) (string, error)

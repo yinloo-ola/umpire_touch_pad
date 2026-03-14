@@ -43,3 +43,21 @@
 ### Approach
 - **Chose:** Strict Integer for Database and Vue store.
 - **Reason:** Simplifies filtering and sorting behavior across lists. Ensures strict schema constraints for data entries.
+
+## Phase 2 Decisions
+
+**Date:** 2026-03-14
+
+### Scope
+- **UI Integration**: Match editing capabilities will be placed within the existing Admin `MatchDetailView.vue`.
+- **Editing Restrictions**: Editing is freely open for `SCHEDULED` and `COMPLETED` matches. To protect matches that are actively being umpired (`IN_PROGRESS`), a "Force Override" explicit confirmation will be required in the UI before changes can be made.
+- **Audit & Traceability**: A manual change flag will be recorded in the system to denote that the match data was manually overridden by an administrator.
+- **Force End / Retirements**: Admins can force-complete a match (e.g., for injury/retirement) without meeting strict score requirements. They will enter a mandatory free-text comment (e.g., "retirement due to injury") which will be saved in a new `remarks` database field.
+
+### Approach
+- **Chose**: Single Unified "Save Changes" API endpoint and in-line UI editing.
+- **Reason**: A single backend endpoint to submit the entire state (scores, games, status, remarks) is much simpler for the frontend to coordinate than atomic discrete requests.
+
+### Constraints
+- **Game Re-indexing**: If a game is deleted from the middle of the match, subsequent games must be automatically re-indexed so there are no numbering gaps.
+- **Strict Score Validation**: Generally, the system MUST validate that the score is a legitimately "completed" game (e.g., 11-5, 12-10). The ONLY exception to skip this validation is if the admin uses the explicit "Force End/Retirement" option with a valid remark.
