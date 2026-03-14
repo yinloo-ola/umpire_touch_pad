@@ -15,7 +15,14 @@
         </select>
         
         <div class="header-actions">
-           <button v-if="!isEditing" @click="toggleEdit" class="edit-btn">Edit Match</button>
+           <!-- Inline Confirmation for Live Match -->
+           <div v-if="showLiveConfirm" class="confirm-group">
+             <span class="confirm-msg">Match is LIVE. Override?</span>
+             <button @click="confirmToggleEdit" class="confirm-yes-btn">Yes</button>
+             <button @click="showLiveConfirm = false" class="confirm-no-btn">No</button>
+           </div>
+
+           <button v-else-if="!isEditing" @click="toggleEdit" class="edit-btn">Edit Match</button>
            <template v-else>
               <button @click="saveChanges" class="save-btn" :disabled="isSaving">{{ isSaving ? 'Saving...' : 'Save Changes' }}</button>
               <button @click="toggleEdit" class="cancel-btn" :disabled="isSaving">Cancel</button>
@@ -111,13 +118,7 @@
                    <td>Game {{ idx + 1 }}</td>
                    <td><input type="number" v-model.number="g.team1Score" class="score-input" min="0" /></td>
                    <td><input type="number" v-model.number="g.team2Score" class="score-input" min="0" /></td>
-                   <td>
-                     <select v-model="g.status" class="status-select-sm">
-                        <option value="unstarted">Unstarted</option>
-                        <option value="in_progress">In Progress</option>
-                        <option value="completed">Completed</option>
-                     </select>
-                   </td>
+                   <td><span class="auto-status-text">(Auto-determined on save)</span></td>
                    <td>
                       <button @click="deleteGame(idx)" class="delete-btn" title="Delete Game">🗑️</button>
                    </td>
@@ -143,7 +144,7 @@
             <h2 class="card-title">Cards & Timeouts</h2>
           </div>
           <div class="card-body">
-            <div v-if="!matchData.cards || matchData.cards.length === 0" class="empty-notif">
+            <div v-if="!isEditing && (!matchData.cards || matchData.cards.length === 0)" class="empty-notif">
               No cards or timeouts recorded for this match.
             </div>
             <table v-else class="card-log-table">
@@ -155,7 +156,7 @@
                   <th>Type</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody v-if="!isEditing">
                 <tr v-for="(c, idx) in matchData.cards" :key="idx">
                   <td>Game {{ c.gameNumber }}</td>
                   <td>Team {{ c.teamIndex }}</td>
@@ -169,7 +170,41 @@
                   </td>
                 </tr>
               </tbody>
+              <tbody v-else>
+                 <tr v-for="(c, idx) in editForm.cards" :key="idx">
+                   <td><input type="number" v-model.number="c.gameNumber" class="score-input" min="1" max="15"/></td>
+                   <td>
+                     <select v-model.number="c.teamIndex" class="status-select-sm">
+                       <option :value="1">Team 1</option>
+                       <option :value="2">Team 2</option>
+                     </select>
+                   </td>
+                   <td>
+                     <select v-model.number="c.playerIndex" class="status-select-sm">
+                       <option :value="0">Player 1</option>
+                       <option :value="1">Player 2</option>
+                       <option :value="-1">Coach</option>
+                       <option :value="-2">Team</option>
+                     </select>
+                   </td>
+                   <td>
+                     <select v-model="c.cardType" class="status-select-sm">
+                       <option value="Yellow">Yellow</option>
+                       <option value="Yellow-Red">Yellow-Red (1pt)</option>
+                       <option value="Yellow-Red-2">Yellow-Red (2pt)</option>
+                       <option value="Timeout">Timeout</option>
+                     </select>
+                   </td>
+                   <td>
+                      <button @click="deleteCard(idx)" class="delete-btn" title="Delete Card" :data-testid="`delete-card-${idx}`">🗑️</button>
+                   </td>
+                 </tr>
+              </tbody>
             </table>
+            
+            <div v-if="isEditing" class="edit-actions">
+              <button @click="addCard" class="add-game-btn">+ Add Card/Timeout</button>
+            </div>
           </div>
         </section>
       </div>
@@ -194,28 +229,43 @@ const error = ref('')
 const isEditing = ref(false)
 const isSaving = ref(false)
 const saveError = ref('')
+const showLiveConfirm = ref(false)
 const editForm = ref({
   status: 'unstarted',
   remarks: '',
-  games: []
+  games: [],
+  cards: []
 })
 
-function toggleEdit() {
+function toggleEdit(e) {
+  if (e) e.preventDefault();
+  
   if (isEditing.value) {
     isEditing.value = false
     saveError.value = ''
+    showLiveConfirm.value = false
     return
   }
   
-  if (matchData.value.match.status === 'in_progress') {
-    const ok = window.confirm("This match is currently live. Force Override?")
-    if (!ok) return
+  if (matchData.value.match.status === 'in_progress' && !showLiveConfirm.value) {
+    showLiveConfirm.value = true
+    return
   }
   
+  enterEditMode()
+}
+
+function confirmToggleEdit() {
+  showLiveConfirm.value = false
+  enterEditMode()
+}
+
+function enterEditMode() {
   editForm.value = {
     status: matchData.value.match.status || 'unstarted',
-    remarks: '',
-    games: JSON.parse(JSON.stringify(matchData.value.games || []))
+    remarks: matchData.value.match.remarks || '',
+    games: JSON.parse(JSON.stringify(matchData.value.games || [])),
+    cards: JSON.parse(JSON.stringify(matchData.value.cards || []))
   }
   isEditing.value = true
 }
@@ -234,9 +284,33 @@ function deleteGame(idx) {
   editForm.value.games.forEach((g, i) => g.gameNumber = i + 1)
 }
 
+function addCard() {
+  editForm.value.cards.push({
+    gameNumber: matchData.value.match.currentGame || 1,
+    teamIndex: 1,
+    playerIndex: 0,
+    cardType: 'Yellow'
+  })
+  // Let DOM update then scroll
+  setTimeout(() => {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
+  }, 50)
+}
+
+function deleteCard(idx) {
+  editForm.value.cards.splice(idx, 1)
+}
+
 async function saveChanges() {
   isSaving.value = true
   saveError.value = ''
+  
+  console.log('Saving match payload:', {
+    status: editForm.value.status,
+    games: editForm.value.games.length,
+    cards: editForm.value.cards.length,
+    remarks: editForm.value.remarks
+  })
   
   try {
     const resp = await fetch(`http://localhost:8080/api/admin/matches/${route.params.id}`, {
@@ -247,20 +321,24 @@ async function saveChanges() {
       body: JSON.stringify({
         status: editForm.value.status,
         remarks: editForm.value.remarks,
-        games: editForm.value.games
+        games: editForm.value.games,
+        cards: editForm.value.cards
       }),
       credentials: 'include'
     })
     
     if (!resp.ok) {
       const errText = await resp.text()
+      console.error('Save failed:', errText)
       throw new Error(errText || 'Failed to update match')
     }
     
     isEditing.value = false
     await load()
   } catch (e) {
-    saveError.value = e.message
+    console.error('Error saving match:', e)
+    saveError.value = e.message || 'Failed to update match'
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   } finally {
     isSaving.value = false
   }
@@ -356,6 +434,12 @@ onMounted(load)
   color: #f1f5f9;
   border: 1px solid #475569;
   font-size: 0.8rem;
+}
+
+.auto-status-text {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-style: italic;
 }
 
 .delete-btn {
@@ -655,149 +739,54 @@ onMounted(load)
   color: #f87171;
   background: rgba(248, 113, 113, 0.05);
 }
-</style>
 
-<style scoped>
-.match-detail-page {
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-.detail-header {
-  margin-bottom: 2rem;
-}
-
-.back-link {
-  display: inline-block;
-  color: #64748b;
-  font-size: 0.9rem;
-  text-decoration: none;
-  margin-bottom: 0.75rem;
-  transition: color 0.2s;
-}
-
-.back-link:hover {
-  color: #94a3b8;
-}
-
-.header-row {
+.confirm-group {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 0.4rem;
+  gap: 0.75rem;
+  background: rgba(244, 63, 94, 0.1);
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(244, 63, 94, 0.2);
 }
 
-.page-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #f1f5f9;
-}
-
-.match-id-badge {
+.confirm-msg {
   font-size: 0.75rem;
-  font-weight: 600;
-  font-family: 'Courier New', monospace;
-  background: rgba(255, 255, 255, 0.06);
-  color: #64748b;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-weight: 700;
+  color: #fb7185;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.page-subtitle {
-  color: #64748b;
-  font-size: 0.9rem;
+.confirm-yes-btn {
+  background: #e11d48;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 
-.page-subtitle strong {
-  color: #94a3b8;
-  font-family: 'Courier New', monospace;
-  font-size: 0.85rem;
-}
-
-.detail-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.detail-card {
-  background: #1e293b;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  overflow: hidden;
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  padding: 1.1rem 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.02);
+.confirm-no-btn {
+  background: #475569;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .card-icon {
   font-size: 1.1rem;
 }
 
-.card-title {
-  font-size: 0.95rem;
-  font-weight: 700;
+.page-subtitle strong {
   color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.card-body {
-  padding: 1.5rem;
-}
-
-.placeholder-body {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 80px;
-}
-
-.placeholder-text {
-  color: #475569;
-  font-size: 0.9rem;
-  text-align: center;
-  max-width: 600px;
-  line-height: 1.6;
-}
-
-.placeholder-text code {
-  background: rgba(255, 255, 255, 0.06);
-  color: #64748b;
-  padding: 0.1rem 0.4rem;
-  border-radius: 4px;
   font-family: 'Courier New', monospace;
-  font-size: 0.85em;
-}
-
-.detail-footer {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.back-btn {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.65rem 1.4rem;
-  border-radius: 10px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  text-decoration: none;
-  background: rgba(255, 255, 255, 0.06);
-  color: #94a3b8;
-  transition: all 0.2s;
-}
-
-.back-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #f1f5f9;
+  font-size: 0.85rem;
 }
 </style>

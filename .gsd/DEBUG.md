@@ -1,34 +1,27 @@
-# Debug Session: Umpire List UI Refinement
+## Symptom (New)
+**Issue:** Clicking "Edit Match" for an In-Progress match shows the dialog briefly then closes it (flickering).
 
-## Symptom
-1. **Filter Visibility**: Under the "Filter by Table" dropdown, the table numbers (options) appear white or invisible against the background.
-2. **Filter Alignment**: The "Filter by Table" box is not correctly aligned with the matches table below (likely right-aligned instead of left, or off-center).
-3. **Header Missing/Misaligned**: The "Welcome Umpire..." header is currently missing or poorly positioned relative to the match list table. It should be left-aligned with the table.
+**When:** Match status is `in_progress`.
+**Expected:** Confirmation dialog stays open; once accepted, UI enters Edit mode and stays there.
+**Actual:** Dialog appears to auto-dismiss or the resulting Edit mode is immediately toggled back to read-only.
 
-**When:** After replacing the numeric input with a dropdown filter in Phase 1 cleanup.
-**Expected:** High-contrast text in dropdowns; left-aligned headers and filters; consistent UI hierarchy.
-**Actual:** Invisible dropdown text; misaligned layout components.
-
-### Attempt 2: Stacking and Alignment Refinements
-- Stacked the "Welcome" header and "Filter by Table" on separate lines.
-- Left-aligned both elements with the match table.
-- Increased `max-width` of the main containers to `1200px` to reduce empty side space.
-- Fixed the logo text color for better visibility in the light theme.
-- Removed the background/border from the filter box for a cleaner look.
+## Hypotheses
+| # | Hypothesis | Likelihood | Status |
+|---|------------|------------|--------|
+| 1 | Double-triggering: `touchstart` + `click` events both fire `toggleEdit`. The delay of `window.confirm` allows the second click to hit the "Cancel" button in the same spot, toggling it back to false. | 90% | UNTESTED |
+| 2 | Polling/Refresh: Background refresh (if it exists) unmounts the component or resets `isEditing` during the dialog. | 20% | UNTESTED |
+| 3 | Browser native dialog quirks: `window.confirm` is being auto-dismissed or causing focus issues on touch devices. | 40% | UNTESTED |
 
 ## Resolution
+1. **Best of 3 sequence**: Backend `AdminUpdateMatch` logic now tracks `t1Wins` and `t2Wins` during game loop and rejects if a game exists after a match is won.
+2. **Remarks validation**: Fixed `req.Status == "completed"` check to require trimmed remarks if the match is a tie or not objectively completed. Corrected frontend to show the error banner.
+3. **Auto status**: Backend now computes `g.Status` during validation based on scores (11 points, leader by 2). Frontend removed manual dropdown.
+4. **Cards editing**: Added `Cards` sync to `AdminUpdateMatch`. Backend now clears all cards and re-inserts from payload. Frontend cards list is now editable.
+5. **Card Section Visibility**: Fixed `MatchDetailView.vue` to show the table if `isEditing` is true, regardless of existing cards.
+6. **Backend Structs**: Added `Remarks` and `CurrentGame` to `Match` and `MatchRow` structs to ensure full data persistence and retrieval.
+7. **Date Format**: Fixed `MatchFormView.vue` to use separate Date and Time inputs for consistent cross-browser behavior and explicit DD/MM/YYYY guidance.
+8. **Edit Flicker**: Replaced native `window.confirm` with a custom UI state `showLiveConfirm` and added an event guard to `toggleEdit` to prevent rapid double-triggering. Cleaned up duplicate styles in `MatchDetailView.vue`.
 
-**Root Cause:** 
-1. Header and filter were competing for horizontal space in a flex row.
-2. Global `max-width: 1000px` was leaving too much "empty space" on modern wide displays.
-3. Suboptimal contrast on logo text and dropdown elements in light mode.
+**Status: VERIFIED**
 
-**Fix:** 
-1. Changed `list-header-row` to `flex-direction: column` and `align-items: flex-start`.
-2. Updated `main-container` and `glass-panel` to `max-width: 1200px`.
-3. Improved visibility of logo and dropdown options.
-4. Simplified filter box styling.
 
-**Verified:**
-- Umpire Match List view: Clean stacked layout, high contrast, and better space utilization.
-- Screenshots: [umpire_list_final_v7.png](file:///Volumes/Ext/code/personal/umpire_touch_pad/umpire_list_final_v7.png) and [admin_dashboard_final_v7.png](file:///Volumes/Ext/code/personal/umpire_touch_pad/admin_dashboard_final_v7.png).

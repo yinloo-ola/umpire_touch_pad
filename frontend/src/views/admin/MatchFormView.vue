@@ -24,13 +24,21 @@
           </div>
 
           <div class="form-group">
-            <label for="match-time">Scheduled Time</label>
-            <input
-              id="match-time"
-              v-model="form.scheduledTime"
-              type="datetime-local"
-              required
-            />
+            <label>Scheduled Date & Time (DD/MM/YYYY)</label>
+            <div class="datetime-grid">
+              <input
+                type="date"
+                v-model="datePart"
+                required
+                class="date-input"
+              />
+              <input
+                type="time"
+                v-model="timePart"
+                required
+                class="time-input"
+              />
+            </div>
           </div>
         </div>
 
@@ -168,13 +176,20 @@ const router = useRouter()
 
 const form = ref({
   event: '',
-  scheduledTime: '',
   type: 'singles',
   bestOf: 5,
   team1: [{ name: '', country: '' }],
   team2: [{ name: '', country: '' }],
   tableNumber: null,
 })
+
+const datePart = ref('')
+const timePart = ref('')
+
+// Initialize with today
+const now = new Date()
+datePart.value = now.toISOString().split('T')[0]
+timePart.value = now.toTimeString().slice(0, 5)
 
 // Adjust team size on type change
 watch(
@@ -194,11 +209,10 @@ const loading = ref(false)
 const error = ref('')
 
 function buildPayload() {
-  // Format time as naive local time string — no UTC "Z" suffix
-  let timeStr = form.value.scheduledTime
-  if (timeStr) {
-    // datetime-local gives "YYYY-MM-DDTHH:mm" — append :00 for seconds
-    if (timeStr.length === 16) timeStr += ':00'
+  // Combine date and time
+  let timeStr = ""
+  if (datePart.value && timePart.value) {
+    timeStr = `${datePart.value}T${timePart.value}:00`
   }
 
   const cleanPlayers = (list) =>
@@ -314,6 +328,12 @@ async function onSubmit() {
   color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.datetime-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 0.5rem;
 }
 
 .form-group input,

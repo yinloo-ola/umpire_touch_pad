@@ -1,12 +1,14 @@
-# STATE.md
+# Project State — Premium Umpire Touchpad
 
 ## Current Position
-- **Phase**: 2 (completed)
-- **Task**: All tasks complete
-- **Status**: Verified
+- **Milestone**: Match Management & Public Viewer
+- **Phase**: 2 (Fully Verified)
+- **Last Action**: Finalized all Phase 2 debug items, including score sequences, tied status remarks, card editing, and the "Edit Match" flicker bug.
 
 ## Last Session Summary
-Phase 2 executed successfully. 2 plans, 6 tasks completed across 2 waves. Added the Admin Match Editing capabilities (scores, match status) to the match service, via an Admin API endpoint hitting `PUT /api/admin/matches/{id}`, and an updated UI allowing inline modification/deletion/re-indexing.
+Resolved all reported match editing bugs. Fixed illegal score sequence validation, mandatory remarks for tied/incomplete matches, automatic game status determination, and persistent card editing. Addressed a UX "flickering" issue where the Edit Match dialog would prematurely close on live matches by implementing a custom inline confirmation UI and consolidating messy CSS style blocks.
 
 ## Next Steps
-1. /plan 3
+- **Phase 3**: Public Scoreboard / TV View implementation.
+- Run `/plan 3` to begin.
+

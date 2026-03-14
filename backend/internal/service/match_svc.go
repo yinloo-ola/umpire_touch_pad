@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
+	"strings"
 	"time"
 
 	"umpire-backend/internal/store"
@@ -27,6 +29,8 @@ type Match struct {
 	Status      string   `json:"status,omitempty"`
 	StateJson   string   `json:"stateJson,omitempty"`
 	TableNumber int      `json:"tableNumber,omitempty"`
+	CurrentGame int      `json:"currentGame,omitempty"`
+	Remarks     string   `json:"remarks,omitempty"`
 }
 
 type MatchService struct {
@@ -75,9 +79,13 @@ type AdminMatchUpdateRequest struct {
 	Status  string            `json:"status"`
 	Remarks string            `json:"remarks"`
 	Games   []SyncGameRequest `json:"games"`
+	Cards   []SyncCardRequest `json:"cards"`
 }
 
 func (s *MatchService) AdminUpdateMatch(ctx context.Context, matchID string, req AdminMatchUpdateRequest) error {
+	log.Printf("[AdminUpdateMatch] Updating match %s with status=%s, remarks=%q, games=%d, cards=%d",
+		matchID, req.Status, req.Remarks, len(req.Games), len(req.Cards))
+
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -86,50 +94,102 @@ func (s *MatchService) AdminUpdateMatch(ctx context.Context, matchID string, req
 
 	qtx := store.New(tx)
 
-	// 1. Re-index games
-	for i := range req.Games {
-		req.Games[i].GameNumber = i + 1
+	matchRec, err := qtx.GetMatch(ctx, matchID)
+	if err != nil {
+		log.Printf("[AdminUpdateMatch] Error fetching match %s: %v", matchID, err)
+		return err
+	}
+	bestOf := int(matchRec.BestOf)
+	gamesToWin := (bestOf / 2) + 1
+
+	if len(req.Games) > bestOf {
+		return fmt.Errorf("invalid game count: maximum games for Best of %d is %d", bestOf, bestOf)
 	}
 
-	// 2. Strict Score Validation
-	if req.Remarks == "" {
-		for _, g := range req.Games {
-			maxScore := g.Team1Score
-			minScore := g.Team2Score
-			if g.Team2Score > maxScore {
-				maxScore = g.Team2Score
-				minScore = g.Team1Score
-			}
+	trimmedRemarks := strings.TrimSpace(req.Remarks)
+	t1Wins := 0
+	t2Wins := 0
 
-			if maxScore < 11 {
-				return fmt.Errorf("invalid score: neither team reached 11 points in game %d", g.GameNumber)
+	// 1. Validate games and compute statuses
+	for i := range req.Games {
+		g := &req.Games[i]
+		g.GameNumber = i + 1
+
+		maxScore := g.Team1Score
+		minScore := g.Team2Score
+		winner := 1
+		if g.Team2Score > maxScore {
+			maxScore = g.Team2Score
+			minScore = g.Team1Score
+			winner = 2
+		}
+
+		isCompletedObj := maxScore >= 11 && maxScore-minScore >= 2
+
+		if isCompletedObj {
+			g.Status = "completed"
+			if winner == 1 {
+				t1Wins++
+			} else {
+				t2Wins++
 			}
-			if maxScore == 11 && minScore > 9 {
-				return fmt.Errorf("invalid score: winning by 11 requires a 2-point difference in game %d", g.GameNumber)
+		} else {
+			if req.Status == "unstarted" && maxScore == 0 && minScore == 0 {
+				g.Status = "unstarted"
+			} else {
+				g.Status = "in_progress"
 			}
-			if maxScore > 11 && maxScore-minScore != 2 {
-				return fmt.Errorf("invalid score: deuce game requires exactly a 2-point difference in game %d", g.GameNumber)
+		}
+
+		if trimmedRemarks == "" {
+			// Validate if objectively completed
+			if g.Status == "completed" {
+				if maxScore < 11 {
+					return fmt.Errorf("invalid score: neither team reached 11 points in game %d", g.GameNumber)
+				}
+				if maxScore == 11 && minScore > 9 {
+					return fmt.Errorf("invalid score: winning by 11 requires a 2-point difference in game %d", g.GameNumber)
+				}
+				if maxScore > 11 && maxScore-minScore != 2 {
+					return fmt.Errorf("invalid score: deuce game requires exactly a 2-point difference in game %d", g.GameNumber)
+				}
+			}
+		}
+
+		// Sequence checking
+		if t1Wins == gamesToWin || t2Wins == gamesToWin {
+			if i < len(req.Games)-1 {
+				return fmt.Errorf("invalid game sequence: match already won by game %d, cannot have game %d", g.GameNumber, i+2)
 			}
 		}
 	}
 
-	// 3. Update match status & remarks via AdminUpdateMatch query
+	// 2. Match-level result checking
+	if req.Status == "completed" {
+		if t1Wins != gamesToWin && t2Wins != gamesToWin {
+			if trimmedRemarks == "" {
+				return fmt.Errorf("cannot set status to 'completed': no team has reached %d game wins. Please provide remarks (e.g. retirement/force-end reason)", gamesToWin)
+			}
+		}
+	}
+
+	// 3. Update match status & remarks
 	err = qtx.AdminUpdateMatch(ctx, store.AdminUpdateMatchParams{
 		Status:  req.Status,
-		Remarks: sql.NullString{String: req.Remarks, Valid: req.Remarks != ""},
+		Remarks: sql.NullString{String: trimmedRemarks, Valid: trimmedRemarks != ""},
 		ID:      matchID,
 	})
 	if err != nil {
 		return err
 	}
 
-	// 4. Clear all existing games for this match
+	// 4. Clear and insert games
 	err = qtx.DeleteGamesForMatch(ctx, matchID)
 	if err != nil {
 		return err
 	}
 
-	// 5. Insert the re-indexed games via UpsertGame
+	gameIDCache := make(map[int]string)
 	for _, g := range req.Games {
 		newGameID := uuid.New().String()
 		_, err := qtx.UpsertGame(ctx, store.UpsertGameParams{
@@ -143,9 +203,38 @@ func (s *MatchService) AdminUpdateMatch(ctx context.Context, matchID string, req
 		if err != nil {
 			return err
 		}
+		gameIDCache[g.GameNumber] = newGameID
 	}
 
-	return tx.Commit()
+	// 5. Handle Cards (Clear and Re-insert)
+	err = qtx.ClearCardsForMatch(ctx, matchID)
+	if err != nil {
+		return err
+	}
+	for _, card := range req.Cards {
+		targetGameID := gameIDCache[card.GameNumber]
+		cardID := uuid.New().String()
+		err = qtx.CreateCard(ctx, store.CreateCardParams{
+			ID:          cardID,
+			MatchID:     matchID,
+			GameID:      sql.NullString{String: targetGameID, Valid: targetGameID != ""},
+			TeamIndex:   int64(card.TeamIndex),
+			PlayerIndex: int64(card.PlayerIndex),
+			CardType:    card.CardType,
+			Reason:      sql.NullString{String: card.Reason, Valid: card.Reason != ""},
+		})
+		if err != nil {
+			log.Printf("[AdminUpdateMatch] Error creating card: %v", err)
+			return err
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	log.Printf("[AdminUpdateMatch] Successfully updated match %s", matchID)
+	return nil
 }
 
 func (s *MatchService) SyncMatch(ctx context.Context, req SyncMatchRequest) error {
@@ -394,6 +483,8 @@ func (s *MatchService) GetTodayMatches(ctx context.Context, history bool) ([]Mat
 			Team2:       t2,
 			Status:      dbm.Status,
 			TableNumber: int(dbm.TableNumber.Int64),
+			CurrentGame: int(dbm.CurrentGame),
+			Remarks:     dbm.Remarks.String,
 		})
 	}
 	if results == nil {
@@ -420,6 +511,7 @@ type MatchRow struct {
 	Team2P2Country sql.NullString
 	StateJson      sql.NullString
 	TableNumber    sql.NullInt64
+	Remarks        sql.NullString
 }
 
 func (s *MatchService) GetMatchState(ctx context.Context, id string) (*MatchFullState, error) {
@@ -454,6 +546,8 @@ func (s *MatchService) GetMatchState(ctx context.Context, id string) (*MatchFull
 		Status:      dbm.Status,
 		StateJson:   dbm.StateJson.String,
 		TableNumber: int(dbm.TableNumber.Int64),
+		CurrentGame: int(dbm.CurrentGame),
+		Remarks:     dbm.Remarks.String,
 	}
 
 	dbGames, err := s.store.GetGamesForMatch(ctx, id)
