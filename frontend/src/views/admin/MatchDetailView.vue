@@ -227,7 +227,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useAdminStore } from '@/stores/adminStore'
+import { useAdminStore } from '../../stores/adminStore'
 
 const route = useRoute()
 const router = useRouter()

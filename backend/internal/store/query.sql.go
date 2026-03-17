@@ -8,6 +8,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"strings"
 )
 
 const adminUpdateMatch = `-- name: AdminUpdateMatch :exec
@@ -127,6 +128,25 @@ DELETE FROM matches WHERE id = ?
 
 func (q *Queries) DeleteMatch(ctx context.Context, id string) error {
 	_, err := q.db.ExecContext(ctx, deleteMatch, id)
+	return err
+}
+
+const deleteMatches = `-- name: DeleteMatches :exec
+DELETE FROM matches WHERE id IN (/*SLICE:ids*/?)
+`
+
+func (q *Queries) DeleteMatches(ctx context.Context, ids []string) error {
+	query := deleteMatches
+	var queryParams []interface{}
+	if len(ids) > 0 {
+		for _, v := range ids {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:ids*/?", strings.Repeat(",?", len(ids))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:ids*/?", "NULL", 1)
+	}
+	_, err := q.db.ExecContext(ctx, query, queryParams...)
 	return err
 }
 

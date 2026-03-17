@@ -73,3 +73,5 @@ DELETE FROM games WHERE match_id = ?;
 
 -- name: DeleteMatch :exec
 DELETE FROM matches WHERE id = ?;
+-- name: DeleteMatches :exec
+DELETE FROM matches WHERE id IN (sqlc.slice('ids'));

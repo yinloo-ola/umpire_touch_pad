@@ -1,27 +1,44 @@
-## Symptom (New)
-**Issue:** Clicking "Edit Match" for an In-Progress match shows the dialog briefly then closes it (flickering).
+# Debug Session: Missing Bulk Deletion in Phase 3
 
-**When:** Match status is `in_progress`.
-**Expected:** Confirmation dialog stays open; once accepted, UI enters Edit mode and stays there.
-**Actual:** Dialog appears to auto-dismiss or the resulting Edit mode is immediately toggled back to read-only.
+## Symptom
+Phase 3 (Match Deletion) was marked as complete, but it only implements single match deletion from the `MatchDetailView`. The user expects "Bulk Deletion" (multiple matches at once) from the Admin Dashboard.
+
+**When:** Viewing `DashboardView.vue`.
+**Expected:** Interface to select multiple matches (checkboxes) and a "Delete Selected" button.
+**Actual:** No checkboxes, no bulk action button.
+
+## Evidence
+- `frontend/src/views/admin/DashboardView.vue`: Only has a table with rows that link to details. No multi-select logic.
+- `frontend/src/stores/adminStore.js`: Only has `deleteMatch(id)` (single match).
+- `backend/internal/api/handlers.go`: Only has `handleDeleteMatch` for `DELETE /api/matches/{id}`.
+- `backend/db/query.sql`: Only has `DeleteMatch` by ID.
 
 ## Hypotheses
+
 | # | Hypothesis | Likelihood | Status |
 |---|------------|------------|--------|
-| 1 | Double-triggering: `touchstart` + `click` events both fire `toggleEdit`. The delay of `window.confirm` allows the second click to hit the "Cancel" button in the same spot, toggling it back to false. | 90% | UNTESTED |
-| 2 | Polling/Refresh: Background refresh (if it exists) unmounts the component or resets `isEditing` during the dialog. | 20% | UNTESTED |
-| 3 | Browser native dialog quirks: `window.confirm` is being auto-dismissed or causing focus issues on touch devices. | 40% | UNTESTED |
+| 1 | Bulk deletion was missed entirely during Phase 3 planning and execution. | 100% | CONFIRMED |
+
+## Attempts
+
+### Attempt 1
+**Testing:** H1 — Missed requirement.
+**Action:** Implement bulk deletion across the stack.
+1. **Backend**: Add `DeleteMatches` query, Service method, and `POST /api/matches/bulk-delete` handler.
+2. **Frontend Store**: Add `deleteMatches(ids)` to `adminStore.js`.
+3. **Frontend UI**: Add checkboxes and "Delete Selected" button to `DashboardView.vue`.
+**Result:** Success. Bulk deletion is functional across the stack.
+**Conclusion:** CONFIRMED.
 
 ## Resolution
-1. **Best of 3 sequence**: Backend `AdminUpdateMatch` logic now tracks `t1Wins` and `t2Wins` during game loop and rejects if a game exists after a match is won.
-2. **Remarks validation**: Fixed `req.Status == "completed"` check to require trimmed remarks if the match is a tie or not objectively completed. Corrected frontend to show the error banner.
-3. **Auto status**: Backend now computes `g.Status` during validation based on scores (11 points, leader by 2). Frontend removed manual dropdown.
-4. **Cards editing**: Added `Cards` sync to `AdminUpdateMatch`. Backend now clears all cards and re-inserts from payload. Frontend cards list is now editable.
-5. **Card Section Visibility**: Fixed `MatchDetailView.vue` to show the table if `isEditing` is true, regardless of existing cards.
-6. **Backend Structs**: Added `Remarks` and `CurrentGame` to `Match` and `MatchRow` structs to ensure full data persistence and retrieval.
-7. **Date Format**: Fixed `MatchFormView.vue` to use separate Date and Time inputs for consistent cross-browser behavior and explicit DD/MM/YYYY guidance.
-8. **Edit Flicker**: Replaced native `window.confirm` with a custom UI state `showLiveConfirm` and added an event guard to `toggleEdit` to prevent rapid double-triggering. Cleaned up duplicate styles in `MatchDetailView.vue`.
 
-**Status: VERIFIED**
-
-
+**Root Cause:** Bulk deletion functionality was missing from the initial Phase 3 implementation, which only covered single match deletion from the detail view.
+**Fix:** 
+1. **Backend**: Added `DeleteMatches` query to `backend/db/query.sql`, `DeleteMatches` method to `MatchService`, and `handleBulkDeleteMatches` handler (POST `/api/matches/bulk-delete`) in `backend/internal/api/handlers.go`.
+2. **Frontend Store**: Added `deleteMatches(ids)` to `useAdminStore` in `frontend/src/stores/adminStore.js`.
+3. **Frontend UI**: 
+   - Added checkboxes and multi-select logic to `DashboardView.vue`.
+   - Added a "Delete Selected" button that appearing when matches are selected.
+   - Fixed a broken alias import in `MatchDetailView.vue` that was causing Vite compilation errors.
+**Verified:** Manual verification in browser using the admin dashboard. Screenshot captured at `/Users/yinlootan/.gemini/antigravity/brain/99df3824-d539-401b-a2b1-2772954d1d54/bulk_deletion_verification_1773708919361.png`.
+**Regression Check:** Single match deletion still works via the detail view. Frontend builds without errors.

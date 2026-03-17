@@ -153,6 +153,33 @@ func (h *APIHandler) handleDeleteMatch(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func (h *APIHandler) handleBulkDeleteMatches(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		IDs []string `json:"ids"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if len(req.IDs) == 0 {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	if err := h.svc.DeleteMatches(r.Context(), req.IDs); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 // SetupRoutes registers the API routes to the given mux.
 // Open routes: POST /api/login, POST /api/logout
 // Auth-guarded: GET /api/matches (any auth), POST /api/match (admin only), PUT /api/matches/{id}/sync (any auth)
@@ -171,4 +198,5 @@ func SetupRoutes(mux *http.ServeMux, svc *service.MatchService, authSvc *service
 	mux.HandleFunc("PUT /api/matches/{id}/sync", RequireAuth(authSvc, "", handler.handleSyncMatch))
 	mux.HandleFunc("PUT /api/admin/matches/{id}", RequireAuth(authSvc, "admin", handler.handleAdminUpdateMatch))
 	mux.HandleFunc("DELETE /api/matches/{id}", RequireAuth(authSvc, "admin", handler.handleDeleteMatch))
+	mux.HandleFunc("POST /api/matches/bulk-delete", RequireAuth(authSvc, "admin", handler.handleBulkDeleteMatches))
 }

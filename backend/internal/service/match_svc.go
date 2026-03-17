@@ -598,3 +598,8 @@ func (s *MatchService) DeleteMatch(ctx context.Context, id string) error {
 	log.Printf("[DeleteMatch] Deleting match %s", id)
 	return s.store.DeleteMatch(ctx, id)
 }
+
+func (s *MatchService) DeleteMatches(ctx context.Context, ids []string) error {
+	log.Printf("[DeleteMatches] Deleting matches: %v", ids)
+	return s.store.DeleteMatches(ctx, ids)
+}

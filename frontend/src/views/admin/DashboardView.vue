@@ -13,6 +13,19 @@
         </div>
       </div>
       <div class="header-actions">
+        <div v-if="selectedMatches.length > 0" class="bulk-actions">
+          <span class="selected-count">{{ selectedMatches.length }} selected</span>
+          
+          <div v-if="showBulkDeleteConfirm" class="confirm-group bulk-confirm">
+            <span class="confirm-msg">Delete {{ selectedMatches.length }}?</span>
+            <button @click="handleBulkDelete" class="confirm-yes-btn" :disabled="deleting">Yes</button>
+            <button @click="showBulkDeleteConfirm = false" class="confirm-no-btn" :disabled="deleting">No</button>
+          </div>
+          
+          <button v-else @click="showBulkDeleteConfirm = true" class="bulk-delete-btn" :disabled="deleting">
+            <i class="fa-solid fa-trash-can"></i> Delete Selected
+          </button>
+        </div>
         <router-link id="create-match-btn" to="/admin/match/new" class="create-btn">
           <span>+</span> Create Match
         </router-link>
@@ -72,6 +85,14 @@
       <table class="admin-table">
         <thead>
           <tr>
+            <th class="checkbox-cell">
+              <input 
+                type="checkbox" 
+                :checked="isAllSelected" 
+                :indeterminate="isPartiallySelected"
+                @change="toggleSelectAll"
+              >
+            </th>
             <th>Event</th>
             <th>Type</th>
             <th>Table</th>
@@ -87,8 +108,16 @@
             v-for="match in filteredMatches"
             :key="match.id"
             class="match-row"
+            :class="{ selected: selectedMatches.includes(match.id) }"
             @click="goToMatch(match.id)"
           >
+            <td class="checkbox-cell" @click.stop>
+              <input 
+                type="checkbox" 
+                v-model="selectedMatches" 
+                :value="match.id"
+              >
+            </td>
             <td class="event-cell">{{ match.event || '—' }}</td>
             <td><span class="type-badge" :class="match.type">{{ match.type }}</span></td>
             <td class="table-cell">
@@ -123,9 +152,12 @@ const adminStore = useAdminStore()
 const router = useRouter()
 const loading = ref(false)
 const error = ref('')
+const deleting = ref(false)
 const showHistory = ref(false)
 const statusFilter = ref('all')
 const tableFilter = ref('')
+const selectedMatches = ref([])
+const showBulkDeleteConfirm = ref(false)
 
 async function load() {
   loading.value = true
@@ -141,10 +173,44 @@ async function load() {
 
 async function toggleHistory() {
   showHistory.value = !showHistory.value
+  selectedMatches.value = []
   await load()
 }
 
 import { computed } from 'vue'
+
+const isAllSelected = computed(() => {
+  return filteredMatches.value.length > 0 && selectedMatches.value.length === filteredMatches.value.length
+})
+
+const isPartiallySelected = computed(() => {
+  return selectedMatches.value.length > 0 && selectedMatches.value.length < filteredMatches.value.length
+})
+
+function toggleSelectAll() {
+  if (isAllSelected.value) {
+    selectedMatches.value = []
+  } else {
+    selectedMatches.value = filteredMatches.value.map(m => m.id)
+  }
+}
+
+async function handleBulkDelete() {
+  if (!selectedMatches.value.length) return
+  
+  deleting.value = true
+  error.value = ''
+  try {
+    await adminStore.deleteMatches(selectedMatches.value)
+    selectedMatches.value = []
+    showBulkDeleteConfirm.value = false
+    await load()
+  } catch (e) {
+    error.value = e.message || 'Failed to delete matches'
+  } finally {
+    deleting.value = false
+  }
+}
 const availableTables = computed(() => {
   const tables = adminStore.matches
     .map(m => m.tableNumber)
@@ -199,7 +265,7 @@ onMounted(load)
 .page-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
   margin-bottom: 2rem;
 }
 
@@ -265,6 +331,11 @@ onMounted(load)
 .create-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(33, 156, 6, 0.5);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
 }
 
 .filter-bar {
@@ -530,5 +601,105 @@ onMounted(load)
 .match-row:hover .view-arrow {
   transform: translateX(4px);
   color: #94a3b8;
+}
+.match-row.selected {
+  background: rgba(33, 156, 6, 0.08);
+}
+
+.match-row.selected td {
+  color: #f1f5f9;
+}
+
+.bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-right: 1.5rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  margin-right: 1.5rem;
+}
+
+.selected-count {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #4ade80;
+}
+
+.bulk-delete-btn {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.bulk-delete-btn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.bulk-delete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.checkbox-cell {
+  width: 48px;
+  padding-right: 0 !important;
+  text-align: center !important;
+}
+
+.checkbox-cell input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #219c06;
+}
+
+.confirm-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(244, 63, 94, 0.1);
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(244, 63, 94, 0.2);
+}
+
+.confirm-msg {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fb7185;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.confirm-yes-btn {
+  background: #e11d48;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.confirm-no-btn {
+  background: #475569;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 </style>
