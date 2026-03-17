@@ -70,3 +70,6 @@ UPDATE matches SET status = ?, remarks = ?, updated_at = CURRENT_TIMESTAMP WHERE
 
 -- name: DeleteGamesForMatch :exec
 DELETE FROM games WHERE match_id = ?;
+
+-- name: DeleteMatch :exec
+DELETE FROM matches WHERE id = ?;

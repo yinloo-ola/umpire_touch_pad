@@ -593,3 +593,8 @@ func (s *MatchService) GetMatchState(ctx context.Context, id string) (*MatchFull
 		Cards: cards,
 	}, nil
 }
+
+func (s *MatchService) DeleteMatch(ctx context.Context, id string) error {
+	log.Printf("[DeleteMatch] Deleting match %s", id)
+	return s.store.DeleteMatch(ctx, id)
+}

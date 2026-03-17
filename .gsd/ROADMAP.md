@@ -27,7 +27,7 @@
 **Objective**: Build backend endpoints and an administrative UI page to manually override a match's status, add or delete games, and edit any specific game score.
 
 ### Phase 3: Match Deletion
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Enable administrators to delete matches from the database via the Admin Dashboard. Include confirmation dialogs to prevent accidental deletion.
 
 ### Phase 4: Admin Match Editing Capabilities (Cards & Advanced Status)

@@ -14,6 +14,7 @@ type Querier interface {
 	CreateCard(ctx context.Context, arg CreateCardParams) error
 	CreateMatch(ctx context.Context, arg CreateMatchParams) error
 	DeleteGamesForMatch(ctx context.Context, matchID string) error
+	DeleteMatch(ctx context.Context, id string) error
 	GetAllMatches(ctx context.Context) ([]GetAllMatchesRow, error)
 	GetCardsForMatch(ctx context.Context, matchID string) ([]Card, error)
 	GetGameIDByNumber(ctx context.Context, arg GetGameIDByNumberParams) (string, error)

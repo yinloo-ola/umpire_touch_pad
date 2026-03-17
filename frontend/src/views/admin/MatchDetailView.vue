@@ -27,6 +27,14 @@
               <button @click="saveChanges" class="save-btn" :disabled="isSaving">{{ isSaving ? 'Saving...' : 'Save Changes' }}</button>
               <button @click="toggleEdit" class="cancel-btn" :disabled="isSaving">Cancel</button>
            </template>
+
+           <!-- Delete Match -->
+           <div v-if="showDeleteConfirm" class="confirm-group delete-confirm">
+             <span class="confirm-msg">Delete this match?</span>
+             <button @click="confirmDelete" class="confirm-yes-btn" :disabled="isDeleting">Confirm</button>
+             <button @click="showDeleteConfirm = false" class="confirm-no-btn" :disabled="isDeleting">Cancel</button>
+           </div>
+           <button v-else-if="!isEditing" @click="showDeleteConfirm = true" class="delete-match-btn">Delete Match</button>
         </div>
       </div>
       <p class="page-subtitle">ID: <strong>{{ matchId }}</strong> • {{ matchData?.match.scheduled_date ? new Date(matchData.match.scheduled_date).toLocaleDateString() : '—' }}</p>
@@ -218,18 +226,22 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { useAdminStore } from '@/stores/adminStore'
 
 const route = useRoute()
+const router = useRouter()
+const adminStore = useAdminStore()
 const matchId = computed(() => route.params.id)
 const matchData = ref(null)
 const loading = ref(true)
 const error = ref('')
 
-const isEditing = ref(false)
 const isSaving = ref(false)
+const isDeleting = ref(false)
 const saveError = ref('')
 const showLiveConfirm = ref(false)
+const showDeleteConfirm = ref(false)
 const editForm = ref({
   status: 'unstarted',
   remarks: '',
@@ -344,6 +356,22 @@ async function saveChanges() {
   }
 }
 
+async function confirmDelete() {
+  isDeleting.value = true
+  saveError.value = ''
+  try {
+    await adminStore.deleteMatch(route.params.id)
+    router.push('/admin')
+  } catch (e) {
+    console.error('Error deleting match:', e)
+    saveError.value = e.message || 'Failed to delete match'
+    showDeleteConfirm.value = false
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  } finally {
+    isDeleting.value = false
+  }
+}
+
 async function load() {
   loading.value = true
   error.value = ''
@@ -406,8 +434,33 @@ onMounted(load)
 .save-btn { background: #22c55e; color: white; }
 .save-btn:hover { background: #16a34a; }
 .save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-.cancel-btn { background: #475569; color: white; }
 .cancel-btn:hover { background: #334155; }
+
+.delete-match-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  background: rgba(248, 113, 113, 0.1);
+  color: #f87171;
+  transition: all 0.2s;
+}
+
+.delete-match-btn:hover {
+  background: #ef4444;
+  color: white;
+}
+
+.delete-confirm {
+  background: rgba(239, 68, 68, 0.1) !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+
+.delete-confirm .confirm-msg {
+  color: #ef4444 !important;
+}
 
 .status-select {
   padding: 0.35rem;

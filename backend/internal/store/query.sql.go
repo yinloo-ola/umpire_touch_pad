@@ -121,6 +121,15 @@ func (q *Queries) DeleteGamesForMatch(ctx context.Context, matchID string) error
 	return err
 }
 
+const deleteMatch = `-- name: DeleteMatch :exec
+DELETE FROM matches WHERE id = ?
+`
+
+func (q *Queries) DeleteMatch(ctx context.Context, id string) error {
+	_, err := q.db.ExecContext(ctx, deleteMatch, id)
+	return err
+}
+
 const getAllMatches = `-- name: GetAllMatches :many
 SELECT id, title, scheduled_date, status, current_game, team1_p1_name, team1_p2_name, team2_p1_name, team2_p2_name, best_of, team1_p1_country, team1_p2_country, team2_p1_country, team2_p2_country, created_at, updated_at, state_json, table_number, remarks FROM matches 
 ORDER BY scheduled_date DESC

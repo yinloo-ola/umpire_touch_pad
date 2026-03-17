@@ -82,6 +82,17 @@ export const useAdminStore = defineStore('admin', () => {
         }
     }
 
+    async function deleteMatch(id) {
+        const res = await fetch(`${API_BASE}/api/matches/${id}`, {
+            method: 'DELETE',
+            credentials: 'include',
+        })
+        if (!res.ok) {
+            const text = await res.text()
+            throw new Error(text || 'Failed to delete match')
+        }
+    }
+
     return {
         isAuthenticated,
         role,
@@ -90,6 +101,7 @@ export const useAdminStore = defineStore('admin', () => {
         logout,
         fetchMatches,
         createMatch,
+        deleteMatch,
         checkAuth,
     }
 })
