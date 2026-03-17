@@ -26,15 +26,19 @@
 **Status**: ✅ Complete
 **Objective**: Build backend endpoints and an administrative UI page to manually override a match's status, add or delete games, and edit any specific game score.
 
-### Phase 3: Admin Match Editing Capabilities (Cards & Advanced Status)
+### Phase 3: Match Deletion
+**Status**: ⬜ Not Started
+**Objective**: Enable administrators to delete matches from the database via the Admin Dashboard. Include confirmation dialogs to prevent accidental deletion.
+
+### Phase 4: Admin Match Editing Capabilities (Cards & Advanced Status)
 **Status**: ⬜ Not Started
 **Objective**: Extend the administrative UI to allow an admin to issue or remove penalty cards and timeout properties.
 
-### Phase 4: Public Matches Dashboard (Backend & Structure)
+### Phase 5: Public Matches Dashboard (Backend & Structure)
 **Status**: ⬜ Not Started
 **Objective**: Create unauthenticated API endpoints that aggregate complete, scheduled, and live matches. Set up the Vue frontend routing and initial layout for the public viewer.
 
-### Phase 5: Public Matches Dashboard (UI & Responsiveness)
+### Phase 6: Public Matches Dashboard (UI & Responsiveness)
 **Status**: ⬜ Not Started
 **Objective**: Implement the detailed responsive UI referencing the sample designs. Organize matches visually into sections (Completed, Scheduled, Live). Ensure styling matches the premium design and search/filtering inputs are functional.
 

@@ -1,4 +1,19 @@
-## Phase 3 Decisions
+## Phase 3 Decisions (Match Deletion)
+
+**Date:** 2026-03-17
+
+### Scope
+- **Location**: Match deletion will be implemented on the **Match List** (Admin Dashboard).
+- **Bulk Actions**: Administrators will have the ability to select multiple matches for bulk deletion.
+
+### Approach
+- **Chose**: Hard Delete
+- **Reason**: Keep the database lean and avoid the overhead of filtering soft-deleted records. Hard delete will include cascading deletion of related entities (games, cards, etc.).
+
+### Constraints
+- **Confirmation**: A modal confirmation dialog is required before any deletion (individual or bulk) is executed.
+
+## Core State Sync Decisions (Historical Phase 3)
 
 **Date:** 2026-03-05
 
