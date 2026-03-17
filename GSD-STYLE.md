@@ -260,6 +260,15 @@ Option B: {description}
 Which do you prefer?
 ```
 
+### Inline Confirmation
+
+**Rule:** Avoid native browser `confirm()` or blocking dialogs for destructive actions.
+**Preferred Pattern:** Use in-situ "Yes/No" button replacements (Inline Confirmation).
+**Reason:** 
+- Native `confirm()` freezes the JS thread and can flickering/dismiss unexpectedly due to race conditions or event bubbling.
+- Inline confirmations provide better UX and visual consistency with the app's design system.
+- Prevents "ghost clicks" from auto-dismissing important safety checks.
+
 ---
 
 ## Summary: Core Meta-Patterns
