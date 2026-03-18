@@ -27,7 +27,7 @@ Every change requires verification evidence:
 | Change Type | Required Proof |
 |-------------|----------------|
 | API endpoint | curl/HTTP response |
-| UI change | Screenshot |
+| UI change | Screenshot + Interaction via `agent-browser` |
 | Build/compile | Command output |
 | Test | Test runner output |
 | Config | Verification command |
@@ -35,6 +35,20 @@ Every change requires verification evidence:
 **Never accept**: "It looks correct", "This should work", "I've done similar before".
 
 **Always require**: Captured output, screenshot, or test result.
+
+---
+
+## GUI Verification Rule
+
+**Mandatory**: Any changes affecting the Graphical User Interface (GUI) must be verified using the `agent-browser` skill.
+
+**Protocol:**
+1. **Navigate** to the affected page(s)
+2. **Interact** with the new/modified elements
+3. **Capture** evidence (screenshot, annotated screenshot, or video recording)
+4. **Compare** against requirements using `agent-browser diff` (optional but recommended)
+
+**Never accept** local file views or "it looks right in my imagination" as proof for GUI changes.
 
 ---
 
@@ -249,7 +263,7 @@ Before file read → Search first, then targeted read
 After each task  → Commit + update STATE.md
 After each wave  → State snapshot
 After 3 failures → State dump + fresh session
-Before "Done"    → Empirical proof captured
+Before "Done"    → Empirical proof captured (GUI: use `agent-browser`)
 ```
 
 ---
