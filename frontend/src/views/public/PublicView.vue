@@ -348,10 +348,13 @@ function handleRetry() {
   --radius-sm: 8px;
   --radius-pill: 999px;
 
-  min-height: 100vh;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   background: var(--bg-main);
   font-family: 'Outfit', system-ui, -apple-system, sans-serif;
   color: var(--text-primary);
+  overflow: hidden;
   /* Subtle background texture for depth */
   background-image:
     radial-gradient(ellipse at top, rgba(37, 99, 235, 0.03) 0%, transparent 50%),
@@ -476,14 +479,12 @@ function handleRetry() {
 
 /* Filter Bar - responsive stacking on mobile */
 .filter-bar {
-  max-width: 1280px;
-  margin: 0 auto;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
   padding: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--border);
 }
 
 /* Tablet+: horizontal layout */
@@ -547,8 +548,6 @@ function handleRetry() {
 
 /* Tab Navigation - pill-style with clear active state */
 .tab-nav {
-  max-width: 1280px;
-  margin: 0 auto;
   padding: 0 1rem;
   display: flex;
   gap: 0.5rem;
@@ -637,6 +636,10 @@ function handleRetry() {
   max-width: 1280px;
   margin: 0 auto;
   padding: 1.25rem 1rem;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  width: 100%;
 }
 
 /* Desktop: larger padding */
