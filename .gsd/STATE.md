@@ -9,7 +9,8 @@ Phase 3 (Match Deletion) was empirically verified using a browser subagent and b
 - Verified single match deletion from Detail View.
 - Verified bulk match deletion from Admin Dashboard.
 - Verified database integrity with `ON DELETE CASCADE`.
-- All verification steps passed.
+
+**Hotfix:** Fixed a `ReferenceError: isEditing is not defined` in `MatchDetailView.vue` that was preventing the edit mode from toggling.
 
 ## Next Steps
 1. Proceed to Phase 4 (Admin Match Editing Capabilities - Cards & Advanced Status).

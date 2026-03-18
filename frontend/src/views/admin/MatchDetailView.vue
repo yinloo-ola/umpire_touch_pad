@@ -238,6 +238,7 @@ const loading = ref(true)
 const error = ref('')
 
 const isSaving = ref(false)
+const isEditing = ref(false)
 const isDeleting = ref(false)
 const saveError = ref('')
 const showLiveConfirm = ref(false)
