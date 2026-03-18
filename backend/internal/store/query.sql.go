@@ -220,6 +220,83 @@ func (q *Queries) GetAllMatches(ctx context.Context) ([]GetAllMatchesRow, error)
 	return items, nil
 }
 
+const getAllMatchesWithGames = `-- name: GetAllMatchesWithGames :many
+SELECT
+    m.id, m.title, m.scheduled_date, m.status, m.table_number,
+    m.team1_p1_name, m.team1_p2_name, m.team2_p1_name, m.team2_p2_name,
+    m.team1_p1_country, m.team1_p2_country, m.team2_p1_country, m.team2_p2_country,
+    m.best_of,
+    g.id AS game_id, g.game_number, g.team1_score, g.team2_score, g.status AS game_status
+FROM matches m
+LEFT JOIN games g ON m.id = g.match_id
+ORDER BY m.scheduled_date ASC, g.game_number ASC
+`
+
+type GetAllMatchesWithGamesRow struct {
+	ID             string         `json:"id"`
+	Title          string         `json:"title"`
+	ScheduledDate  string         `json:"scheduled_date"`
+	Status         string         `json:"status"`
+	TableNumber    sql.NullInt64  `json:"table_number"`
+	Team1P1Name    string         `json:"team1_p1_name"`
+	Team1P2Name    sql.NullString `json:"team1_p2_name"`
+	Team2P1Name    string         `json:"team2_p1_name"`
+	Team2P2Name    sql.NullString `json:"team2_p2_name"`
+	Team1P1Country sql.NullString `json:"team1_p1_country"`
+	Team1P2Country sql.NullString `json:"team1_p2_country"`
+	Team2P1Country sql.NullString `json:"team2_p1_country"`
+	Team2P2Country sql.NullString `json:"team2_p2_country"`
+	BestOf         int64          `json:"best_of"`
+	GameID         sql.NullString `json:"game_id"`
+	GameNumber     sql.NullInt64  `json:"game_number"`
+	Team1Score     sql.NullInt64  `json:"team1_score"`
+	Team2Score     sql.NullInt64  `json:"team2_score"`
+	GameStatus     sql.NullString `json:"game_status"`
+}
+
+func (q *Queries) GetAllMatchesWithGames(ctx context.Context) ([]GetAllMatchesWithGamesRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAllMatchesWithGames)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllMatchesWithGamesRow
+	for rows.Next() {
+		var i GetAllMatchesWithGamesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.ScheduledDate,
+			&i.Status,
+			&i.TableNumber,
+			&i.Team1P1Name,
+			&i.Team1P2Name,
+			&i.Team2P1Name,
+			&i.Team2P2Name,
+			&i.Team1P1Country,
+			&i.Team1P2Country,
+			&i.Team2P1Country,
+			&i.Team2P2Country,
+			&i.BestOf,
+			&i.GameID,
+			&i.GameNumber,
+			&i.Team1Score,
+			&i.Team2Score,
+			&i.GameStatus,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getCardsForMatch = `-- name: GetCardsForMatch :many
 SELECT id, match_id, game_id, team_index, player_index, card_type, reason, created_at FROM cards 
 WHERE match_id = ?

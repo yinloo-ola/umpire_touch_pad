@@ -168,9 +168,7 @@
                 <tr v-for="(c, idx) in matchData.cards" :key="idx">
                   <td>Game {{ c.gameNumber }}</td>
                   <td>Team {{ c.teamIndex }}</td>
-                  <td>
-                    {{ c.playerIndex === -1 ? 'Coach' : (c.playerIndex === -2 ? 'Team' : 'Player') }}
-                  </td>
+                  <td>{{ getPlayerName(c.teamIndex, c.playerIndex) }}</td>
                   <td>
                     <span :class="['card-pill', c.cardType.toLowerCase().replace('-', '')]">
                       {{ c.cardType }}
@@ -189,17 +187,17 @@
                    </td>
                    <td>
                      <select v-model.number="c.playerIndex" class="status-select-sm">
-                       <option :value="0">Player 1</option>
-                       <option :value="1">Player 2</option>
-                       <option :value="-1">Coach</option>
-                       <option :value="-2">Team</option>
+                       <option v-for="opt in getPlayerOptions(c.teamIndex)" :key="opt.value" :value="opt.value">
+                         {{ opt.label }}
+                       </option>
                      </select>
                    </td>
                    <td>
                      <select v-model="c.cardType" class="status-select-sm">
                        <option value="Yellow">Yellow</option>
-                       <option value="Yellow-Red">Yellow-Red (1pt)</option>
-                       <option value="Yellow-Red-2">Yellow-Red (2pt)</option>
+                       <option value="YR1">YR1</option>
+                       <option value="YR2">YR2</option>
+                       <option value="Red">Red</option>
                        <option value="Timeout">Timeout</option>
                      </select>
                    </td>
@@ -392,6 +390,56 @@ async function load() {
 function formatStatus(status) {
   if (!status) return 'Unstarted'
   return status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')
+}
+
+/**
+ * Resolve player name from teamIndex and playerIndex.
+ * Special cases: -1 = Coach, -2 = Team
+ */
+function getPlayerName(teamIndex, playerIndex) {
+  if (playerIndex === -1) return 'Coach'
+  if (playerIndex === -2) return 'Team'
+  
+  if (!matchData.value?.match) {
+    return `Player ${playerIndex + 1}`
+  }
+  
+  const team = teamIndex === 1 ? matchData.value.match.team1 : matchData.value.match.team2
+  if (!team || !team[playerIndex]) {
+    console.warn(`Player not found: teamIndex=${teamIndex}, playerIndex=${playerIndex}`)
+    return `Player ${playerIndex + 1}`
+  }
+  
+  return team[playerIndex].name || `Player ${playerIndex + 1}`
+}
+
+/**
+ * Get player options for dropdown based on team selection.
+ * Returns array of { value, label } objects.
+ */
+function getPlayerOptions(teamIndex) {
+  const options = []
+  
+  if (!matchData.value?.match) {
+    options.push({ value: 0, label: 'Player 1' })
+    options.push({ value: 1, label: 'Player 2' })
+  } else {
+    const team = teamIndex === 1 ? matchData.value.match.team1 : matchData.value.match.team2
+    if (team && team.length > 0) {
+      team.forEach((player, idx) => {
+        options.push({ value: idx, label: player.name || `Player ${idx + 1}` })
+      })
+    } else {
+      options.push({ value: 0, label: 'Player 1' })
+      options.push({ value: 1, label: 'Player 2' })
+    }
+  }
+  
+  // Add special options
+  options.push({ value: -1, label: 'Coach' })
+  options.push({ value: -2, label: 'Team' })
+  
+  return options
 }
 
 onMounted(load)
@@ -748,6 +796,8 @@ onMounted(load)
 
 .card-pill.yellow { background: #facc15; color: #422006; }
 .card-pill.yellowred { background: linear-gradient(to right, #facc15, #f87171); color: #450a0a; }
+.card-pill.yr1 { background: linear-gradient(to right, #facc15, #f87171); color: #450a0a; }
+.card-pill.yr2 { background: linear-gradient(to right, #facc15, #f87171); color: #450a0a; }
 .card-pill.red { background: #f87171; color: #450a0a; }
 .card-pill.timeout { background: #60a5fa; color: #1e3a8a; }
 

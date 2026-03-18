@@ -7,6 +7,7 @@ import AdminLayout from '../components/admin/AdminLayout.vue'
 import AdminDashboard from '../views/admin/DashboardView.vue'
 import AdminMatchForm from '../views/admin/MatchFormView.vue'
 import AdminMatchDetail from '../views/admin/MatchDetailView.vue'
+import PublicView from '../views/public/PublicView.vue'
 import { useAdminStore } from '../stores/adminStore'
 
 const router = createRouter({
@@ -64,6 +65,11 @@ const router = createRouter({
           component: AdminMatchDetail,
         },
       ],
+    },
+    {
+      path: '/public',
+      name: 'public',
+      component: PublicView,
     },
   ],
 })
