@@ -324,7 +324,7 @@ async function saveChanges() {
   })
   
   try {
-    const resp = await fetch(`http://localhost:8080/api/admin/matches/${route.params.id}`, {
+    const resp = await fetch(`/api/admin/matches/${route.params.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
@@ -375,7 +375,7 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    const resp = await fetch(`http://localhost:8080/api/matches/${route.params.id}`, {
+    const resp = await fetch(`/api/matches/${route.params.id}`, {
       credentials: 'include'
     })
     if (!resp.ok) throw new Error('Match detail not found')
