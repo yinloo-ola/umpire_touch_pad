@@ -1,8 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
-const API_BASE = 'http://localhost:8080'
-
 export const usePublicStore = defineStore('public', () => {
     const completed = ref([])
     const scheduled = ref([])
@@ -15,7 +13,7 @@ export const usePublicStore = defineStore('public', () => {
         loading.value = true
         error.value = null
         try {
-            const res = await fetch(`${API_BASE}/api/public/matches`, {
+            const res = await fetch(`/api/public/matches`, {
                 // No credentials - public endpoint
             })
             if (!res.ok) {

@@ -1,15 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
-const API_BASE = 'http://localhost:8080'
-
 export const useAdminStore = defineStore('admin', () => {
     const isAuthenticated = ref(false)
     const role = ref('')
     const matches = ref([])
 
     async function login(username, password) {
-        const res = await fetch(`${API_BASE}/api/login`, {
+        const res = await fetch(`/api/login`, {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
@@ -25,7 +23,7 @@ export const useAdminStore = defineStore('admin', () => {
     }
 
     async function logout() {
-        await fetch(`${API_BASE}/api/logout`, {
+        await fetch(`/api/logout`, {
             method: 'POST',
             credentials: 'include',
         })
@@ -35,7 +33,7 @@ export const useAdminStore = defineStore('admin', () => {
     }
 
     async function fetchMatches(history = false) {
-        const url = history ? `${API_BASE}/api/matches?history=true` : `${API_BASE}/api/matches`
+        const url = history ? `/api/matches?history=true` : `/api/matches`
         const res = await fetch(url, {
             credentials: 'include',
         })
@@ -46,7 +44,7 @@ export const useAdminStore = defineStore('admin', () => {
     }
 
     async function createMatch(payload) {
-        const res = await fetch(`${API_BASE}/api/match`, {
+        const res = await fetch(`/api/match`, {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
@@ -65,7 +63,7 @@ export const useAdminStore = defineStore('admin', () => {
     async function checkAuth() {
         if (isAuthenticated.value) return true  // already hydrated this session
         try {
-            const res = await fetch(`${API_BASE}/api/me`, {
+            const res = await fetch(`/api/me`, {
                 credentials: 'include',
             })
             if (!res.ok) {
@@ -83,7 +81,7 @@ export const useAdminStore = defineStore('admin', () => {
     }
 
     async function deleteMatch(id) {
-        const res = await fetch(`${API_BASE}/api/matches/${id}`, {
+        const res = await fetch(`/api/matches/${id}`, {
             method: 'DELETE',
             credentials: 'include',
         })
@@ -94,7 +92,7 @@ export const useAdminStore = defineStore('admin', () => {
     }
 
     async function deleteMatches(ids) {
-        const res = await fetch(`${API_BASE}/api/matches/bulk-delete`, {
+        const res = await fetch(`/api/matches/bulk-delete`, {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },

@@ -260,7 +260,7 @@ export const useMatchStore = defineStore('match', {
 
     async fetchMatchState(id) {
       try {
-        const resp = await fetch(`http://localhost:8080/api/matches/${id}`, {
+        const resp = await fetch(`/api/matches/${id}`, {
           credentials: 'include'
         })
         if (!resp.ok) throw new Error('Failed to fetch match state')
@@ -1332,7 +1332,7 @@ export const useMatchStore = defineStore('match', {
       }
 
       try {
-        const resp = await fetch(`http://localhost:8080/api/matches/${this.currentMatch.id}/sync`, {
+        const resp = await fetch(`/api/matches/${this.currentMatch.id}/sync`, {
           method: 'PUT',
           credentials: 'include',
           headers: {
