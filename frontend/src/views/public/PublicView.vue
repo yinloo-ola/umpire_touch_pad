@@ -18,14 +18,12 @@ onMounted(() => {
 const allMatches = computed(() => [
   ...publicStore.completed,
   ...publicStore.scheduled,
-  ...publicStore.live
+  ...publicStore.live,
 ])
 
 // Computed: unique table numbers for filter dropdown
 const availableTables = computed(() => {
-  const tables = allMatches.value
-    .map(m => m.tableNumber)
-    .filter(t => t != null && t > 0)
+  const tables = allMatches.value.map((m) => m.tableNumber).filter((t) => t != null && t > 0)
   return [...new Set(tables)].sort((a, b) => a - b)
 })
 
@@ -52,20 +50,20 @@ const currentMatches = computed(() => {
   if (activeTab.value === 'completed') matches = publicStore.completed
   else if (activeTab.value === 'scheduled') matches = publicStore.scheduled
   else matches = publicStore.live
-  
+
   // Apply table filter
   if (tableFilter.value) {
     const tNum = parseInt(tableFilter.value)
-    matches = matches.filter(m => m.tableNumber === tNum)
+    matches = matches.filter((m) => m.tableNumber === tNum)
   }
-  
+
   // Apply time filter
   if (timeFilter.value === 'today') {
-    matches = matches.filter(m => isToday(m.scheduledDate))
+    matches = matches.filter((m) => isToday(m.scheduledDate))
   } else if (timeFilter.value === 'upcoming') {
-    matches = matches.filter(m => isFuture(m.scheduledDate))
+    matches = matches.filter((m) => isFuture(m.scheduledDate))
   }
-  
+
   return matches
 })
 
@@ -73,11 +71,11 @@ const currentMatches = computed(() => {
 const formattedLastUpdated = computed(() => {
   if (!publicStore.lastUpdated) return 'Never'
   const date = new Date(publicStore.lastUpdated)
-  return date.toLocaleTimeString('en-US', { 
-    hour: '2-digit', 
+  return date.toLocaleTimeString('en-US', {
+    hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    hour12: false 
+    hour12: false,
   })
 })
 
@@ -107,7 +105,7 @@ function getAggregateScore(match) {
 function getGameScores(match) {
   if (!match.games || match.games.length === 0) return ''
   return match.games
-    .filter(g => g.status === 'completed' || g.team1Score > 0 || g.team2Score > 0)
+    .filter((g) => g.status === 'completed' || g.team1Score > 0 || g.team2Score > 0)
     .map(formatGameScore)
     .join(', ')
 }
@@ -131,8 +129,17 @@ function handleRetry() {
         <h1 class="page-title">Tournament Matches</h1>
         <div class="header-actions">
           <button @click="handleRefresh" class="refresh-btn" :disabled="publicStore.loading">
-            <svg class="refresh-icon" :class="{ spinning: publicStore.loading }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
+            <svg
+              class="refresh-icon"
+              :class="{ spinning: publicStore.loading }"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"
+              />
             </svg>
             <span>Refresh</span>
           </button>
@@ -162,24 +169,21 @@ function handleRetry() {
 
     <!-- Tab Navigation -->
     <nav class="tab-nav">
-      <button 
+      <button
         :class="['tab-btn', { active: activeTab === 'completed' }]"
         @click="setTab('completed')"
       >
         <span class="tab-label">Completed</span>
         <span class="tab-count">{{ publicStore.completed.length }}</span>
       </button>
-      <button 
+      <button
         :class="['tab-btn', { active: activeTab === 'scheduled' }]"
         @click="setTab('scheduled')"
       >
         <span class="tab-label">Scheduled</span>
         <span class="tab-count">{{ publicStore.scheduled.length }}</span>
       </button>
-      <button 
-        :class="['tab-btn', { active: activeTab === 'live' }]"
-        @click="setTab('live')"
-      >
+      <button :class="['tab-btn', { active: activeTab === 'live' }]" @click="setTab('live')">
         <span class="tab-label">Live</span>
         <span class="tab-count">{{ publicStore.live.length }}</span>
       </button>
@@ -195,10 +199,16 @@ function handleRetry() {
 
       <!-- Error State -->
       <div v-else-if="publicStore.error" class="error-state">
-        <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="12" y1="8" x2="12" y2="12"/>
-          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        <svg
+          class="error-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
         <p>{{ publicStore.error }}</p>
         <button @click="handleRetry" class="retry-btn">Try Again</button>
@@ -206,32 +216,34 @@ function handleRetry() {
 
       <!-- Empty State -->
       <div v-else-if="currentMatches.length === 0" class="empty-state">
-        <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-          <line x1="16" y1="2" x2="16" y2="6"/>
-          <line x1="8" y1="2" x2="8" y2="6"/>
-          <line x1="3" y1="10" x2="21" y2="10"/>
+        <svg
+          class="empty-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+        >
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
         </svg>
         <p>No {{ activeTab }} matches{{ tableFilter ? ` for Table ${tableFilter}` : '' }}</p>
       </div>
 
       <!-- Match Cards -->
       <div v-else class="match-cards">
-        <div 
-          v-for="match in currentMatches" 
-          :key="match.id" 
+        <div
+          v-for="match in currentMatches"
+          :key="match.id"
           class="match-card"
           :class="{ 'is-live': activeTab === 'live' }"
         >
           <!-- Card Header: Title & Table -->
           <div class="card-header">
             <h3 class="match-title">{{ match.title || match.event || 'Match' }}</h3>
-            <span class="table-badge" v-if="match.tableNumber">
-              T{{ match.tableNumber }}
-            </span>
-            <span class="table-badge unassigned" v-else>
-              --
-            </span>
+            <span class="table-badge" v-if="match.tableNumber"> T{{ match.tableNumber }} </span>
+            <span class="table-badge unassigned" v-else> -- </span>
           </div>
 
           <!-- Teams Section -->
@@ -279,24 +291,35 @@ function handleRetry() {
           </div>
 
           <!-- Game Scores -->
-          <div class="game-scores" v-if="(activeTab === 'completed' || activeTab === 'live') && getGameScores(match)">
+          <div
+            class="game-scores"
+            v-if="(activeTab === 'completed' || activeTab === 'live') && getGameScores(match)"
+          >
             <span class="scores-label">Games:</span>
             <span class="scores-value">{{ getGameScores(match) }}</span>
           </div>
 
           <!-- Scheduled Time -->
           <div class="scheduled-time" v-if="activeTab === 'scheduled' && match.scheduledDate">
-            <svg class="clock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <polyline points="12 6 12 12 16 14"/>
+            <svg
+              class="clock-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
             </svg>
-            <span>{{ new Date(match.scheduledDate).toLocaleString('en-US', { 
-              weekday: 'short',
-              month: 'short', 
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            }) }}</span>
+            <span>{{
+              new Date(match.scheduledDate).toLocaleString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              })
+            }}</span>
           </div>
 
           <!-- Live Indicator -->
@@ -352,7 +375,11 @@ function handleRetry() {
   display: flex;
   flex-direction: column;
   background: var(--bg-main);
-  font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+  font-family:
+    'Outfit',
+    system-ui,
+    -apple-system,
+    sans-serif;
   color: var(--text-primary);
   overflow: hidden;
   /* Subtle background texture for depth */
@@ -467,8 +494,12 @@ function handleRetry() {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .last-updated {
@@ -532,7 +563,9 @@ function handleRetry() {
   background-repeat: no-repeat;
   background-position: right 0.5rem center;
   background-size: 1.125rem;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
   min-width: 120px;
 }
 
@@ -622,14 +655,29 @@ function handleRetry() {
   position: relative;
 }
 
-.tab-btn:nth-child(1).active .tab-count { background: var(--accent-completed); }
-.tab-btn:nth-child(1).active { color: var(--accent-completed); border-bottom-color: var(--accent-completed); }
+.tab-btn:nth-child(1).active .tab-count {
+  background: var(--accent-completed);
+}
+.tab-btn:nth-child(1).active {
+  color: var(--accent-completed);
+  border-bottom-color: var(--accent-completed);
+}
 
-.tab-btn:nth-child(2).active .tab-count { background: var(--accent-scheduled); }
-.tab-btn:nth-child(2).active { color: var(--accent-scheduled); border-bottom-color: var(--accent-scheduled); }
+.tab-btn:nth-child(2).active .tab-count {
+  background: var(--accent-scheduled);
+}
+.tab-btn:nth-child(2).active {
+  color: var(--accent-scheduled);
+  border-bottom-color: var(--accent-scheduled);
+}
 
-.tab-btn:nth-child(3).active .tab-count { background: var(--accent-live); }
-.tab-btn:nth-child(3).active { color: var(--accent-live); border-bottom-color: var(--accent-live); }
+.tab-btn:nth-child(3).active .tab-count {
+  background: var(--accent-live);
+}
+.tab-btn:nth-child(3).active {
+  color: var(--accent-live);
+  border-bottom-color: var(--accent-live);
+}
 
 /* Content Area */
 .content-area {
@@ -751,7 +799,9 @@ function handleRetry() {
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   overflow: hidden;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
   position: relative;
 }
 
@@ -766,8 +816,13 @@ function handleRetry() {
 }
 
 @keyframes live-border-pulse {
-  0%, 100% { border-color: var(--accent-live); }
-  50% { border-color: rgba(239, 68, 68, 0.4); }
+  0%,
+  100% {
+    border-color: var(--accent-live);
+  }
+  50% {
+    border-color: rgba(239, 68, 68, 0.4);
+  }
 }
 
 /* Card Header - match title and table number */

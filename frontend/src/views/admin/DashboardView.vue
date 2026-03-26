@@ -5,24 +5,42 @@
       <div class="page-header-left">
         <h1 class="page-title">Match Dashboard</h1>
         <div class="header-controls">
-          <p class="page-subtitle">{{ showHistory ? 'Full Match History' : 'Today\'s scheduled matches' }}</p>
+          <p class="page-subtitle">
+            {{ showHistory ? 'Full Match History' : "Today's scheduled matches" }}
+          </p>
           <button @click="toggleHistory" class="history-toggle" :class="{ active: showHistory }">
-             <i class="fa-solid" :class="showHistory ? 'fa-calendar-check' : 'fa-clock-rotate-left'"></i>
-             {{ showHistory ? 'Showing History' : 'Show History' }}
+            <i
+              class="fa-solid"
+              :class="showHistory ? 'fa-calendar-check' : 'fa-clock-rotate-left'"
+            ></i>
+            {{ showHistory ? 'Showing History' : 'Show History' }}
           </button>
         </div>
       </div>
       <div class="header-actions">
         <div v-if="selectedMatches.length > 0" class="bulk-actions">
           <span class="selected-count">{{ selectedMatches.length }} selected</span>
-          
+
           <div v-if="showBulkDeleteConfirm" class="confirm-group bulk-confirm">
             <span class="confirm-msg">Delete {{ selectedMatches.length }}?</span>
-            <button @click="handleBulkDelete" class="confirm-yes-btn" :disabled="deleting">Yes</button>
-            <button @click="showBulkDeleteConfirm = false" class="confirm-no-btn" :disabled="deleting">No</button>
+            <button @click="handleBulkDelete" class="confirm-yes-btn" :disabled="deleting">
+              Yes
+            </button>
+            <button
+              @click="showBulkDeleteConfirm = false"
+              class="confirm-no-btn"
+              :disabled="deleting"
+            >
+              No
+            </button>
           </div>
-          
-          <button v-else @click="showBulkDeleteConfirm = true" class="bulk-delete-btn" :disabled="deleting">
+
+          <button
+            v-else
+            @click="showBulkDeleteConfirm = true"
+            class="bulk-delete-btn"
+            :disabled="deleting"
+          >
             <i class="fa-solid fa-trash-can"></i> Delete Selected
           </button>
         </div>
@@ -51,8 +69,15 @@
         <div class="filter-group">
           <label>Status:</label>
           <div class="filter-chips">
-            <button 
-              v-for="status in ['all', 'unstarted', 'starting', 'warming_up', 'in_progress', 'completed']" 
+            <button
+              v-for="status in [
+                'all',
+                'unstarted',
+                'starting',
+                'warming_up',
+                'in_progress',
+                'completed',
+              ]"
               :key="status"
               @click="statusFilter = status"
               :class="['filter-chip', { active: statusFilter === status }]"
@@ -73,71 +98,69 @@
       <!-- Empty State -->
       <div v-if="!filteredMatches || filteredMatches.length === 0" class="state-card empty-state">
         <span class="empty-icon">🏓</span>
-        <p class="empty-title">{{ showHistory ? 'No matches found in history' : 'No matches scheduled today' }}</p>
+        <p class="empty-title">
+          {{ showHistory ? 'No matches found in history' : 'No matches scheduled today' }}
+        </p>
         <p class="empty-sub">Try changing your filters or create a new match.</p>
-        <router-link to="/admin/match/new" class="create-btn">
-          + Create Match
-        </router-link>
+        <router-link to="/admin/match/new" class="create-btn"> + Create Match </router-link>
       </div>
 
       <!-- Matches Table -->
       <div v-else class="matches-panel">
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th class="checkbox-cell">
-              <input 
-                type="checkbox" 
-                :checked="isAllSelected" 
-                :indeterminate="isPartiallySelected"
-                @change="toggleSelectAll"
-              >
-            </th>
-            <th>Event</th>
-            <th>Type</th>
-            <th>Table</th>
-            <th>Scheduled Time</th>
-            <th>Team 1</th>
-            <th>Team 2</th>
-            <th>Status</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="match in filteredMatches"
-            :key="match.id"
-            class="match-row"
-            :class="{ selected: selectedMatches.includes(match.id) }"
-            @click="goToMatch(match.id)"
-          >
-            <td class="checkbox-cell" @click.stop>
-              <input 
-                type="checkbox" 
-                v-model="selectedMatches" 
-                :value="match.id"
-              >
-            </td>
-            <td class="event-cell">{{ match.event || '—' }}</td>
-            <td><span class="type-badge" :class="match.type">{{ match.type }}</span></td>
-            <td class="table-cell">
-              <span v-if="match.tableNumber" class="table-tag">T{{ match.tableNumber }}</span>
-              <span v-else>—</span>
-            </td>
-            <td class="time-cell">{{ formatTime(match.time) }}</td>
-            <td>{{ formatTeam(match.team1) }}</td>
-            <td>{{ formatTeam(match.team2) }}</td>
-            <td>
-              <span class="status-badge" :class="match.status || 'unstarted'">
-                {{ formatStatus(match.status) }}
-              </span>
-            </td>
-            <td class="action-cell">
-              <span class="view-arrow">→</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th class="checkbox-cell">
+                <input
+                  type="checkbox"
+                  :checked="isAllSelected"
+                  :indeterminate="isPartiallySelected"
+                  @change="toggleSelectAll"
+                />
+              </th>
+              <th>Event</th>
+              <th>Type</th>
+              <th>Table</th>
+              <th>Scheduled Time</th>
+              <th>Team 1</th>
+              <th>Team 2</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="match in filteredMatches"
+              :key="match.id"
+              class="match-row"
+              :class="{ selected: selectedMatches.includes(match.id) }"
+              @click="goToMatch(match.id)"
+            >
+              <td class="checkbox-cell" @click.stop>
+                <input type="checkbox" v-model="selectedMatches" :value="match.id" />
+              </td>
+              <td class="event-cell">{{ match.event || '—' }}</td>
+              <td>
+                <span class="type-badge" :class="match.type">{{ match.type }}</span>
+              </td>
+              <td class="table-cell">
+                <span v-if="match.tableNumber" class="table-tag">T{{ match.tableNumber }}</span>
+                <span v-else>—</span>
+              </td>
+              <td class="time-cell">{{ formatTime(match.time) }}</td>
+              <td>{{ formatTeam(match.team1) }}</td>
+              <td>{{ formatTeam(match.team2) }}</td>
+              <td>
+                <span class="status-badge" :class="match.status || 'unstarted'">
+                  {{ formatStatus(match.status) }}
+                </span>
+              </td>
+              <td class="action-cell">
+                <span class="view-arrow">→</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </template>
   </div>
@@ -180,24 +203,29 @@ async function toggleHistory() {
 import { computed } from 'vue'
 
 const isAllSelected = computed(() => {
-  return filteredMatches.value.length > 0 && selectedMatches.value.length === filteredMatches.value.length
+  return (
+    filteredMatches.value.length > 0 &&
+    selectedMatches.value.length === filteredMatches.value.length
+  )
 })
 
 const isPartiallySelected = computed(() => {
-  return selectedMatches.value.length > 0 && selectedMatches.value.length < filteredMatches.value.length
+  return (
+    selectedMatches.value.length > 0 && selectedMatches.value.length < filteredMatches.value.length
+  )
 })
 
 function toggleSelectAll() {
   if (isAllSelected.value) {
     selectedMatches.value = []
   } else {
-    selectedMatches.value = filteredMatches.value.map(m => m.id)
+    selectedMatches.value = filteredMatches.value.map((m) => m.id)
   }
 }
 
 async function handleBulkDelete() {
   if (!selectedMatches.value.length) return
-  
+
   deleting.value = true
   error.value = ''
   try {
@@ -212,24 +240,22 @@ async function handleBulkDelete() {
   }
 }
 const availableTables = computed(() => {
-  const tables = adminStore.matches
-    .map(m => m.tableNumber)
-    .filter(t => t != null && t > 0)
+  const tables = adminStore.matches.map((m) => m.tableNumber).filter((t) => t != null && t > 0)
   return [...new Set(tables)].sort((a, b) => a - b)
 })
 
 const filteredMatches = computed(() => {
   let list = adminStore.matches
-  
+
   if (statusFilter.value !== 'all') {
-    list = list.filter(m => (m.status || 'unstarted') === statusFilter.value)
+    list = list.filter((m) => (m.status || 'unstarted') === statusFilter.value)
   }
-  
+
   if (tableFilter.value) {
     const tNum = parseInt(tableFilter.value)
-    list = list.filter(m => m.tableNumber === tNum)
+    list = list.filter((m) => m.tableNumber === tNum)
   }
-  
+
   return list
 })
 
@@ -656,7 +682,7 @@ onMounted(load)
   text-align: center !important;
 }
 
-.checkbox-cell input[type="checkbox"] {
+.checkbox-cell input[type='checkbox'] {
   width: 16px;
   height: 16px;
   cursor: pointer;

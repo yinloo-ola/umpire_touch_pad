@@ -26,9 +26,8 @@ const cardModalTeamNum = ref(1)
 
 const openCardModal = (side) => {
   // Map visual side → logical team number (accounting for swapped sides)
-  cardModalTeamNum.value = side === 'left'
-    ? (matchStore.swappedSides ? 2 : 1)
-    : (matchStore.swappedSides ? 1 : 2)
+  cardModalTeamNum.value =
+    side === 'left' ? (matchStore.swappedSides ? 2 : 1) : matchStore.swappedSides ? 1 : 2
   showCardModal.value = true
 }
 
@@ -86,7 +85,7 @@ const team1Country = computed(() => {
   const match = matchStore.currentMatch
   const c1 = match.team1[0].country
   const c2 = match.team1[1]?.country
-  return match.type === 'doubles' && c2 ? `${c1} / ${c2}` : (c1 || '')
+  return match.type === 'doubles' && c2 ? `${c1} / ${c2}` : c1 || ''
 })
 
 const team2Country = computed(() => {
@@ -94,7 +93,7 @@ const team2Country = computed(() => {
   const match = matchStore.currentMatch
   const c1 = match.team2[0].country
   const c2 = match.team2[1]?.country
-  return match.type === 'doubles' && c2 ? `${c1} / ${c2}` : (c1 || '')
+  return match.type === 'doubles' && c2 ? `${c1} / ${c2}` : c1 || ''
 })
 
 const leftPlayerName = computed(() => (matchStore.swappedSides ? team2Name.value : team1Name.value))
@@ -152,9 +151,13 @@ const nextGame = () => {
 // Allows receiver to be designated as server mid-game (umpire correction)
 const swapServer = (side) => {
   // Only swap if they clicked the side that is CURRENTLY the receiver
-  const isReceiver = isDoubles.value 
-    ? (side === 'left' ? !matchStore.isLeftDoublesServer : matchStore.isLeftDoublesServer)
-    : (side === 'left' ? !matchStore.isLeftServer : matchStore.isLeftServer)
+  const isReceiver = isDoubles.value
+    ? side === 'left'
+      ? !matchStore.isLeftDoublesServer
+      : matchStore.isLeftDoublesServer
+    : side === 'left'
+      ? !matchStore.isLeftServer
+      : matchStore.isLeftServer
 
   if (isReceiver) {
     matchStore.calibrateServeStateFromUI(side)
@@ -162,8 +165,8 @@ const swapServer = (side) => {
 }
 
 // Side mapping for indicators
-const leftTeamNum = computed(() => matchStore.swappedSides ? 2 : 1)
-const rightTeamNum = computed(() => matchStore.swappedSides ? 1 : 2)
+const leftTeamNum = computed(() => (matchStore.swappedSides ? 2 : 1))
+const rightTeamNum = computed(() => (matchStore.swappedSides ? 1 : 2))
 
 // Display logic helpers
 const getScoreP1 = (g) => matchStore.scores[`g${g}`]?.p1
@@ -255,23 +258,48 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
         </div>
 
         <!-- Middle Row: Table (Status Box) -->
-        <div class="grid-row middle-row" style="display: flex; justify-content: center; gap: 40px; align-items: center">
+        <div
+          class="grid-row middle-row"
+          style="display: flex; justify-content: center; gap: 40px; align-items: center"
+        >
           <!-- Left Swap Players Button -->
-          <button v-if="isDoubles" @click="swapLeftPlayers" class="swap-players-btn-tp" id="tp-swap-left-btn">
+          <button
+            v-if="isDoubles"
+            @click="swapLeftPlayers"
+            class="swap-players-btn-tp"
+            id="tp-swap-left-btn"
+          >
             <i class="fa-solid fa-arrow-down"></i> Swap Players <i class="fa-solid fa-arrow-up"></i>
           </button>
 
           <div
             class="serve-indicator-tp left-tp"
             :class="{
-              active: (isDoubles && matchStore.isLeftDoublesServer) || (!isDoubles && matchStore.isLeftServer),
-              'receiver-clickable': matchStore.isStarted && (isDoubles ? !matchStore.isLeftDoublesServer : !matchStore.isLeftServer),
+              active:
+                (isDoubles && matchStore.isLeftDoublesServer) ||
+                (!isDoubles && matchStore.isLeftServer),
+              'receiver-clickable':
+                matchStore.isStarted &&
+                (isDoubles ? !matchStore.isLeftDoublesServer : !matchStore.isLeftServer),
             }"
             style="align-self: flex-end; margin-bottom: 20px"
-            @click="matchStore.isStarted && (isDoubles ? !matchStore.isLeftDoublesServer : !matchStore.isLeftServer) ? swapServer('left') : null"
+            @click="
+              matchStore.isStarted &&
+              (isDoubles ? !matchStore.isLeftDoublesServer : !matchStore.isLeftServer)
+                ? swapServer('left')
+                : null
+            "
           >
-            <div class="s-circle-tp">{{ (isDoubles ? matchStore.isLeftDoublesServer : matchStore.isLeftServer) ? 'S' : 'R' }}</div>
-            <span class="s-label-tp">{{ (isDoubles ? matchStore.isLeftDoublesServer : matchStore.isLeftServer) ? 'Server' : 'Receiver' }}</span>
+            <div class="s-circle-tp">
+              {{
+                (isDoubles ? matchStore.isLeftDoublesServer : matchStore.isLeftServer) ? 'S' : 'R'
+              }}
+            </div>
+            <span class="s-label-tp">{{
+              (isDoubles ? matchStore.isLeftDoublesServer : matchStore.isLeftServer)
+                ? 'Server'
+                : 'Receiver'
+            }}</span>
           </div>
 
           <!-- Status Box -->
@@ -284,7 +312,10 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
             <span class="status-text-tp" v-else-if="!matchStore.pointStarted">Start Of Play</span>
 
             <!-- Player names when started -->
-            <div class="table-player-grid" v-if="!matchStore.isGameOver && isDoubles && matchStore.pointStarted">
+            <div
+              class="table-player-grid"
+              v-if="!matchStore.isGameOver && isDoubles && matchStore.pointStarted"
+            >
               <div class="table-quad top-left">
                 <div class="table-player-info">
                   <span class="tp-p-label">{{ matchStore.swappedSides ? 'P2' : 'P1' }}</span>
@@ -313,7 +344,10 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
               </div>
             </div>
             <!-- Singles 2-slot layout -->
-            <div class="table-player-grid" v-if="!matchStore.isGameOver && !isDoubles && matchStore.pointStarted">
+            <div
+              class="table-player-grid"
+              v-if="!matchStore.isGameOver && !isDoubles && matchStore.pointStarted"
+            >
               <div class="table-quad bottom-left">
                 <div class="table-player-info">
                   <span class="tp-p-label">{{
@@ -340,18 +374,40 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
           <div
             class="serve-indicator-tp right-tp"
             :class="{
-              active: (isDoubles && !matchStore.isLeftDoublesServer) || (!isDoubles && !matchStore.isLeftServer),
-              'receiver-clickable': matchStore.isStarted && (isDoubles ? matchStore.isLeftDoublesServer : matchStore.isLeftServer),
+              active:
+                (isDoubles && !matchStore.isLeftDoublesServer) ||
+                (!isDoubles && !matchStore.isLeftServer),
+              'receiver-clickable':
+                matchStore.isStarted &&
+                (isDoubles ? matchStore.isLeftDoublesServer : matchStore.isLeftServer),
             }"
             style="align-self: flex-start; margin-top: 20px"
-            @click="matchStore.isStarted && (isDoubles ? matchStore.isLeftDoublesServer : matchStore.isLeftServer) ? swapServer('right') : null"
+            @click="
+              matchStore.isStarted &&
+              (isDoubles ? matchStore.isLeftDoublesServer : matchStore.isLeftServer)
+                ? swapServer('right')
+                : null
+            "
           >
-            <div class="s-circle-tp">{{ (isDoubles ? !matchStore.isLeftDoublesServer : !matchStore.isLeftServer) ? 'S' : 'R' }}</div>
-            <span class="s-label-tp">{{ (isDoubles ? !matchStore.isLeftDoublesServer : !matchStore.isLeftServer) ? 'Server' : 'Receiver' }}</span>
+            <div class="s-circle-tp">
+              {{
+                (isDoubles ? !matchStore.isLeftDoublesServer : !matchStore.isLeftServer) ? 'S' : 'R'
+              }}
+            </div>
+            <span class="s-label-tp">{{
+              (isDoubles ? !matchStore.isLeftDoublesServer : !matchStore.isLeftServer)
+                ? 'Server'
+                : 'Receiver'
+            }}</span>
           </div>
 
           <!-- Right Swap Players Button -->
-          <button v-if="isDoubles" @click="swapRightPlayers" class="swap-players-btn-tp" id="tp-swap-right-btn">
+          <button
+            v-if="isDoubles"
+            @click="swapRightPlayers"
+            class="swap-players-btn-tp"
+            id="tp-swap-right-btn"
+          >
             <i class="fa-solid fa-arrow-down"></i> Swap Players <i class="fa-solid fa-arrow-up"></i>
           </button>
         </div>
@@ -446,7 +502,6 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
             <div class="wp-info">
               <div class="wp-name">{{ matchStore.matchWinner === 1 ? team1Name : team2Name }}</div>
               <div class="wp-country">
-
                 {{ matchStore.matchWinner === 1 ? team1Country : team2Country }}
               </div>
             </div>
@@ -500,7 +555,9 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
     <div v-if="matchStore.midGameSwapPending" class="modal-overlay alert-overlay-bg">
       <div class="alert-modal-content">
         <h2 class="alert-title">Decider game of Match</h2>
-        <p class="alert-body">Decider game of Match, 5 points scored, swapping sides and players.</p>
+        <p class="alert-body">
+          Decider game of Match, 5 points scored, swapping sides and players.
+        </p>
         <div class="modal-footer alert-footer">
           <button @click="matchStore.applyMidGameSwap()" class="modal-btn alert-close-btn">
             Close
@@ -510,15 +567,10 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
     </div>
 
     <!-- Card Modal -->
-    <CardModal
-      v-if="showCardModal"
-      :teamNum="cardModalTeamNum"
-      @close="closeCardModal"
-    />
+    <CardModal v-if="showCardModal" :teamNum="cardModalTeamNum" @close="closeCardModal" />
 
     <!-- Timeout Modal -->
     <TimeoutModal v-if="matchStore.timeoutActive" />
-
   </section>
 </template>
 
@@ -692,7 +744,6 @@ button:disabled {
   letter-spacing: 0.5px;
 }
 .wp-country {
-
   font-size: 1.1rem;
   color: #ddd;
   font-weight: 700;
@@ -804,9 +855,17 @@ button:disabled {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   align-self: center;
 }
-.swap-players-btn-tp:active { opacity: 0.7; }
-.top-left { grid-column: 1; grid-row: 1; }
-.bottom-right { grid-column: 2; grid-row: 2; }
+.swap-players-btn-tp:active {
+  opacity: 0.7;
+}
+.top-left {
+  grid-column: 1;
+  grid-row: 1;
+}
+.bottom-right {
+  grid-column: 2;
+  grid-row: 2;
+}
 
 /* Alert Modal Styles */
 .alert-overlay-bg {

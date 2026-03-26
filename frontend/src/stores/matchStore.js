@@ -45,11 +45,11 @@ export const useMatchStore = defineStore('match', {
 
     // Doubles serve rotation: server/receiver at the START of this game
     // Each is { team: 1|2, player: 0|1 } where player is index into team1[]/team2[]
-    doublesInitialServer: { team: 1, player: 0 },    // default: team1[0] serves
-    doublesInitialReceiver: { team: 2, player: 0 },  // default: team2[0] receives
+    doublesInitialServer: { team: 1, player: 0 }, // default: team1[0] serves
+    doublesInitialReceiver: { team: 2, player: 0 }, // default: team2[0] receives
 
     // For doubles between-game: the team that must serve first in next game
-    doublesNextServingTeam: null,   // 1 or 2, set by nextGame(), consumed by modal
+    doublesNextServingTeam: null, // 1 or 2, set by nextGame(), consumed by modal
     // Previous game's initial server/receiver (needed for mandatory receiver lookup)
     prevDoublesInitialServer: null,
     prevDoublesInitialReceiver: null,
@@ -194,9 +194,8 @@ export const useMatchStore = defineStore('match', {
       const B = { team: A.team, player: 1 - A.player }
       const Y = { team: X.team, player: 1 - X.player }
       const total = state.p1Score + state.p2Score
-      let servesPassed = (state.p1Score >= 10 && state.p2Score >= 10)
-        ? 10 + (total - 20)
-        : Math.floor(total / 2)
+      let servesPassed =
+        state.p1Score >= 10 && state.p2Score >= 10 ? 10 + (total - 20) : Math.floor(total / 2)
       const cycle = [
         { server: A, receiver: X },
         { server: X, receiver: B },
@@ -217,12 +216,9 @@ export const useMatchStore = defineStore('match', {
       const B = { team: A.team, player: 1 - A.player }
       const Y = { team: X.team, player: 1 - X.player }
       const total = state.p1Score + state.p2Score
-      let servesPassed = (state.p1Score >= 10 && state.p2Score >= 10)
-        ? 10 + (total - 20)
-        : Math.floor(total / 2)
-      const cycle = [
-        { server: A }, { server: X }, { server: B }, { server: Y },
-      ]
+      let servesPassed =
+        state.p1Score >= 10 && state.p2Score >= 10 ? 10 + (total - 20) : Math.floor(total / 2)
+      const cycle = [{ server: A }, { server: X }, { server: B }, { server: Y }]
       const sv = cycle[servesPassed % 4].server
       const team = sv.team === 1 ? state.currentMatch.team1 : state.currentMatch.team2
       return team[sv.player]?.name ?? ''
@@ -236,12 +232,9 @@ export const useMatchStore = defineStore('match', {
       const B = { team: A.team, player: 1 - A.player }
       const Y = { team: X.team, player: 1 - X.player }
       const total = state.p1Score + state.p2Score
-      let servesPassed = (state.p1Score >= 10 && state.p2Score >= 10)
-        ? 10 + (total - 20)
-        : Math.floor(total / 2)
-      const cycle = [
-        { receiver: X }, { receiver: B }, { receiver: Y }, { receiver: A },
-      ]
+      let servesPassed =
+        state.p1Score >= 10 && state.p2Score >= 10 ? 10 + (total - 20) : Math.floor(total / 2)
+      const cycle = [{ receiver: X }, { receiver: B }, { receiver: Y }, { receiver: A }]
       const rv = cycle[servesPassed % 4].receiver
       const team = rv.team === 1 ? state.currentMatch.team1 : state.currentMatch.team2
       return team[rv.player]?.name ?? ''
@@ -261,7 +254,7 @@ export const useMatchStore = defineStore('match', {
     async fetchMatchState(id) {
       try {
         const resp = await fetch(`/api/matches/${id}`, {
-          credentials: 'include'
+          credentials: 'include',
         })
         if (!resp.ok) throw new Error('Failed to fetch match state')
         const data = await resp.json()
@@ -271,7 +264,7 @@ export const useMatchStore = defineStore('match', {
 
         let highestGame = 1
         if (data.games && data.games.length > 0) {
-          highestGame = Math.max(...data.games.map(g => g.gameNumber))
+          highestGame = Math.max(...data.games.map((g) => g.gameNumber))
         }
         this.game = highestGame
 
@@ -298,14 +291,14 @@ export const useMatchStore = defineStore('match', {
 
         // Reconstruct this.scores from the actual games records
         if (data.games) {
-          data.games.forEach(g => {
+          data.games.forEach((g) => {
             const key = `g${g.gameNumber}`
             this.scores[key] = { p1: g.team1Score, p2: g.team2Score }
           })
         }
 
         // Current game points from games list
-        const currentGameData = data.games.find(g => g.gameNumber === this.game)
+        const currentGameData = data.games.find((g) => g.gameNumber === this.game)
         if (currentGameData) {
           this.p1Score = currentGameData.team1Score
           this.p2Score = currentGameData.team2Score
@@ -321,7 +314,7 @@ export const useMatchStore = defineStore('match', {
         this.team2Timeout = false
 
         if (data.cards) {
-          data.cards.forEach(c => {
+          data.cards.forEach((c) => {
             const cardObj = { type: c.cardType, game: c.gameNumber }
             if (c.playerIndex === -1) {
               if (c.teamIndex === 1) this.team1CoachCards.push(cardObj)
@@ -458,8 +451,12 @@ export const useMatchStore = defineStore('match', {
           midGameSwapPending: this.midGameSwapPending,
           doublesInitialServer: { ...this.doublesInitialServer },
           doublesInitialReceiver: { ...this.doublesInitialReceiver },
-          prevDoublesInitialServer: this.prevDoublesInitialServer ? { ...this.prevDoublesInitialServer } : null,
-          prevDoublesInitialReceiver: this.prevDoublesInitialReceiver ? { ...this.prevDoublesInitialReceiver } : null,
+          prevDoublesInitialServer: this.prevDoublesInitialServer
+            ? { ...this.prevDoublesInitialServer }
+            : null,
+          prevDoublesInitialReceiver: this.prevDoublesInitialReceiver
+            ? { ...this.prevDoublesInitialReceiver }
+            : null,
           doublesNextServingTeam: this.doublesNextServingTeam,
           timeoutActive: this.timeoutActive,
           timeoutTimeLeft: this.timeoutTimeLeft,
@@ -468,8 +465,10 @@ export const useMatchStore = defineStore('match', {
           team1TimeoutGame: this.team1TimeoutGame,
           team2Timeout: this.team2Timeout,
           team2TimeoutGame: this.team2TimeoutGame,
-          midGameSwapSnapshot: this.midGameSwapSnapshot ? JSON.parse(JSON.stringify(this.midGameSwapSnapshot)) : null,
-          scores: JSON.parse(JSON.stringify(this.scores))
+          midGameSwapSnapshot: this.midGameSwapSnapshot
+            ? JSON.parse(JSON.stringify(this.midGameSwapSnapshot))
+            : null,
+          scores: JSON.parse(JSON.stringify(this.scores)),
         })
 
         this.game++
@@ -498,7 +497,7 @@ export const useMatchStore = defineStore('match', {
             this.doublesNextServingTeam,
             0,
             this.prevDoublesInitialServer,
-            this.prevDoublesInitialReceiver
+            this.prevDoublesInitialReceiver,
           )
         }
 
@@ -531,8 +530,12 @@ export const useMatchStore = defineStore('match', {
 
       this.doublesInitialServer = { ...prev.doublesInitialServer }
       this.doublesInitialReceiver = { ...prev.doublesInitialReceiver }
-      this.prevDoublesInitialServer = prev.prevDoublesInitialServer ? { ...prev.prevDoublesInitialServer } : null
-      this.prevDoublesInitialReceiver = prev.prevDoublesInitialReceiver ? { ...prev.prevDoublesInitialReceiver } : null
+      this.prevDoublesInitialServer = prev.prevDoublesInitialServer
+        ? { ...prev.prevDoublesInitialServer }
+        : null
+      this.prevDoublesInitialReceiver = prev.prevDoublesInitialReceiver
+        ? { ...prev.prevDoublesInitialReceiver }
+        : null
       this.doublesNextServingTeam = prev.doublesNextServingTeam
       this.timeoutActive = prev.timeoutActive
       this.timeoutTimeLeft = prev.timeoutTimeLeft
@@ -541,7 +544,9 @@ export const useMatchStore = defineStore('match', {
       this.team1TimeoutGame = prev.team1TimeoutGame
       this.team2Timeout = prev.team2Timeout
       this.team2TimeoutGame = prev.team2TimeoutGame
-      this.midGameSwapSnapshot = prev.midGameSwapSnapshot ? JSON.parse(JSON.stringify(prev.midGameSwapSnapshot)) : null
+      this.midGameSwapSnapshot = prev.midGameSwapSnapshot
+        ? JSON.parse(JSON.stringify(prev.midGameSwapSnapshot))
+        : null
 
       this.scores = JSON.parse(JSON.stringify(prev.scores))
 
@@ -565,22 +570,22 @@ export const useMatchStore = defineStore('match', {
 
       if (t1IsLeft) {
         // Team 1 is Left. Active player (server/receiver) must be in p1Bot.
-        const t1Active = (pair.server.team === 1) ? pair.server.player : pair.receiver.player
+        const t1Active = pair.server.team === 1 ? pair.server.player : pair.receiver.player
         this.p1Bot = t1Active
         this.p1Top = 1 - t1Active
 
         // Team 2 is Right. Active player (server/receiver) must be in p2Top.
-        const t2Active = (pair.server.team === 2) ? pair.server.player : pair.receiver.player
+        const t2Active = pair.server.team === 2 ? pair.server.player : pair.receiver.player
         this.p2Top = t2Active
         this.p2Bot = 1 - t2Active
       } else {
         // Team 1 is Right. Active player must be in p1Top.
-        const t1Active = (pair.server.team === 1) ? pair.server.player : pair.receiver.player
+        const t1Active = pair.server.team === 1 ? pair.server.player : pair.receiver.player
         this.p1Top = t1Active
         this.p1Bot = 1 - t1Active
 
         // Team 2 is on Left. Active player must be in p2Bot.
-        const t2Active = (pair.server.team === 2) ? pair.server.player : pair.receiver.player
+        const t2Active = pair.server.team === 2 ? pair.server.player : pair.receiver.player
         this.p2Bot = t2Active
         this.p2Top = 1 - t2Active
       }
@@ -616,8 +621,8 @@ export const useMatchStore = defineStore('match', {
       }
 
       const total = this.p1Score + this.p2Score
-      let servesPassed = (this.p1Score >= 10 && this.p2Score >= 10)
-        ? 10 + (total - 20) : Math.floor(total / 2)
+      let servesPassed =
+        this.p1Score >= 10 && this.p2Score >= 10 ? 10 + (total - 20) : Math.floor(total / 2)
       const cyclePos = servesPassed % 4
 
       const desiredS = { team: serverTeamNum, player: serverPlayerIdx }
@@ -626,10 +631,19 @@ export const useMatchStore = defineStore('match', {
       const partnerR = { team: desiredR.team, player: 1 - desiredR.player }
 
       let A, X
-      if (cyclePos === 0) { A = desiredS; X = desiredR; }
-      else if (cyclePos === 1) { X = desiredS; A = partnerR; }
-      else if (cyclePos === 2) { A = partnerS; X = partnerR; }
-      else if (cyclePos === 3) { X = partnerS; A = desiredR; }
+      if (cyclePos === 0) {
+        A = desiredS
+        X = desiredR
+      } else if (cyclePos === 1) {
+        X = desiredS
+        A = partnerR
+      } else if (cyclePos === 2) {
+        A = partnerS
+        X = partnerR
+      } else if (cyclePos === 3) {
+        X = partnerS
+        A = desiredR
+      }
 
       this.doublesInitialServer = A
       this.doublesInitialReceiver = X
@@ -638,9 +652,8 @@ export const useMatchStore = defineStore('match', {
 
     toggleSwapSides() {
       // Remember which visual side was serving
-      const wasLeftServing = this.currentMatch?.type === 'doubles'
-        ? this.isLeftDoublesServer
-        : this.isLeftServer
+      const wasLeftServing =
+        this.currentMatch?.type === 'doubles' ? this.isLeftDoublesServer : this.isLeftServer
 
       this.swappedSides = !this.swappedSides
 
@@ -671,13 +684,14 @@ export const useMatchStore = defineStore('match', {
 
       if (isServerTeam) {
         // At start of game (before play OR at 0-0), swap server triggers mandatory receiver recalibration
-        const isStartOfGame = (!this.pointStarted || (this.p1Score === 0 && this.p2Score === 0)) && !this.isGameOver
+        const isStartOfGame =
+          (!this.pointStarted || (this.p1Score === 0 && this.p2Score === 0)) && !this.isGameOver
         if (isStartOfGame && this.game > 1 && this.prevDoublesInitialServer) {
           this.setDoublesServerForNewGame(
             teamNum,
             nextPlayerIdx,
             this.prevDoublesInitialServer,
-            this.prevDoublesInitialReceiver
+            this.prevDoublesInitialReceiver,
           )
         } else {
           this.setDoublesServer(teamNum, nextPlayerIdx)
@@ -750,34 +764,42 @@ export const useMatchStore = defineStore('match', {
           // server=A=desired, receiver=X (other team, we don't know which player; keep current receiver player)
           newInitialServer = desired
           newInitialReceiver = {
-            team: otherTeam, player: this.doublesInitialReceiver.team === otherTeam
-              ? this.doublesInitialReceiver.player : 0
+            team: otherTeam,
+            player:
+              this.doublesInitialReceiver.team === otherTeam
+                ? this.doublesInitialReceiver.player
+                : 0,
           }
           break
         case 1:
           // server=X=desired → A is on other team, B=partner of A
           // receiver=B → B's team is A's team = otherTeam → partner of A
           // X=desired, so X.team=serverTeam. A's team=otherTeam.
-          newInitialReceiver = desired  // X is initial receiver
+          newInitialReceiver = desired // X is initial receiver
           newInitialServer = {
-            team: otherTeam, player: this.doublesInitialServer.team === otherTeam
-              ? this.doublesInitialServer.player : 0
+            team: otherTeam,
+            player:
+              this.doublesInitialServer.team === otherTeam ? this.doublesInitialServer.player : 0,
           }
           break
         case 2:
           // server=B=desired → B is partner of A → A=partnerOfDesired (same team)
           newInitialServer = partnerOfDesired
           newInitialReceiver = {
-            team: otherTeam, player: this.doublesInitialReceiver.team === otherTeam
-              ? this.doublesInitialReceiver.player : 0
+            team: otherTeam,
+            player:
+              this.doublesInitialReceiver.team === otherTeam
+                ? this.doublesInitialReceiver.player
+                : 0,
           }
           break
         case 3:
           // server=Y=desired → Y is partner of X → X=partnerOfDesired (same team)
-          newInitialReceiver = partnerOfDesired  // X = partner of Y
+          newInitialReceiver = partnerOfDesired // X = partner of Y
           newInitialServer = {
-            team: otherTeam, player: this.doublesInitialServer.team === otherTeam
-              ? this.doublesInitialServer.player : 0
+            team: otherTeam,
+            player:
+              this.doublesInitialServer.team === otherTeam ? this.doublesInitialServer.player : 0,
           }
           break
       }
@@ -804,9 +826,8 @@ export const useMatchStore = defineStore('match', {
       const newReceiverPlayerIdx = teamNum === 1 ? t2Active : t1Active
 
       const total = this.p1Score + this.p2Score
-      let servesPassed = (this.p1Score >= 10 && this.p2Score >= 10)
-        ? 10 + (total - 20)
-        : Math.floor(total / 2)
+      let servesPassed =
+        this.p1Score >= 10 && this.p2Score >= 10 ? 10 + (total - 20) : Math.floor(total / 2)
       const cyclePos = servesPassed % 4
 
       const desiredS = { team: teamNum, player: newServerPlayerIdx }
@@ -817,13 +838,17 @@ export const useMatchStore = defineStore('match', {
 
       let A, X
       if (cyclePos === 0) {
-        A = desiredS; X = desiredR;
+        A = desiredS
+        X = desiredR
       } else if (cyclePos === 1) {
-        X = desiredS; A = partnerR;
+        X = desiredS
+        A = partnerR
       } else if (cyclePos === 2) {
-        A = partnerS; X = partnerR;
+        A = partnerS
+        X = partnerR
       } else if (cyclePos === 3) {
-        X = partnerS; A = desiredR;
+        X = partnerS
+        A = desiredR
       }
 
       this.doublesInitialServer = A
@@ -839,7 +864,12 @@ export const useMatchStore = defineStore('match', {
     // The mandatory receiver is determined by the PREVIOUS game's rotation:
     // "the player who served TO the chosen server in the previous game" becomes the receiver.
     // We use prevInitialServer/Receiver (passed in) to look this up.
-    setDoublesServerForNewGame(serverTeam, serverPlayerIdx, prevInitialServer, prevInitialReceiver) {
+    setDoublesServerForNewGame(
+      serverTeam,
+      serverPlayerIdx,
+      prevInitialServer,
+      prevInitialReceiver,
+    ) {
       const newServer = { team: serverTeam, player: serverPlayerIdx }
       const otherTeam = serverTeam === 1 ? 2 : 1
 
@@ -889,7 +919,7 @@ export const useMatchStore = defineStore('match', {
         doublesInitialServer: { ...this.doublesInitialServer },
         doublesInitialReceiver: { ...this.doublesInitialReceiver },
         server: this.server,
-        initialServer: this.initialServer
+        initialServer: this.initialServer,
       }
 
       this.swappedSides = !this.swappedSides
@@ -1031,7 +1061,12 @@ export const useMatchStore = defineStore('match', {
         }
       }
 
-      if (delta > 0 && isDecidingGame && !this.decidingSwapDone && (this.p1Score >= 5 || this.p2Score >= 5)) {
+      if (
+        delta > 0 &&
+        isDecidingGame &&
+        !this.decidingSwapDone &&
+        (this.p1Score >= 5 || this.p2Score >= 5)
+      ) {
         this.midGameSwapPending = true
       }
       // Apply quadrant updates if scores changed
@@ -1051,7 +1086,10 @@ export const useMatchStore = defineStore('match', {
           else this.p2Score += 1
 
           // Check if the current addition triggers game over
-          if ((this.p1Score >= 11 || this.p2Score >= 11) && Math.abs(this.p1Score - this.p2Score) >= 2) {
+          if (
+            (this.p1Score >= 11 || this.p2Score >= 11) &&
+            Math.abs(this.p1Score - this.p2Score) >= 2
+          ) {
             this.isGameOver = true
           }
         }
@@ -1069,7 +1107,7 @@ export const useMatchStore = defineStore('match', {
         } else {
           servesPassed = Math.floor(totalPoints / 2)
         }
-        this.server = (servesPassed % 2 === 0) ? this.initialServer : (this.initialServer === 1 ? 2 : 1)
+        this.server = servesPassed % 2 === 0 ? this.initialServer : this.initialServer === 1 ? 2 : 1
       }
 
       const isDecidingGame = this.game === (this.currentMatch?.bestOf ?? 5)
@@ -1084,9 +1122,10 @@ export const useMatchStore = defineStore('match', {
     revertPenaltyPoints(scoringTeamNum, points) {
       if (!this.currentMatch) return
 
-      const availableInCurrent = scoringTeamNum === 1
-        ? (this.carryOverPoints.p1 + this.p1Score)
-        : (this.carryOverPoints.p2 + this.p2Score)
+      const availableInCurrent =
+        scoringTeamNum === 1
+          ? this.carryOverPoints.p1 + this.p1Score
+          : this.carryOverPoints.p2 + this.p2Score
 
       let canUndo = false
       if (this.game > 1 && this.gameHistory && this.gameHistory.length > 0) {
@@ -1115,7 +1154,10 @@ export const useMatchStore = defineStore('match', {
           }
           // If reversing brought us below win threshold, clear isGameOver
           if (this.isGameOver) {
-            if (!(this.p1Score >= 11 || this.p2Score >= 11) || Math.abs(this.p1Score - this.p2Score) < 2) {
+            if (
+              !(this.p1Score >= 11 || this.p2Score >= 11) ||
+              Math.abs(this.p1Score - this.p2Score) < 2
+            ) {
               this.isGameOver = false
             }
           }
@@ -1137,7 +1179,7 @@ export const useMatchStore = defineStore('match', {
         } else {
           servesPassed = Math.floor(totalPoints / 2)
         }
-        this.server = (servesPassed % 2 === 0) ? this.initialServer : (this.initialServer === 1 ? 2 : 1)
+        this.server = servesPassed % 2 === 0 ? this.initialServer : this.initialServer === 1 ? 2 : 1
       }
 
       const isDecidingGame = this.game === (this.currentMatch?.bestOf ?? 5)
@@ -1154,15 +1196,16 @@ export const useMatchStore = defineStore('match', {
     },
 
     issueCard(teamNum, type, target = 'player') {
-      const arr = target === 'coach' ? this[`team${teamNum}CoachCards`] : this[`team${teamNum}Cards`]
+      const arr =
+        target === 'coach' ? this[`team${teamNum}CoachCards`] : this[`team${teamNum}Cards`]
 
       if (target === 'player') {
-        const cardTypes = arr.map(c => c.type)
+        const cardTypes = arr.map((c) => c.type)
         if (type === 'Yellow' && cardTypes.length !== 0) return false
         if (type === 'YR1' && (cardTypes.length !== 1 || cardTypes[0] !== 'Yellow')) return false
         if (type === 'YR2' && (cardTypes.length !== 2 || cardTypes[1] !== 'YR1')) return false
       } else if (target === 'coach') {
-        const cardTypes = arr.map(c => c.type)
+        const cardTypes = arr.map((c) => c.type)
         if (type === 'Yellow' && cardTypes.length !== 0) return false
         if (type === 'Red' && (cardTypes.length !== 1 || cardTypes[0] !== 'Yellow')) return false
       } else {
@@ -1186,7 +1229,8 @@ export const useMatchStore = defineStore('match', {
     },
 
     revertLastCard(teamNum, target = 'player') {
-      const arr = target === 'coach' ? this[`team${teamNum}CoachCards`] : this[`team${teamNum}Cards`]
+      const arr =
+        target === 'coach' ? this[`team${teamNum}CoachCards`] : this[`team${teamNum}Cards`]
       if (arr.length > 0) {
         const popped = arr.pop()
         const type = popped.type
@@ -1293,10 +1337,20 @@ export const useMatchStore = defineStore('match', {
 
       // Timeouts as Cards
       if (this.team1Timeout && this.team1TimeoutGame) {
-        cards.push({ teamIndex: 1, playerIndex: -2, cardType: 'Timeout', gameNumber: this.team1TimeoutGame })
+        cards.push({
+          teamIndex: 1,
+          playerIndex: -2,
+          cardType: 'Timeout',
+          gameNumber: this.team1TimeoutGame,
+        })
       }
       if (this.team2Timeout && this.team2TimeoutGame) {
-        cards.push({ teamIndex: 2, playerIndex: -2, cardType: 'Timeout', gameNumber: this.team2TimeoutGame })
+        cards.push({
+          teamIndex: 2,
+          playerIndex: -2,
+          cardType: 'Timeout',
+          gameNumber: this.team2TimeoutGame,
+        })
       }
 
       // Volatiles for exact resume

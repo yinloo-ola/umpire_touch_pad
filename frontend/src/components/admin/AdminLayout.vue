@@ -19,12 +19,8 @@
       </div>
 
       <div class="topbar-actions">
-        <router-link to="/umpire/match-list" class="exit-btn">
-          ← Exit to App
-        </router-link>
-        <button id="admin-logout-btn" class="logout-btn" @click="onLogout">
-          Sign Out
-        </button>
+        <router-link to="/umpire/match-list" class="exit-btn"> ← Exit to App </router-link>
+        <button id="admin-logout-btn" class="logout-btn" @click="onLogout">Sign Out</button>
       </div>
     </nav>
 

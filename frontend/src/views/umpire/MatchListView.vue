@@ -19,16 +19,14 @@ onMounted(async () => {
 const tableFilter = ref('')
 
 const availableTables = computed(() => {
-  const tables = adminStore.matches
-    .map(m => m.tableNumber)
-    .filter(t => t != null && t > 0)
+  const tables = adminStore.matches.map((m) => m.tableNumber).filter((t) => t != null && t > 0)
   return [...new Set(tables)].sort((a, b) => a - b)
 })
 
 const matches = computed(() => {
   if (!tableFilter.value) return adminStore.matches
   const tNum = parseInt(tableFilter.value)
-  return adminStore.matches.filter(m => m.tableNumber === tNum)
+  return adminStore.matches.filter((m) => m.tableNumber === tNum)
 })
 
 const selectedMatch = ref(null)
@@ -95,7 +93,9 @@ async function onLogout() {
   <section id="match-list-view" class="view active">
     <div class="main-container">
       <div class="list-header-row">
-        <h2 class="greeting">Welcome {{ adminStore.role === 'admin' ? 'Admin' : 'Umpire' }}, today's matches are</h2>
+        <h2 class="greeting">
+          Welcome {{ adminStore.role === 'admin' ? 'Admin' : 'Umpire' }}, today's matches are
+        </h2>
         <div class="filter-box">
           <label>Filter by Table:</label>
           <select v-model="tableFilter" class="table-filter-input select-filter">
@@ -104,79 +104,80 @@ async function onLogout() {
           </select>
         </div>
       </div>
-    <div class="table-container glass-panel">
-      <table class="match-table">
-        <thead>
-          <tr>
-            <th>Event</th>
-            <th>Table</th>
-            <th>Time</th>
-            <th>Player 1</th>
-            <th>Player 2</th>
-            <th>Best Of</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(match, index) in matches" :key="index" @click="openMatchConfirm(match)">
-            <td>{{ match.event }}</td>
-            <td>
-              <span v-if="match.tableNumber" class="table-tag">T{{ match.tableNumber }}</span>
-              <span v-else>—</span>
-            </td>
-            <td>{{ match.time }}</td>
-            <td>
-              <template v-if="match.type === 'singles'">
-                <span class="player-name-main">{{ match.team1[0].name }}</span>
-                <span class="country-code">{{ match.team1[0].country }}</span>
-              </template>
-              <template v-else>
-                <div class="doubles-cell">
-                  <div>
-                    <span class="player-name-main">{{ match.team1[0].name }}</span>
-                    <span class="country-code">{{ match.team1[0].country }}</span>
+      <div class="table-container glass-panel">
+        <table class="match-table">
+          <thead>
+            <tr>
+              <th>Event</th>
+              <th>Table</th>
+              <th>Time</th>
+              <th>Player 1</th>
+              <th>Player 2</th>
+              <th>Best Of</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(match, index) in matches" :key="index" @click="openMatchConfirm(match)">
+              <td>{{ match.event }}</td>
+              <td>
+                <span v-if="match.tableNumber" class="table-tag">T{{ match.tableNumber }}</span>
+                <span v-else>—</span>
+              </td>
+              <td>{{ match.time }}</td>
+              <td>
+                <template v-if="match.type === 'singles'">
+                  <span class="player-name-main">{{ match.team1[0].name }}</span>
+                  <span class="country-code">{{ match.team1[0].country }}</span>
+                </template>
+                <template v-else>
+                  <div class="doubles-cell">
+                    <div>
+                      <span class="player-name-main">{{ match.team1[0].name }}</span>
+                      <span class="country-code">{{ match.team1[0].country }}</span>
+                    </div>
+                    <div>
+                      <span class="player-name-main">{{ match.team1[1].name }}</span>
+                      <span class="country-code">{{ match.team1[1].country }}</span>
+                    </div>
                   </div>
-                  <div>
-                    <span class="player-name-main">{{ match.team1[1].name }}</span>
-                    <span class="country-code">{{ match.team1[1].country }}</span>
+                </template>
+              </td>
+              <td>
+                <template v-if="match.type === 'singles'">
+                  <span class="player-name-main">{{ match.team2[0].name }}</span>
+                  <span class="country-code">{{ match.team2[0].country }}</span>
+                </template>
+                <template v-else>
+                  <div class="doubles-cell">
+                    <div>
+                      <span class="player-name-main">{{ match.team2[0].name }}</span>
+                      <span class="country-code">{{ match.team2[0].country }}</span>
+                    </div>
+                    <div>
+                      <span class="player-name-main">{{ match.team2[1].name }}</span>
+                      <span class="country-code">{{ match.team2[1].country }}</span>
+                    </div>
                   </div>
-                </div>
-              </template>
-            </td>
-            <td>
-              <template v-if="match.type === 'singles'">
-                <span class="player-name-main">{{ match.team2[0].name }}</span>
-                <span class="country-code">{{ match.team2[0].country }}</span>
-              </template>
-              <template v-else>
-                <div class="doubles-cell">
-                  <div>
-                    <span class="player-name-main">{{ match.team2[0].name }}</span>
-                    <span class="country-code">{{ match.team2[0].country }}</span>
-                  </div>
-                  <div>
-                    <span class="player-name-main">{{ match.team2[1].name }}</span>
-                    <span class="country-code">{{ match.team2[1].country }}</span>
-                  </div>
-                </div>
-              </template>
-            </td>
-            <td>
-              <strong>{{ match.bestOf }}</strong>
-            </td>
-            <td>
-              <span :class="['status-badge', match.status || 'unstarted']">
-                {{ formatStatus(match.status) }}
-              </span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+                </template>
+              </td>
+              <td>
+                <strong>{{ match.bestOf }}</strong>
+              </td>
+              <td>
+                <span :class="['status-badge', match.status || 'unstarted']">
+                  {{ formatStatus(match.status) }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
       <div class="footer-actions">
         <button class="text-btn back-btn"><i class="fa-solid fa-chevron-left"></i> Back</button>
       </div>
-    </div> <!-- end main-container -->
+    </div>
+    <!-- end main-container -->
 
     <!-- Match Confirmation Modal -->
     <div v-if="showModal" id="match-confirm-modal" class="modal-overlay">
@@ -227,15 +228,28 @@ async function onLogout() {
               </tbody>
             </table>
             <p class="modal-prompt">
-              Are you sure you want to {{ selectedMatch?.status === 'unstarted' || !selectedMatch?.status ? 'start' : 'resume' }}?
+              Are you sure you want to
+              {{
+                selectedMatch?.status === 'unstarted' || !selectedMatch?.status
+                  ? 'start'
+                  : 'resume'
+              }}?
             </p>
           </div>
         </div>
         <div class="modal-footer">
           <button @click="startMatch" class="modal-btn primary-btn" :disabled="loading">
-            {{ loading ? 'Loading...' : (selectedMatch?.status === 'unstarted' || !selectedMatch?.status ? 'Start' : 'Resume') }}
+            {{
+              loading
+                ? 'Loading...'
+                : selectedMatch?.status === 'unstarted' || !selectedMatch?.status
+                  ? 'Start'
+                  : 'Resume'
+            }}
           </button>
-          <button @click="closeMatchConfirm" class="modal-btn secondary-btn" :disabled="loading">Reset</button>
+          <button @click="closeMatchConfirm" class="modal-btn secondary-btn" :disabled="loading">
+            Reset
+          </button>
         </div>
       </div>
     </div>

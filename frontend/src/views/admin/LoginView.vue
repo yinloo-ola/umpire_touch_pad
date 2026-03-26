@@ -66,7 +66,7 @@ async function onSubmit() {
   loading.value = true
   try {
     const role = await adminStore.login(username.value, password.value)
-    
+
     // 1. If there's a redirect query, use it
     if (route.query.redirect) {
       router.push(route.query.redirect)
@@ -160,7 +160,9 @@ async function onSubmit() {
   font-size: 1rem;
   font-family: 'Outfit', sans-serif;
   outline: none;
-  transition: border-color 0.2s, background 0.2s;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
 }
 
 .form-group input::placeholder {

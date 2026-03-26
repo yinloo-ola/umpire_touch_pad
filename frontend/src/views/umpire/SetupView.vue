@@ -58,18 +58,18 @@ const rightCountry = computed(() =>
 // ── Doubles: quadrant player computeds ────────────────────────────────────────
 const isDoubles = computed(() => matchStore.currentMatch?.type === 'doubles')
 
-const leftTopPlayer  = computed(() => matchStore.doublesLeftTopPlayer)
-const leftBotPlayer  = computed(() => matchStore.doublesLeftBotPlayer)
+const leftTopPlayer = computed(() => matchStore.doublesLeftTopPlayer)
+const leftBotPlayer = computed(() => matchStore.doublesLeftBotPlayer)
 const rightTopPlayer = computed(() => matchStore.doublesRightTopPlayer)
 const rightBotPlayer = computed(() => matchStore.doublesRightBotPlayer)
 
-const swapLeft  = () => matchStore.swapLeftPlayers()
+const swapLeft = () => matchStore.swapLeftPlayers()
 const swapRight = () => matchStore.swapRightPlayers()
 
 // ── Doubles serve designation ────────────────────────────────────────────────
 
 // Unified click handlers (works for both singles and doubles)
-const onLeftIndicatorClick  = () => matchStore.calibrateServeStateFromUI('left')
+const onLeftIndicatorClick = () => matchStore.calibrateServeStateFromUI('left')
 const onRightIndicatorClick = () => matchStore.calibrateServeStateFromUI('right')
 
 // ── Shared actions ───────────────────────────────────────────────────────────
@@ -133,7 +133,8 @@ const timerProgressValue = computed(() => {
         <template v-if="isDoubles">
           <div class="doubles-court-wrapper">
             <button @click="swapLeft" class="swap-players-btn swap-left-btn">
-              <i class="fa-solid fa-arrow-down"></i> Swap Players <i class="fa-solid fa-arrow-up"></i>
+              <i class="fa-solid fa-arrow-down"></i> Swap Players
+              <i class="fa-solid fa-arrow-up"></i>
             </button>
 
             <div class="doubles-court-grid">
@@ -183,7 +184,8 @@ const timerProgressValue = computed(() => {
             </div>
 
             <button @click="swapRight" class="swap-players-btn swap-right-btn">
-              <i class="fa-solid fa-arrow-down"></i> Swap Players <i class="fa-solid fa-arrow-up"></i>
+              <i class="fa-solid fa-arrow-down"></i> Swap Players
+              <i class="fa-solid fa-arrow-up"></i>
             </button>
           </div>
 
@@ -196,7 +198,9 @@ const timerProgressValue = computed(() => {
               id="doubles-left-serve-indicator"
             >
               <div class="s-circle">{{ matchStore.isLeftDoublesServer ? 'S' : 'R' }}</div>
-              <span class="s-tag">{{ matchStore.isLeftDoublesServer ? 'Server' : 'Receiver' }}</span>
+              <span class="s-tag">{{
+                matchStore.isLeftDoublesServer ? 'Server' : 'Receiver'
+              }}</span>
             </div>
             <div
               class="setup-serve-box right-serve"
@@ -205,7 +209,9 @@ const timerProgressValue = computed(() => {
               id="doubles-right-serve-indicator"
             >
               <div class="s-circle">{{ !matchStore.isLeftDoublesServer ? 'S' : 'R' }}</div>
-              <span class="s-tag">{{ !matchStore.isLeftDoublesServer ? 'Server' : 'Receiver' }}</span>
+              <span class="s-tag">{{
+                !matchStore.isLeftDoublesServer ? 'Server' : 'Receiver'
+              }}</span>
             </div>
           </div>
         </template>
@@ -217,7 +223,9 @@ const timerProgressValue = computed(() => {
             <div class="court-quadrant bottom-left">
               <div class="player-slot">
                 <div class="player-info">
-                  <span class="p-label">{{ matchStore.swappedSides ? 'Player 2' : 'Player 1' }}</span>
+                  <span class="p-label">{{
+                    matchStore.swappedSides ? 'Player 2' : 'Player 1'
+                  }}</span>
                   <span class="p-name">{{ leftPlayerName }}</span>
                   <span class="p-country">{{ leftCountry }}</span>
                 </div>
@@ -227,7 +235,9 @@ const timerProgressValue = computed(() => {
             <div class="court-quadrant top-right">
               <div class="player-slot">
                 <div class="player-info">
-                  <span class="p-label">{{ matchStore.swappedSides ? 'Player 1' : 'Player 2' }}</span>
+                  <span class="p-label">{{
+                    matchStore.swappedSides ? 'Player 1' : 'Player 2'
+                  }}</span>
                   <span class="p-name">{{ rightPlayerName }}</span>
                   <span class="p-country">{{ rightCountry }}</span>
                 </div>
@@ -284,8 +294,6 @@ const timerProgressValue = computed(() => {
         </div>
       </div>
     </div>
-
-
 
     <!-- Warmup Timer Overlay -->
     <div v-if="matchStore.timerActive" class="timer-overlay">
@@ -406,7 +414,6 @@ const timerProgressValue = computed(() => {
   width: 100%;
 }
 
-
 .doubles-court-grid {
   /* Match singles .court-grid exactly */
   flex: none;
@@ -419,10 +426,22 @@ const timerProgressValue = computed(() => {
   grid-template-rows: 1fr 1fr;
   position: relative;
 }
-.doubles-tl { grid-column: 1; grid-row: 1; }
-.doubles-tr { grid-column: 2; grid-row: 1; }
-.doubles-bl { grid-column: 1; grid-row: 2; }
-.doubles-br { grid-column: 2; grid-row: 2; }
+.doubles-tl {
+  grid-column: 1;
+  grid-row: 1;
+}
+.doubles-tr {
+  grid-column: 2;
+  grid-row: 1;
+}
+.doubles-bl {
+  grid-column: 1;
+  grid-row: 2;
+}
+.doubles-br {
+  grid-column: 2;
+  grid-row: 2;
+}
 .swap-players-btn {
   display: flex;
   align-items: center;

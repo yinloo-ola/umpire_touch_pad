@@ -8,7 +8,7 @@ const emit = defineEmits(['close'])
 const matchStore = useMatchStore()
 
 const playerCards = computed(() => matchStore[`team${props.teamNum}Cards`])
-const coachCards  = computed(() => matchStore[`team${props.teamNum}CoachCards`])
+const coachCards = computed(() => matchStore[`team${props.teamNum}CoachCards`])
 const timeoutUsed = computed(() => matchStore[`team${props.teamNum}Timeout`])
 
 const teamLabel = computed(() => {
@@ -23,7 +23,7 @@ const teamLabel = computed(() => {
 const cardState = (track, type) => {
   const arr = track === 'coach' ? coachCards.value : playerCards.value
   const playerOrder = ['Yellow', 'YR1', 'YR2']
-  const coachOrder  = ['Yellow', 'Red']
+  const coachOrder = ['Yellow', 'Red']
   const order = track === 'coach' ? coachOrder : playerOrder
   const idx = order.indexOf(type)
 
@@ -55,7 +55,7 @@ const handleTimeout = () => {
   } else {
     // Issue a new timeout
     matchStore.issueTimeout(props.teamNum)
-    emit('close')  // card modal closes; timeout widget appears
+    emit('close') // card modal closes; timeout widget appears
   }
 }
 
@@ -63,19 +63,21 @@ const handleTimeout = () => {
 const timeoutCardState = computed(() => {
   // If timeout is active (widget showing) OR if it was taken but dismissed (revertable)
   if (matchStore.timeoutActive && matchStore.timeoutCallingTeam === props.teamNum) {
-    return 'issued'   // active — orange ring, tappable to revert
+    return 'issued' // active — orange ring, tappable to revert
   }
   if (timeoutUsed.value) {
-    return 'issued'   // dismissed but remains 'taken' — orange ring, tappable to revert
+    return 'issued' // dismissed but remains 'taken' — orange ring, tappable to revert
   }
   return 'available'
 })
 
 // Whether the T card is interactive
-const timeoutInteractive = computed(() =>
-  // Can issue: not used, not pointStarted, not timerActive (warm-up timer)
-  // Can revert: timeout is taken (used)
-  timeoutUsed.value || (!timeoutUsed.value && !matchStore.pointStarted && !matchStore.timerActive)
+const timeoutInteractive = computed(
+  () =>
+    // Can issue: not used, not pointStarted, not timerActive (warm-up timer)
+    // Can revert: timeout is taken (used)
+    timeoutUsed.value ||
+    (!timeoutUsed.value && !matchStore.pointStarted && !matchStore.timerActive),
 )
 </script>
 
@@ -90,20 +92,16 @@ const timeoutInteractive = computed(() =>
 
       <!-- Card row -->
       <div class="cm-card-row">
-
         <!-- Player track -->
         <div class="cm-track player-track">
           <!-- Timeout -->
           <div
             class="cm-card-item cm-timeout"
-            :class="[
-              timeoutCardState,
-              { 'cm-disabled': !timeoutInteractive }
-            ]"
+            :class="[timeoutCardState, { 'cm-disabled': !timeoutInteractive }]"
             @click="timeoutInteractive && handleTimeout()"
           >
             <div class="cm-card-face cm-card-timeout">T</div>
-            <span class="cm-card-label">Time<br>Out</span>
+            <span class="cm-card-label">Time<br />Out</span>
           </div>
 
           <!-- Yellow -->
@@ -113,7 +111,7 @@ const timeoutInteractive = computed(() =>
             @click="issueOrRevert('player', 'Yellow')"
           >
             <div class="cm-card-face cm-yellow"></div>
-            <span class="cm-card-label">Yellow<br>Card</span>
+            <span class="cm-card-label">Yellow<br />Card</span>
           </div>
 
           <!-- YR1 -->
@@ -123,7 +121,7 @@ const timeoutInteractive = computed(() =>
             @click="issueOrRevert('player', 'YR1')"
           >
             <div class="cm-card-face cm-yr1"><span class="cm-yr-num">1</span></div>
-            <span class="cm-card-label">Yellow<br>Red 1</span>
+            <span class="cm-card-label">Yellow<br />Red 1</span>
           </div>
 
           <!-- YR2 -->
@@ -133,7 +131,7 @@ const timeoutInteractive = computed(() =>
             @click="issueOrRevert('player', 'YR2')"
           >
             <div class="cm-card-face cm-yr2"><span class="cm-yr-num">2</span></div>
-            <span class="cm-card-label">Yellow<br>Red 2</span>
+            <span class="cm-card-label">Yellow<br />Red 2</span>
           </div>
         </div>
 
@@ -148,7 +146,7 @@ const timeoutInteractive = computed(() =>
             @click="issueOrRevert('coach', 'Yellow')"
           >
             <div class="cm-card-face cm-yellow cm-coach-face">C</div>
-            <span class="cm-card-label">Yellow<br>Card</span>
+            <span class="cm-card-label">Yellow<br />Card</span>
           </div>
 
           <div
@@ -157,10 +155,9 @@ const timeoutInteractive = computed(() =>
             @click="issueOrRevert('coach', 'Red')"
           >
             <div class="cm-card-face cm-red cm-coach-face">C</div>
-            <span class="cm-card-label">Red<br>Card</span>
+            <span class="cm-card-label">Red<br />Card</span>
           </div>
         </div>
-
       </div>
     </div>
   </div>
@@ -171,7 +168,7 @@ const timeoutInteractive = computed(() =>
 .card-modal-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.80);
+  background: rgba(0, 0, 0, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -217,7 +214,9 @@ const timeoutInteractive = computed(() =>
   align-items: center;
   justify-content: center;
   line-height: 1;
-  transition: background 0.2s, transform 0.15s;
+  transition:
+    background 0.2s,
+    transform 0.15s;
   flex-shrink: 0;
 }
 .cm-close-btn:hover {
@@ -275,14 +274,22 @@ const timeoutInteractive = computed(() =>
   justify-content: center;
   font-weight: 800;
   font-size: 1.8rem;
-  transition: box-shadow 0.15s, transform 0.15s;
+  transition:
+    box-shadow 0.15s,
+    transform 0.15s;
   position: relative;
   overflow: hidden;
 }
 
 /* === Card colors === */
-.cm-yellow { background: #f5c400; color: #222; }
-.cm-red    { background: #d32f2f; color: white; }
+.cm-yellow {
+  background: #f5c400;
+  color: #222;
+}
+.cm-red {
+  background: #d32f2f;
+  color: white;
+}
 
 /* YR1 — top half yellow, bottom half red, "1" in red portion */
 .cm-yr1 {
@@ -299,10 +306,14 @@ const timeoutInteractive = computed(() =>
   color: white;
   font-size: 1.5rem;
   font-weight: 900;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
-.cm-card-timeout { background: #bbb; color: #333; font-size: 1.6rem; }
+.cm-card-timeout {
+  background: #bbb;
+  color: #333;
+  font-size: 1.6rem;
+}
 
 /* Coach face badge */
 .cm-coach-face {
@@ -319,10 +330,12 @@ const timeoutInteractive = computed(() =>
 }
 
 /* available */
-.cm-card-item.available { cursor: pointer; }
+.cm-card-item.available {
+  cursor: pointer;
+}
 .cm-card-item.available:hover .cm-card-face {
   transform: translateY(-3px);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.30);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
 }
 
 /* issued */
@@ -330,7 +343,9 @@ const timeoutInteractive = computed(() =>
   outline: 3px solid #f58220;
   outline-offset: 2px;
 }
-.cm-card-item.issued { cursor: pointer; }
+.cm-card-item.issued {
+  cursor: pointer;
+}
 
 /* timeout disabled */
 .cm-timeout.cm-disabled {

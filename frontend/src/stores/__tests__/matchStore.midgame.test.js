@@ -13,15 +13,15 @@ describe('Decider Game Mid-game Swap Revert', () => {
       type: 'doubles',
       bestOf: 1, // Deciding game
       team1: [{ name: 'A' }, { name: 'B' }],
-      team2: [{ name: 'C' }, { name: 'D' }]
+      team2: [{ name: 'C' }, { name: 'D' }],
     })
-    
+
     // Setup: score goes to 4-4
     store.startPoint()
     store.handleScore(1, 4)
     store.startPoint()
     store.handleScore(2, 4)
-    
+
     expect(store.swappedSides).toBe(false)
     expect(store.midGameSwapPending).toBe(false)
 
@@ -40,7 +40,7 @@ describe('Decider Game Mid-game Swap Revert', () => {
     // Now user realizes 5th point was a mistake and undoes it
     store.handleScore(1, -1) // 4-4
     expect(store.p1Score).toBe(4)
-    
+
     // The side swap should be reverted!
     expect(store.swappedSides).toBe(false)
     expect(store.decidingSwapDone).toBe(false)

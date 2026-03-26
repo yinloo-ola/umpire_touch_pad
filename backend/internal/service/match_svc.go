@@ -613,11 +613,11 @@ type PublicMatchResponse struct {
 
 // PublicMatch represents a match for public display (no internal fields)
 type PublicMatch struct {
-	ID            string        `json:"id"`
-	Title         string        `json:"title"`
-	ScheduledDate string        `json:"scheduledDate"`
-	Status        string        `json:"status"`
-	TableNumber   int           `json:"tableNumber"`
+	ID            string         `json:"id"`
+	Title         string         `json:"title"`
+	ScheduledDate string         `json:"scheduledDate"`
+	Status        string         `json:"status"`
+	TableNumber   int            `json:"tableNumber"`
 	Team1         []PublicPlayer `json:"team1"`
 	Team2         []PublicPlayer `json:"team2"`
 	Games         []PublicGame   `json:"games"`
