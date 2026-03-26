@@ -32,7 +32,9 @@
           />
         </div>
 
-        <p v-if="error" class="login-error">{{ error }}</p>
+        <p v-if="error" class="login-error">
+          {{ error }}
+        </p>
 
         <button id="admin-login-btn" type="submit" class="login-btn" :disabled="loading">
           <span v-if="loading">Signing in…</span>
@@ -41,7 +43,7 @@
       </form>
 
       <div class="login-footer">
-        <router-link to="/umpire/match-list" class="back-link">← Back to Home</router-link>
+        <router-link to="/umpire/match-list" class="back-link"> ← Back to Home </router-link>
       </div>
     </div>
   </div>
@@ -66,7 +68,7 @@ async function onSubmit() {
   loading.value = true
   try {
     const role = await adminStore.login(username.value, password.value)
-    
+
     // 1. If there's a redirect query, use it
     if (route.query.redirect) {
       router.push(route.query.redirect)
@@ -160,7 +162,9 @@ async function onSubmit() {
   font-size: 1rem;
   font-family: 'Outfit', sans-serif;
   outline: none;
-  transition: border-color 0.2s, background 0.2s;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
 }
 
 .form-group input::placeholder {

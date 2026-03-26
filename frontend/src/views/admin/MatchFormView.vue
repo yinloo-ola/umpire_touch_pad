@@ -1,7 +1,7 @@
 <template>
   <div class="match-form-page">
     <div class="form-header">
-      <router-link to="/admin/dashboard" class="back-link">← Back to Dashboard</router-link>
+      <router-link to="/admin/dashboard" class="back-link"> ← Back to Dashboard </router-link>
       <h1 class="page-title">Create New Match</h1>
       <p class="page-subtitle">Configure match details and player information.</p>
     </div>
@@ -26,18 +26,8 @@
           <div class="form-group">
             <label>Scheduled Date & Time (DD/MM/YYYY)</label>
             <div class="datetime-grid">
-              <input
-                type="date"
-                v-model="datePart"
-                required
-                class="date-input"
-              />
-              <input
-                type="time"
-                v-model="timePart"
-                required
-                class="time-input"
-              />
+              <input v-model="datePart" type="date" required class="date-input" />
+              <input v-model="timePart" type="time" required class="time-input" />
             </div>
           </div>
         </div>
@@ -88,13 +78,11 @@
             <div class="team-header">
               <span class="team-label team1-label">Team 1</span>
             </div>
-            <div
-              v-for="(player, i) in form.team1"
-              :key="`t1-${i}`"
-              class="player-fields"
-            >
+            <div v-for="(player, i) in form.team1" :key="`t1-${i}`" class="player-fields">
               <div class="form-group">
-                <label :for="`t1-name-${i}`">{{ form.type === 'doubles' ? `Player ${i + 1} Name` : 'Name' }}</label>
+                <label :for="`t1-name-${i}`">{{
+                  form.type === 'doubles' ? `Player ${i + 1} Name` : 'Name'
+                }}</label>
                 <input
                   :id="`t1-name-${i}`"
                   v-model="player.name"
@@ -123,13 +111,11 @@
             <div class="team-header">
               <span class="team-label team2-label">Team 2</span>
             </div>
-            <div
-              v-for="(player, i) in form.team2"
-              :key="`t2-${i}`"
-              class="player-fields"
-            >
+            <div v-for="(player, i) in form.team2" :key="`t2-${i}`" class="player-fields">
               <div class="form-group">
-                <label :for="`t2-name-${i}`">{{ form.type === 'doubles' ? `Player ${i + 1} Name` : 'Name' }}</label>
+                <label :for="`t2-name-${i}`">{{
+                  form.type === 'doubles' ? `Player ${i + 1} Name` : 'Name'
+                }}</label>
                 <input
                   :id="`t2-name-${i}`"
                   v-model="player.name"
@@ -153,10 +139,12 @@
         </div>
       </section>
 
-      <p v-if="error" class="form-error">{{ error }}</p>
+      <p v-if="error" class="form-error">
+        {{ error }}
+      </p>
 
       <div class="form-actions">
-        <router-link to="/admin/dashboard" class="cancel-btn">Cancel</router-link>
+        <router-link to="/admin/dashboard" class="cancel-btn"> Cancel </router-link>
         <button id="submit-match-btn" type="submit" class="submit-btn" :disabled="loading">
           <span v-if="loading">Creating…</span>
           <span v-else>Create Match</span>
@@ -199,10 +187,16 @@ watch(
       form.value.team1 = [{ name: '', country: '' }]
       form.value.team2 = [{ name: '', country: '' }]
     } else {
-      form.value.team1 = [{ name: '', country: '' }, { name: '', country: '' }]
-      form.value.team2 = [{ name: '', country: '' }, { name: '', country: '' }]
+      form.value.team1 = [
+        { name: '', country: '' },
+        { name: '', country: '' },
+      ]
+      form.value.team2 = [
+        { name: '', country: '' },
+        { name: '', country: '' },
+      ]
     }
-  }
+  },
 )
 
 const loading = ref(false)
@@ -210,7 +204,7 @@ const error = ref('')
 
 function buildPayload() {
   // Combine date and time
-  let timeStr = ""
+  let timeStr = ''
   if (datePart.value && timePart.value) {
     timeStr = `${datePart.value}T${timePart.value}:00`
   }

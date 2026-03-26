@@ -181,7 +181,7 @@ func (h *APIHandler) handleBulkDeleteMatches(w http.ResponseWriter, r *http.Requ
 }
 
 // SetupRoutes registers the API routes to the given mux.
-// Open routes: POST /api/login, POST /api/logout
+// Open routes: POST /api/login, POST /api/logout, GET /api/public/matches
 // Auth-guarded: GET /api/matches (any auth), POST /api/match (admin only), PUT /api/matches/{id}/sync (any auth)
 func SetupRoutes(mux *http.ServeMux, svc *service.MatchService, authSvc *service.AuthService) {
 	handler := NewAPIHandler(svc, authSvc)
@@ -190,6 +190,9 @@ func SetupRoutes(mux *http.ServeMux, svc *service.MatchService, authSvc *service
 	mux.HandleFunc("/api/login", handleLogin(authSvc))
 	mux.HandleFunc("/api/logout", handleLogout())
 	mux.HandleFunc("/api/me", handleMe(authSvc))
+
+	// Public endpoints (no auth required)
+	mux.HandleFunc("GET /api/public/matches", handler.handleGetPublicMatches)
 
 	// Protected endpoints
 	mux.HandleFunc("/api/matches", RequireAuth(authSvc, "", handler.handleGetMatches))

@@ -4,16 +4,18 @@ import { useMatchStore } from '../../stores/matchStore'
 
 const props = defineProps({
   teamNum: { type: Number, required: true },
-  align: { type: String, default: 'left' } // 'left' or 'right' alignment of the stack
+  align: { type: String, default: 'left' }, // 'left' or 'right' alignment of the stack
 })
 
 const matchStore = useMatchStore()
 
-const playerCards = computed(() => matchStore[`team${props.teamNum}Cards`]);
-const coachCards = computed(() => matchStore[`team${props.teamNum}CoachCards`]);
-const timeoutUsed = computed(() => matchStore[`team${props.teamNum}Timeout`]);
+const playerCards = computed(() => matchStore[`team${props.teamNum}Cards`])
+const coachCards = computed(() => matchStore[`team${props.teamNum}CoachCards`])
+const timeoutUsed = computed(() => matchStore[`team${props.teamNum}Timeout`])
 
-const hasAny = computed(() => timeoutUsed.value || playerCards.value.length > 0 || coachCards.value.length > 0)
+const hasAny = computed(
+  () => timeoutUsed.value || playerCards.value.length > 0 || coachCards.value.length > 0,
+)
 </script>
 
 <template>
@@ -24,15 +26,25 @@ const hasAny = computed(() => timeoutUsed.value || playerCards.value.length > 0 
       <div v-if="timeoutUsed" class="ci-icon ci-timeout">T</div>
 
       <!-- Player Cards -->
-      <div v-for="(card, index) in playerCards" :key="'p'+index" class="ci-icon" :class="'ci-' + card.type.toLowerCase()">
+      <div
+        v-for="(card, index) in playerCards"
+        :key="'p' + index"
+        class="ci-icon"
+        :class="'ci-' + card.type.toLowerCase()"
+      >
         <span v-if="card.type === 'YR1'" class="ci-num">1</span>
         <span v-if="card.type === 'YR2'" class="ci-num">2</span>
       </div>
     </div>
 
     <!-- Row 2: Coach Track (Coach Yellow, Coach Red) -->
-    <div class="ci-row" v-if="coachCards.length > 0">
-      <div v-for="(card, index) in coachCards" :key="'c'+index" class="ci-icon ci-coach" :class="'ci-' + card.type.toLowerCase()">
+    <div v-if="coachCards.length > 0" class="ci-row">
+      <div
+        v-for="(card, index) in coachCards"
+        :key="'c' + index"
+        class="ci-icon ci-coach"
+        :class="'ci-' + card.type.toLowerCase()"
+      >
         C
       </div>
     </div>
@@ -48,8 +60,12 @@ const hasAny = computed(() => timeoutUsed.value || playerCards.value.length > 0 
 }
 
 /* Alignment logic: Stack children towards the button side */
-.align-left { align-items: flex-start; }
-.align-right { align-items: flex-end; }
+.align-left {
+  align-items: flex-start;
+}
+.align-right {
+  align-items: flex-end;
+}
 
 .ci-row {
   display: flex;
@@ -67,17 +83,27 @@ const hasAny = computed(() => timeoutUsed.value || playerCards.value.length > 0 
   font-weight: 850;
   color: #222;
   position: relative;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.6);
-  border: 1px solid rgba(255,255,255,0.15);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   flex-shrink: 0;
 }
 
-.ci-timeout { background: #bbb; color: #333; font-size: 20px; }
-.ci-yellow  { background: #f5c400; }
-.ci-red     { background: #d32f2f; color: white; }
+.ci-timeout {
+  background: #bbb;
+  color: #333;
+  font-size: 20px;
+}
+.ci-yellow {
+  background: #f5c400;
+}
+.ci-red {
+  background: #d32f2f;
+  color: white;
+}
 
 /* Vertically split gradient for YR1/YR2 */
-.ci-yr1, .ci-yr2 {
+.ci-yr1,
+.ci-yr2 {
   background: linear-gradient(180deg, #f5c400 50%, #d32f2f 50%);
   color: transparent;
 }
@@ -88,7 +114,7 @@ const hasAny = computed(() => timeoutUsed.value || playerCards.value.length > 0 
   color: white;
   font-size: 14px;
   font-weight: 950;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
 }
 
 .ci-coach {

@@ -603,3 +603,106 @@ func (s *MatchService) DeleteMatches(ctx context.Context, ids []string) error {
 	log.Printf("[DeleteMatches] Deleting matches: %v", ids)
 	return s.store.DeleteMatches(ctx, ids)
 }
+
+// PublicMatchResponse is the response shape for the public API
+type PublicMatchResponse struct {
+	Completed []PublicMatch `json:"completed"`
+	Scheduled []PublicMatch `json:"scheduled"`
+	Live      []PublicMatch `json:"live"`
+}
+
+// PublicMatch represents a match for public display (no internal fields)
+type PublicMatch struct {
+	ID            string         `json:"id"`
+	Title         string         `json:"title"`
+	ScheduledDate string         `json:"scheduledDate"`
+	Status        string         `json:"status"`
+	TableNumber   int            `json:"tableNumber"`
+	Team1         []PublicPlayer `json:"team1"`
+	Team2         []PublicPlayer `json:"team2"`
+	Games         []PublicGame   `json:"games"`
+}
+
+// PublicPlayer represents a player for public display
+type PublicPlayer struct {
+	Name    string `json:"name"`
+	Country string `json:"country"`
+}
+
+// PublicGame represents a game for public display
+type PublicGame struct {
+	GameNumber int    `json:"gameNumber"`
+	Team1Score int    `json:"team1Score"`
+	Team2Score int    `json:"team2Score"`
+	Status     string `json:"status"`
+}
+
+// GetPublicMatches returns all matches grouped by status for public display
+func (s *MatchService) GetPublicMatches(ctx context.Context) (*PublicMatchResponse, error) {
+	// Get all matches
+	rows, err := s.store.GetAllMatches(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PublicMatchResponse{
+		Completed: []PublicMatch{},
+		Scheduled: []PublicMatch{},
+		Live:      []PublicMatch{},
+	}
+
+	for _, dbm := range rows {
+		// Build teams
+		t1 := []PublicPlayer{{Name: dbm.Team1P1Name, Country: dbm.Team1P1Country.String}}
+		if dbm.Team1P2Name.Valid && dbm.Team1P2Name.String != "" {
+			t1 = append(t1, PublicPlayer{Name: dbm.Team1P2Name.String, Country: dbm.Team1P2Country.String})
+		}
+
+		t2 := []PublicPlayer{{Name: dbm.Team2P1Name, Country: dbm.Team2P1Country.String}}
+		if dbm.Team2P2Name.Valid && dbm.Team2P2Name.String != "" {
+			t2 = append(t2, PublicPlayer{Name: dbm.Team2P2Name.String, Country: dbm.Team2P2Country.String})
+		}
+
+		// Get games for this match
+		dbGames, err := s.store.GetGamesForMatch(ctx, dbm.ID)
+		if err != nil {
+			dbGames = nil // No games yet
+		}
+
+		var games []PublicGame
+		for _, g := range dbGames {
+			games = append(games, PublicGame{
+				GameNumber: int(g.GameNumber),
+				Team1Score: int(g.Team1Score),
+				Team2Score: int(g.Team2Score),
+				Status:     g.Status,
+			})
+		}
+		if games == nil {
+			games = []PublicGame{}
+		}
+
+		match := PublicMatch{
+			ID:            dbm.ID,
+			Title:         dbm.Title,
+			ScheduledDate: dbm.ScheduledDate,
+			Status:        dbm.Status,
+			TableNumber:   int(dbm.TableNumber.Int64),
+			Team1:         t1,
+			Team2:         t2,
+			Games:         games,
+		}
+
+		// Group by status
+		switch dbm.Status {
+		case "completed":
+			response.Completed = append(response.Completed, match)
+		case "in_progress":
+			response.Live = append(response.Live, match)
+		default: // unstarted, starting, warming_up, etc.
+			response.Scheduled = append(response.Scheduled, match)
+		}
+	}
+
+	return response, nil
+}

@@ -33,9 +33,11 @@ const close = () => {
 <template>
   <div class="to-overlay">
     <div class="to-widget">
-      <button class="to-close-x" @click="close" title="Dismiss">✕</button>
+      <button class="to-close-x" title="Dismiss" @click="close">✕</button>
 
-      <div class="to-team-label">{{ callingTeamName }}</div>
+      <div class="to-team-label">
+        {{ callingTeamName }}
+      </div>
       <div class="to-subtitle">Time Out</div>
 
       <!-- Circular countdown — mirrors SetupView warmup SVG -->
@@ -45,7 +47,9 @@ const close = () => {
           <circle cx="50" cy="50" r="48" fill="#f8fafc" />
           <!-- Orange pie slice (elapsed portion) -->
           <circle
-            cx="50" cy="50" r="25"
+            cx="50"
+            cy="50"
+            r="25"
             fill="none"
             stroke="#f58220"
             stroke-width="50"
@@ -53,16 +57,34 @@ const close = () => {
             style="transition: stroke-dasharray 1s linear"
           />
           <!-- Fine tick marks -->
-          <circle cx="50" cy="50" r="39" fill="none"
-            stroke="var(--primary-color)" stroke-width="2"
-            stroke-dasharray="0.5 3.585" />
+          <circle
+            cx="50"
+            cy="50"
+            r="39"
+            fill="none"
+            stroke="var(--primary-color)"
+            stroke-width="2"
+            stroke-dasharray="0.5 3.585"
+          />
           <!-- Bold tick marks -->
-          <circle cx="50" cy="50" r="39" fill="none"
-            stroke="var(--primary-color)" stroke-width="4"
-            stroke-dasharray="1.5 18.913" />
+          <circle
+            cx="50"
+            cy="50"
+            r="39"
+            fill="none"
+            stroke="var(--primary-color)"
+            stroke-width="4"
+            stroke-dasharray="1.5 18.913"
+          />
           <!-- Outer ring -->
-          <circle cx="50" cy="50" r="45" fill="none"
-            stroke="var(--primary-color)" stroke-width="10" />
+          <circle
+            cx="50"
+            cy="50"
+            r="45"
+            fill="none"
+            stroke="var(--primary-color)"
+            stroke-width="10"
+          />
           <!-- Inner circle -->
           <circle cx="50" cy="50" r="20" fill="var(--primary-color)" />
         </svg>
@@ -120,7 +142,9 @@ const close = () => {
   line-height: 1;
   padding: 2px 4px;
 }
-.to-close-x:hover { color: #333; }
+.to-close-x:hover {
+  color: #333;
+}
 
 .to-team-label {
   font-size: 0.9rem;
@@ -171,7 +195,9 @@ const close = () => {
   transition: color 0.3s;
 }
 
-.to-expired { color: #f58220; }
+.to-expired {
+  color: #f58220;
+}
 
 .to-unit {
   font-size: 0.9rem;

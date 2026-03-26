@@ -15,7 +15,7 @@ describe('matchStore rotation logic', () => {
       team1: [{ name: 'A' }, { name: 'B' }],
       team2: [{ name: 'X' }, { name: 'Y' }],
       bestOf: 5,
-      status: 'starting'
+      status: 'starting',
     })
 
     // Game 1: Serve 1 (A) -> Receive 0 (X)
@@ -36,7 +36,7 @@ describe('matchStore rotation logic', () => {
     // Rule: The team that RECEIVED first in G1 (Team 2) SERVES first in G2.
     expect(store.doublesNextServingTeam).toBe(2)
     // nextGame automatically initialized server to player 0 of team 2 (X)
-    expect(store.doublesInitialServer).toEqual({ team: 2, player: 0 }) 
+    expect(store.doublesInitialServer).toEqual({ team: 2, player: 0 })
 
     // Who must receive? A or B?
     // In G1: A served to X.

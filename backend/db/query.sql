@@ -75,3 +75,14 @@ DELETE FROM games WHERE match_id = ?;
 DELETE FROM matches WHERE id = ?;
 -- name: DeleteMatches :exec
 DELETE FROM matches WHERE id IN (sqlc.slice('ids'));
+
+-- name: GetAllMatchesWithGames :many
+SELECT
+    m.id, m.title, m.scheduled_date, m.status, m.table_number,
+    m.team1_p1_name, m.team1_p2_name, m.team2_p1_name, m.team2_p2_name,
+    m.team1_p1_country, m.team1_p2_country, m.team2_p1_country, m.team2_p2_country,
+    m.best_of,
+    g.id AS game_id, g.game_number, g.team1_score, g.team2_score, g.status AS game_status
+FROM matches m
+LEFT JOIN games g ON m.id = g.match_id
+ORDER BY m.scheduled_date ASC, g.game_number ASC;
