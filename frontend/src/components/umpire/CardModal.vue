@@ -110,7 +110,7 @@ const timeoutInteractive = computed(
             :class="cardState('player', 'Yellow')"
             @click="issueOrRevert('player', 'Yellow')"
           >
-            <div class="cm-card-face cm-yellow"></div>
+            <div class="cm-card-face cm-yellow" />
             <span class="cm-card-label">Yellow<br />Card</span>
           </div>
 
@@ -120,7 +120,9 @@ const timeoutInteractive = computed(
             :class="cardState('player', 'YR1')"
             @click="issueOrRevert('player', 'YR1')"
           >
-            <div class="cm-card-face cm-yr1"><span class="cm-yr-num">1</span></div>
+            <div class="cm-card-face cm-yr1">
+              <span class="cm-yr-num">1</span>
+            </div>
             <span class="cm-card-label">Yellow<br />Red 1</span>
           </div>
 
@@ -130,13 +132,15 @@ const timeoutInteractive = computed(
             :class="cardState('player', 'YR2')"
             @click="issueOrRevert('player', 'YR2')"
           >
-            <div class="cm-card-face cm-yr2"><span class="cm-yr-num">2</span></div>
+            <div class="cm-card-face cm-yr2">
+              <span class="cm-yr-num">2</span>
+            </div>
             <span class="cm-card-label">Yellow<br />Red 2</span>
           </div>
         </div>
 
         <!-- Divider -->
-        <div class="cm-divider"></div>
+        <div class="cm-divider" />
 
         <!-- Coach track -->
         <div class="cm-track coach-track">

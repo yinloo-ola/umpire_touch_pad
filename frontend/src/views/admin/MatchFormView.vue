@@ -1,7 +1,7 @@
 <template>
   <div class="match-form-page">
     <div class="form-header">
-      <router-link to="/admin/dashboard" class="back-link">← Back to Dashboard</router-link>
+      <router-link to="/admin/dashboard" class="back-link"> ← Back to Dashboard </router-link>
       <h1 class="page-title">Create New Match</h1>
       <p class="page-subtitle">Configure match details and player information.</p>
     </div>
@@ -26,8 +26,8 @@
           <div class="form-group">
             <label>Scheduled Date & Time (DD/MM/YYYY)</label>
             <div class="datetime-grid">
-              <input type="date" v-model="datePart" required class="date-input" />
-              <input type="time" v-model="timePart" required class="time-input" />
+              <input v-model="datePart" type="date" required class="date-input" />
+              <input v-model="timePart" type="time" required class="time-input" />
             </div>
           </div>
         </div>
@@ -139,10 +139,12 @@
         </div>
       </section>
 
-      <p v-if="error" class="form-error">{{ error }}</p>
+      <p v-if="error" class="form-error">
+        {{ error }}
+      </p>
 
       <div class="form-actions">
-        <router-link to="/admin/dashboard" class="cancel-btn">Cancel</router-link>
+        <router-link to="/admin/dashboard" class="cancel-btn"> Cancel </router-link>
         <button id="submit-match-btn" type="submit" class="submit-btn" :disabled="loading">
           <span v-if="loading">Creating…</span>
           <span v-else>Create Match</span>

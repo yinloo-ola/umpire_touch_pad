@@ -104,27 +104,27 @@ const timerProgressValue = computed(() => {
 </script>
 
 <template>
-  <section class="view active ds-dark" v-if="matchStore.currentMatch">
+  <section v-if="matchStore.currentMatch" class="view active ds-dark">
     <div class="setup-container">
       <div class="tp-header">
         <div class="tp-time">
           <span class="setup-date">{{ time.date }}</span>
           <span class="setup-clock accent-text">{{ time.clock }}</span>
         </div>
-        <button @click="goBack" class="icon-btn power-btn setup-power-btn">
-          <i class="fa-solid fa-power-off"></i>
+        <button class="icon-btn power-btn setup-power-btn" @click="goBack">
+          <i class="fa-solid fa-power-off" />
         </button>
       </div>
 
       <div class="setup-toolbar">
-        <button @click="goBack" class="back-to-list-btn icon-btn">
-          <i class="fa-solid fa-arrow-left"></i>
+        <button class="back-to-list-btn icon-btn" @click="goBack">
+          <i class="fa-solid fa-arrow-left" />
         </button>
-        <div class="match-bestof-badge" id="setup-bestof">
+        <div id="setup-bestof" class="match-bestof-badge">
           Best of {{ matchStore.currentMatch.bestOf }}
         </div>
         <button class="setup-menu-btn icon-btn">
-          <i class="fa-solid fa-table-tennis-paddle-ball"></i>
+          <i class="fa-solid fa-table-tennis-paddle-ball" />
         </button>
       </div>
 
@@ -132,9 +132,9 @@ const timerProgressValue = computed(() => {
         <!-- DOUBLES layout -->
         <template v-if="isDoubles">
           <div class="doubles-court-wrapper">
-            <button @click="swapLeft" class="swap-players-btn swap-left-btn">
-              <i class="fa-solid fa-arrow-down"></i> Swap Players
-              <i class="fa-solid fa-arrow-up"></i>
+            <button class="swap-players-btn swap-left-btn" @click="swapLeft">
+              <i class="fa-solid fa-arrow-down" /> Swap Players
+              <i class="fa-solid fa-arrow-up" />
             </button>
 
             <div class="doubles-court-grid">
@@ -159,8 +159,8 @@ const timerProgressValue = computed(() => {
                 </div>
               </div>
               <!-- Net line -->
-              <div class="net-line"></div>
-              <div class="horizontal-line"></div>
+              <div class="net-line" />
+              <div class="horizontal-line" />
               <!-- Bottom-Left -->
               <div class="court-quadrant doubles-bl">
                 <div class="player-slot">
@@ -183,32 +183,36 @@ const timerProgressValue = computed(() => {
               </div>
             </div>
 
-            <button @click="swapRight" class="swap-players-btn swap-right-btn">
-              <i class="fa-solid fa-arrow-down"></i> Swap Players
-              <i class="fa-solid fa-arrow-up"></i>
+            <button class="swap-players-btn swap-right-btn" @click="swapRight">
+              <i class="fa-solid fa-arrow-down" /> Swap Players
+              <i class="fa-solid fa-arrow-up" />
             </button>
           </div>
 
           <!-- Serve indicators live as a sibling overlay (identical to singles) -->
           <div class="setup-serve-indicators">
             <div
+              id="doubles-left-serve-indicator"
               class="setup-serve-box left-serve"
               :class="{ active: matchStore.isLeftDoublesServer }"
               @click="onLeftIndicatorClick"
-              id="doubles-left-serve-indicator"
             >
-              <div class="s-circle">{{ matchStore.isLeftDoublesServer ? 'S' : 'R' }}</div>
+              <div class="s-circle">
+                {{ matchStore.isLeftDoublesServer ? 'S' : 'R' }}
+              </div>
               <span class="s-tag">{{
                 matchStore.isLeftDoublesServer ? 'Server' : 'Receiver'
               }}</span>
             </div>
             <div
+              id="doubles-right-serve-indicator"
               class="setup-serve-box right-serve"
               :class="{ active: !matchStore.isLeftDoublesServer }"
               @click="onRightIndicatorClick"
-              id="doubles-right-serve-indicator"
             >
-              <div class="s-circle">{{ !matchStore.isLeftDoublesServer ? 'S' : 'R' }}</div>
+              <div class="s-circle">
+                {{ !matchStore.isLeftDoublesServer ? 'S' : 'R' }}
+              </div>
               <span class="s-tag">{{
                 !matchStore.isLeftDoublesServer ? 'Server' : 'Receiver'
               }}</span>
@@ -243,8 +247,8 @@ const timerProgressValue = computed(() => {
                 </div>
               </div>
             </div>
-            <div class="net-line"></div>
-            <div class="horizontal-line"></div>
+            <div class="net-line" />
+            <div class="horizontal-line" />
           </div>
 
           <div class="setup-serve-indicators">
@@ -253,7 +257,9 @@ const timerProgressValue = computed(() => {
               :class="{ active: matchStore.isLeftServer }"
               @click="onLeftIndicatorClick"
             >
-              <div class="s-circle">{{ matchStore.isLeftServer ? 'S' : 'R' }}</div>
+              <div class="s-circle">
+                {{ matchStore.isLeftServer ? 'S' : 'R' }}
+              </div>
               <span class="s-tag">{{ matchStore.isLeftServer ? 'Server' : 'Receiver' }}</span>
             </div>
             <div
@@ -261,7 +267,9 @@ const timerProgressValue = computed(() => {
               :class="{ active: !matchStore.isLeftServer }"
               @click="onRightIndicatorClick"
             >
-              <div class="s-circle">{{ !matchStore.isLeftServer ? 'S' : 'R' }}</div>
+              <div class="s-circle">
+                {{ !matchStore.isLeftServer ? 'S' : 'R' }}
+              </div>
               <span class="s-tag">{{ !matchStore.isLeftServer ? 'Server' : 'Receiver' }}</span>
             </div>
           </div>
@@ -269,8 +277,8 @@ const timerProgressValue = computed(() => {
       </div>
 
       <div class="setup-actions">
-        <button @click="toggleSwap" class="setup-btn swap-btn">Swap Sides</button>
-        <button @click="promptWarmup" class="setup-btn warmup-btn">Start Warm Up</button>
+        <button class="setup-btn swap-btn" @click="toggleSwap">Swap Sides</button>
+        <button class="setup-btn warmup-btn" @click="promptWarmup">Start Warm Up</button>
         <button class="setup-btn end-btn">End Match</button>
       </div>
     </div>
@@ -289,8 +297,8 @@ const timerProgressValue = computed(() => {
           <p class="modal-prompt-bold">Is Players Positions Set?</p>
         </div>
         <div class="modal-footer">
-          <button @click="startWarmupCountdown" class="modal-btn primary-btn">Confirm</button>
-          <button @click="cancelWarmup" class="modal-btn cancel-btn">Cancel</button>
+          <button class="modal-btn primary-btn" @click="startWarmupCountdown">Confirm</button>
+          <button class="modal-btn cancel-btn" @click="cancelWarmup">Cancel</button>
         </div>
       </div>
     </div>
@@ -370,14 +378,14 @@ const timerProgressValue = computed(() => {
             <span style="font-size: 1.2rem; font-weight: 700">Sec</span>
           </div>
         </div>
-        <button @click="proceedToMatch" class="start-match-btn">Start Match</button>
+        <button class="start-match-btn" @click="proceedToMatch">Start Match</button>
       </div>
     </div>
   </section>
   <section v-else class="view active">
     <!-- Fast fallback if loaded without match -->
-    <button @click="goBack" class="back-to-list-btn icon-btn">
-      <i class="fa-solid fa-arrow-left"></i> No Match Selected - Go Back
+    <button class="back-to-list-btn icon-btn" @click="goBack">
+      <i class="fa-solid fa-arrow-left" /> No Match Selected - Go Back
     </button>
   </section>
 </template>

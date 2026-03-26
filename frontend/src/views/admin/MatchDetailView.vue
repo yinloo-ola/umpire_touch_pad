@@ -1,9 +1,11 @@
 <template>
   <div class="match-detail-page">
     <div class="detail-header">
-      <router-link to="/admin" class="back-link">← Back to Dashboard</router-link>
+      <router-link to="/admin" class="back-link"> ← Back to Dashboard </router-link>
       <div v-if="matchData" class="header-row">
-        <h1 class="page-title">{{ matchData.match.event || 'Match Detail' }}</h1>
+        <h1 class="page-title">
+          {{ matchData.match.event || 'Match Detail' }}
+        </h1>
         <span v-if="!isEditing" :class="['status-badge', matchData.match.status || 'unstarted']">
           {{ formatStatus(matchData.match.status) }}
         </span>
@@ -18,33 +20,33 @@
           <!-- Inline Confirmation for Live Match -->
           <div v-if="showLiveConfirm" class="confirm-group">
             <span class="confirm-msg">Match is LIVE. Override?</span>
-            <button @click="confirmToggleEdit" class="confirm-yes-btn">Yes</button>
-            <button @click="showLiveConfirm = false" class="confirm-no-btn">No</button>
+            <button class="confirm-yes-btn" @click="confirmToggleEdit">Yes</button>
+            <button class="confirm-no-btn" @click="showLiveConfirm = false">No</button>
           </div>
 
-          <button v-else-if="!isEditing" @click="toggleEdit" class="edit-btn">Edit Match</button>
+          <button v-else-if="!isEditing" class="edit-btn" @click="toggleEdit">Edit Match</button>
           <template v-else>
-            <button @click="saveChanges" class="save-btn" :disabled="isSaving">
+            <button class="save-btn" :disabled="isSaving" @click="saveChanges">
               {{ isSaving ? 'Saving...' : 'Save Changes' }}
             </button>
-            <button @click="toggleEdit" class="cancel-btn" :disabled="isSaving">Cancel</button>
+            <button class="cancel-btn" :disabled="isSaving" @click="toggleEdit">Cancel</button>
           </template>
 
           <!-- Delete Match -->
           <div v-if="showDeleteConfirm" class="confirm-group delete-confirm">
             <span class="confirm-msg">Delete this match?</span>
-            <button @click="confirmDelete" class="confirm-yes-btn" :disabled="isDeleting">
+            <button class="confirm-yes-btn" :disabled="isDeleting" @click="confirmDelete">
               Confirm
             </button>
             <button
-              @click="showDeleteConfirm = false"
               class="confirm-no-btn"
               :disabled="isDeleting"
+              @click="showDeleteConfirm = false"
             >
               Cancel
             </button>
           </div>
-          <button v-else-if="!isEditing" @click="showDeleteConfirm = true" class="delete-match-btn">
+          <button v-else-if="!isEditing" class="delete-match-btn" @click="showDeleteConfirm = true">
             Delete Match
           </button>
         </div>
@@ -67,7 +69,7 @@
     <!-- Error State -->
     <div v-else-if="error" class="state-card error">
       <p>{{ error }}</p>
-      <router-link to="/admin" class="retry-btn">Back to Dashboard</router-link>
+      <router-link to="/admin" class="retry-btn"> Back to Dashboard </router-link>
     </div>
 
     <template v-else-if="matchData">
@@ -102,7 +104,9 @@
               </div>
               <div class="info-item">
                 <label>Best Of</label>
-                <div class="val">{{ matchData.match.bestOf }}</div>
+                <div class="val">
+                  {{ matchData.match.bestOf }}
+                </div>
               </div>
               <div v-if="matchData.match.status === 'in_progress'" class="info-item live-indicator">
                 <label>Current Status</label>
@@ -151,23 +155,23 @@
                   <td>Game {{ idx + 1 }}</td>
                   <td>
                     <input
-                      type="number"
                       v-model.number="g.team1Score"
+                      type="number"
                       class="score-input"
                       min="0"
                     />
                   </td>
                   <td>
                     <input
-                      type="number"
                       v-model.number="g.team2Score"
+                      type="number"
                       class="score-input"
                       min="0"
                     />
                   </td>
                   <td><span class="auto-status-text">(Auto-determined on save)</span></td>
                   <td>
-                    <button @click="deleteGame(idx)" class="delete-btn" title="Delete Game">
+                    <button class="delete-btn" title="Delete Game" @click="deleteGame(idx)">
                       🗑️
                     </button>
                   </td>
@@ -176,7 +180,7 @@
             </table>
 
             <div v-if="isEditing" class="edit-actions">
-              <button @click="addGame" class="add-game-btn">+ Add Game</button>
+              <button class="add-game-btn" @click="addGame">+ Add Game</button>
             </div>
 
             <div v-if="isEditing" class="edit-remarks">
@@ -185,7 +189,7 @@
                 v-model="editForm.remarks"
                 placeholder="Enter reason if games don't follow normal scoring rules..."
                 class="remarks-input"
-              ></textarea>
+              />
             </div>
           </div>
         </section>
@@ -228,8 +232,8 @@
                 <tr v-for="(c, idx) in editForm.cards" :key="idx">
                   <td>
                     <input
-                      type="number"
                       v-model.number="c.gameNumber"
+                      type="number"
                       class="score-input"
                       min="1"
                       max="15"
@@ -263,10 +267,10 @@
                   </td>
                   <td>
                     <button
-                      @click="deleteCard(idx)"
                       class="delete-btn"
                       title="Delete Card"
                       :data-testid="`delete-card-${idx}`"
+                      @click="deleteCard(idx)"
                     >
                       🗑️
                     </button>
@@ -276,7 +280,7 @@
             </table>
 
             <div v-if="isEditing" class="edit-actions">
-              <button @click="addCard" class="add-game-btn">+ Add Card/Timeout</button>
+              <button class="add-game-btn" @click="addCard">+ Add Card/Timeout</button>
             </div>
           </div>
         </section>
@@ -284,9 +288,9 @@
     </template>
 
     <div class="detail-footer">
-      <router-link id="back-to-dashboard-link" to="/admin" class="back-btn"
-        >← Back to Dashboard</router-link
-      >
+      <router-link id="back-to-dashboard-link" to="/admin" class="back-btn">
+        ← Back to Dashboard
+      </router-link>
     </div>
   </div>
 </template>

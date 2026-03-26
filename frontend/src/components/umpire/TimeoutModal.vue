@@ -33,9 +33,11 @@ const close = () => {
 <template>
   <div class="to-overlay">
     <div class="to-widget">
-      <button class="to-close-x" @click="close" title="Dismiss">✕</button>
+      <button class="to-close-x" title="Dismiss" @click="close">✕</button>
 
-      <div class="to-team-label">{{ callingTeamName }}</div>
+      <div class="to-team-label">
+        {{ callingTeamName }}
+      </div>
       <div class="to-subtitle">Time Out</div>
 
       <!-- Circular countdown — mirrors SetupView warmup SVG -->

@@ -8,11 +8,11 @@
           <p class="page-subtitle">
             {{ showHistory ? 'Full Match History' : "Today's scheduled matches" }}
           </p>
-          <button @click="toggleHistory" class="history-toggle" :class="{ active: showHistory }">
+          <button class="history-toggle" :class="{ active: showHistory }" @click="toggleHistory">
             <i
               class="fa-solid"
               :class="showHistory ? 'fa-calendar-check' : 'fa-clock-rotate-left'"
-            ></i>
+            />
             {{ showHistory ? 'Showing History' : 'Show History' }}
           </button>
         </div>
@@ -23,13 +23,13 @@
 
           <div v-if="showBulkDeleteConfirm" class="confirm-group bulk-confirm">
             <span class="confirm-msg">Delete {{ selectedMatches.length }}?</span>
-            <button @click="handleBulkDelete" class="confirm-yes-btn" :disabled="deleting">
+            <button class="confirm-yes-btn" :disabled="deleting" @click="handleBulkDelete">
               Yes
             </button>
             <button
-              @click="showBulkDeleteConfirm = false"
               class="confirm-no-btn"
               :disabled="deleting"
+              @click="showBulkDeleteConfirm = false"
             >
               No
             </button>
@@ -37,11 +37,11 @@
 
           <button
             v-else
-            @click="showBulkDeleteConfirm = true"
             class="bulk-delete-btn"
             :disabled="deleting"
+            @click="showBulkDeleteConfirm = true"
           >
-            <i class="fa-solid fa-trash-can"></i> Delete Selected
+            <i class="fa-solid fa-trash-can" /> Delete Selected
           </button>
         </div>
         <router-link id="create-match-btn" to="/admin/match/new" class="create-btn">
@@ -79,8 +79,8 @@
                 'completed',
               ]"
               :key="status"
-              @click="statusFilter = status"
               :class="['filter-chip', { active: statusFilter === status }]"
+              @click="statusFilter = status"
             >
               {{ status === 'all' ? 'All' : formatStatus(status) }}
             </button>
@@ -125,7 +125,7 @@
               <th>Team 1</th>
               <th>Team 2</th>
               <th>Status</th>
-              <th></th>
+              <th />
             </tr>
           </thead>
           <tbody>
@@ -137,9 +137,11 @@
               @click="goToMatch(match.id)"
             >
               <td class="checkbox-cell" @click.stop>
-                <input type="checkbox" v-model="selectedMatches" :value="match.id" />
+                <input v-model="selectedMatches" type="checkbox" :value="match.id" />
               </td>
-              <td class="event-cell">{{ match.event || '—' }}</td>
+              <td class="event-cell">
+                {{ match.event || '—' }}
+              </td>
               <td>
                 <span class="type-badge" :class="match.type">{{ match.type }}</span>
               </td>
@@ -147,7 +149,9 @@
                 <span v-if="match.tableNumber" class="table-tag">T{{ match.tableNumber }}</span>
                 <span v-else>—</span>
               </td>
-              <td class="time-cell">{{ formatTime(match.time) }}</td>
+              <td class="time-cell">
+                {{ formatTime(match.time) }}
+              </td>
               <td>{{ formatTeam(match.team1) }}</td>
               <td>{{ formatTeam(match.team2) }}</td>
               <td>

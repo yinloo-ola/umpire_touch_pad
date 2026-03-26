@@ -84,8 +84,8 @@ async function onLogout() {
       <router-link v-if="adminStore.role === 'admin'" to="/admin/dashboard" class="nav-link">
         Admin Dashboard
       </router-link>
-      <button @click="onLogout" class="logout-btn">
-        <i class="fa-solid fa-right-from-bracket"></i> Logout
+      <button class="logout-btn" @click="onLogout">
+        <i class="fa-solid fa-right-from-bracket" /> Logout
       </button>
     </div>
   </header>
@@ -174,7 +174,7 @@ async function onLogout() {
         </table>
       </div>
       <div class="footer-actions">
-        <button class="text-btn back-btn"><i class="fa-solid fa-chevron-left"></i> Back</button>
+        <button class="text-btn back-btn"><i class="fa-solid fa-chevron-left" /> Back</button>
       </div>
     </div>
     <!-- end main-container -->
@@ -238,7 +238,7 @@ async function onLogout() {
           </div>
         </div>
         <div class="modal-footer">
-          <button @click="startMatch" class="modal-btn primary-btn" :disabled="loading">
+          <button class="modal-btn primary-btn" :disabled="loading" @click="startMatch">
             {{
               loading
                 ? 'Loading...'
@@ -247,7 +247,7 @@ async function onLogout() {
                   : 'Resume'
             }}
           </button>
-          <button @click="closeMatchConfirm" class="modal-btn secondary-btn" :disabled="loading">
+          <button class="modal-btn secondary-btn" :disabled="loading" @click="closeMatchConfirm">
             Reset
           </button>
         </div>

@@ -183,10 +183,10 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
           <span id="tp-clock" class="accent-text">{{ time.clock }}</span>
         </div>
         <div class="sync-status-indicator" :title="'Sync Status: ' + matchStore.syncStatus">
-          <i class="fa-solid fa-cloud" :class="matchStore.syncStatus"></i>
+          <i class="fa-solid fa-cloud" :class="matchStore.syncStatus" />
         </div>
-        <button @click="quitMatch" class="icon-btn power-btn tp-power-btn">
-          <i class="fa-solid fa-power-off"></i>
+        <button class="icon-btn power-btn tp-power-btn" @click="quitMatch">
+          <i class="fa-solid fa-power-off" />
         </button>
       </div>
 
@@ -195,7 +195,7 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
         <table class="score-summary-table">
           <thead>
             <tr>
-              <th class="tools-col"></th>
+              <th class="tools-col" />
               <th v-for="g in games" :key="g" class="game-col">G{{ g }}</th>
             </tr>
           </thead>
@@ -249,10 +249,10 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
         <div class="grid-row top-row">
           <div class="side-controls left-side">
             <button class="card-btn" @click="openCardModal('left')">Cards</button>
-            <CardIndicators :teamNum="leftTeamNum" align="left" />
+            <CardIndicators :team-num="leftTeamNum" align="left" />
           </div>
           <div class="side-controls right-side">
-            <CardIndicators :teamNum="rightTeamNum" align="right" />
+            <CardIndicators :team-num="rightTeamNum" align="right" />
             <button class="card-btn" @click="openCardModal('right')">Cards</button>
           </div>
         </div>
@@ -265,11 +265,11 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
           <!-- Left Swap Players Button -->
           <button
             v-if="isDoubles"
-            @click="swapLeftPlayers"
-            class="swap-players-btn-tp"
             id="tp-swap-left-btn"
+            class="swap-players-btn-tp"
+            @click="swapLeftPlayers"
           >
-            <i class="fa-solid fa-arrow-down"></i> Swap Players <i class="fa-solid fa-arrow-up"></i>
+            <i class="fa-solid fa-arrow-down" /> Swap Players <i class="fa-solid fa-arrow-up" />
           </button>
 
           <div
@@ -304,17 +304,17 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
 
           <!-- Status Box -->
           <div
-            class="status-box-tp glass-panel-green"
             id="main-status-box"
+            class="status-box-tp glass-panel-green"
             @click="handleStartPlay"
           >
-            <span class="status-text-tp" v-if="matchStore.isGameOver">Game Over</span>
-            <span class="status-text-tp" v-else-if="!matchStore.pointStarted">Start Of Play</span>
+            <span v-if="matchStore.isGameOver" class="status-text-tp">Game Over</span>
+            <span v-else-if="!matchStore.pointStarted" class="status-text-tp">Start Of Play</span>
 
             <!-- Player names when started -->
             <div
-              class="table-player-grid"
               v-if="!matchStore.isGameOver && isDoubles && matchStore.pointStarted"
+              class="table-player-grid"
             >
               <div class="table-quad top-left">
                 <div class="table-player-info">
@@ -328,8 +328,8 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
                   <span class="tp-p-name">{{ rightTopPlayer?.name ?? '—' }}</span>
                 </div>
               </div>
-              <div class="table-net-line"></div>
-              <div class="table-horizontal-line"></div>
+              <div class="table-net-line" />
+              <div class="table-horizontal-line" />
               <div class="table-quad bottom-left">
                 <div class="table-player-info">
                   <span class="tp-p-label">{{ matchStore.swappedSides ? 'P2D' : 'P1D' }}</span>
@@ -345,8 +345,8 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
             </div>
             <!-- Singles 2-slot layout -->
             <div
-              class="table-player-grid"
               v-if="!matchStore.isGameOver && !isDoubles && matchStore.pointStarted"
+              class="table-player-grid"
             >
               <div class="table-quad bottom-left">
                 <div class="table-player-info">
@@ -366,8 +366,8 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
                   <span class="tp-p-country">{{ rightCountry }}</span>
                 </div>
               </div>
-              <div class="table-net-line"></div>
-              <div class="horizontal-line"></div>
+              <div class="table-net-line" />
+              <div class="horizontal-line" />
             </div>
           </div>
 
@@ -404,11 +404,11 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
           <!-- Right Swap Players Button -->
           <button
             v-if="isDoubles"
-            @click="swapRightPlayers"
-            class="swap-players-btn-tp"
             id="tp-swap-right-btn"
+            class="swap-players-btn-tp"
+            @click="swapRightPlayers"
           >
-            <i class="fa-solid fa-arrow-down"></i> Swap Players <i class="fa-solid fa-arrow-up"></i>
+            <i class="fa-solid fa-arrow-down" /> Swap Players <i class="fa-solid fa-arrow-up" />
           </button>
         </div>
         <!-- Bottom Row -->
@@ -416,8 +416,8 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
           <div class="side-plus-minus left-pm">
             <button
               class="score-btn-large plus-btn"
-              @click="addLeft"
               :disabled="!matchStore.pointStarted || matchStore.isGameOver"
+              @click="addLeft"
             >
               +
             </button>
@@ -427,12 +427,12 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
           <div class="center-score-display">
             <div class="game-pts-row">
               <span>{{ matchStore.leftGames }}</span>
-              <div class="pts-divider"></div>
+              <div class="pts-divider" />
               <span>{{ matchStore.rightGames }}</span>
             </div>
             <div class="current-pts-row">
               <span>{{ matchStore.leftPoints }}</span>
-              <div class="pts-divider"></div>
+              <div class="pts-divider" />
               <span>{{ matchStore.rightPoints }}</span>
             </div>
           </div>
@@ -441,8 +441,8 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
             <button class="score-btn-small minus-btn" @click="minusRight">-</button>
             <button
               class="score-btn-large plus-btn"
-              @click="addRight"
               :disabled="!matchStore.pointStarted || matchStore.isGameOver"
+              @click="addRight"
             >
               +
             </button>
@@ -453,26 +453,26 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
       <!-- Bottom Actions -->
       <div v-if="matchStore.matchWinner === null" class="bottom-action-bar">
         <button class="action-btn swap-sides-btn" @click="swapSides">
-          <i class="fa-solid fa-arrow-right-arrow-left"></i> Swap Sides
+          <i class="fa-solid fa-arrow-right-arrow-left" /> Swap Sides
         </button>
         <button class="action-btn expedite-btn">
-          <i class="fa-solid fa-stopwatch"></i> Expedite
+          <i class="fa-solid fa-stopwatch" /> Expedite
         </button>
-        <div class="divider"></div>
+        <div class="divider" />
         <button
           class="action-btn next-game-btn"
           :class="{ disabled: !matchStore.isGameOver }"
           @click="nextGame"
         >
-          Next Game <i class="fa-solid fa-forward-step"></i>
+          Next Game <i class="fa-solid fa-forward-step" />
         </button>
-        <button @click="quitMatch" class="action-btn end-match-btn">End Match</button>
+        <button class="action-btn end-match-btn" @click="quitMatch">End Match</button>
       </div>
       <div v-else class="bottom-action-bar match-over-bar">
-        <div style="flex: 1"></div>
-        <div class="divider"></div>
+        <div style="flex: 1" />
+        <div class="divider" />
         <div style="flex: 1; display: flex; justify-content: center">
-          <button @click="showWinnerModal = true" class="action-btn confirm-winner-btn">
+          <button class="action-btn confirm-winner-btn" @click="showWinnerModal = true">
             Confirm Winner
           </button>
         </div>
@@ -483,8 +483,8 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
     <div v-if="showWinnerModal" class="modal-overlay winner-overlay-bg">
       <div class="winner-modal-view">
         <!-- Back icon in topper -->
-        <button @click="showWinnerModal = false" class="winner-back-btn">
-          <i class="fa-solid fa-arrow-left"></i>
+        <button class="winner-back-btn" @click="showWinnerModal = false">
+          <i class="fa-solid fa-arrow-left" />
         </button>
 
         <div class="winner-modal-content">
@@ -500,7 +500,9 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
               <div class="wp-label">Player {{ matchStore.matchWinner }}</div>
             </div>
             <div class="wp-info">
-              <div class="wp-name">{{ matchStore.matchWinner === 1 ? team1Name : team2Name }}</div>
+              <div class="wp-name">
+                {{ matchStore.matchWinner === 1 ? team1Name : team2Name }}
+              </div>
               <div class="wp-country">
                 {{ matchStore.matchWinner === 1 ? team1Country : team2Country }}
               </div>
@@ -511,7 +513,9 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
             <table class="winner-score-table">
               <thead>
                 <tr>
-                  <th class="w-tools-col"><span>SSQ</span></th>
+                  <th class="w-tools-col">
+                    <span>SSQ</span>
+                  </th>
                   <th v-for="g in games" :key="g">G{{ g }}</th>
                   <th class="w-final-result-col">Final<br />Result</th>
                 </tr>
@@ -524,7 +528,9 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
                   <td v-for="g in games" :key="g" class="w-game-score">
                     {{ getScoreP1(g) !== null ? getScoreP1(g) : '-' }}
                   </td>
-                  <td class="w-final-score">{{ matchStore.gamesWon.p1 }}</td>
+                  <td class="w-final-score">
+                    {{ matchStore.gamesWon.p1 }}
+                  </td>
                 </tr>
                 <tr>
                   <td class="w-player-name-cell">
@@ -533,17 +539,19 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
                   <td v-for="g in games" :key="g" class="w-game-score">
                     {{ getScoreP2(g) !== null ? getScoreP2(g) : '-' }}
                   </td>
-                  <td class="w-final-score">{{ matchStore.gamesWon.p2 }}</td>
+                  <td class="w-final-score">
+                    {{ matchStore.gamesWon.p2 }}
+                  </td>
                 </tr>
               </tbody>
             </table>
           </div>
 
           <div class="modal-footer winner-modal-footer">
-            <button @click="confirmMatchResult" class="modal-btn winner-confirm-btn">
+            <button class="modal-btn winner-confirm-btn" @click="confirmMatchResult">
               Confirm
             </button>
-            <button @click="showWinnerModal = false" class="modal-btn winner-cancel-btn">
+            <button class="modal-btn winner-cancel-btn" @click="showWinnerModal = false">
               Cancel
             </button>
           </div>
@@ -559,7 +567,7 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
           Decider game of Match, 5 points scored, swapping sides and players.
         </p>
         <div class="modal-footer alert-footer">
-          <button @click="matchStore.applyMidGameSwap()" class="modal-btn alert-close-btn">
+          <button class="modal-btn alert-close-btn" @click="matchStore.applyMidGameSwap()">
             Close
           </button>
         </div>
@@ -567,7 +575,7 @@ const getScoreP2 = (g) => matchStore.scores[`g${g}`]?.p2
     </div>
 
     <!-- Card Modal -->
-    <CardModal v-if="showCardModal" :teamNum="cardModalTeamNum" @close="closeCardModal" />
+    <CardModal v-if="showCardModal" :team-num="cardModalTeamNum" @close="closeCardModal" />
 
     <!-- Timeout Modal -->
     <TimeoutModal v-if="matchStore.timeoutActive" />

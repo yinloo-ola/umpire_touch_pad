@@ -14,9 +14,14 @@ export default [
       },
     },
     rules: {
-      // Relax some rules for a more comfortable dev experience
       'vue/multi-word-component-names': 'off',
       'vue/html-self-closing': ['warn', { html: { void: 'always' } }],
+      'vue/max-attributes-per-line': 'off',
+      'vue/singleline-html-element-content-newline': 'off',
+      'vue/multiline-html-element-content-newline': 'off',
+      'vue/attributes-order': 'off',
+      'vue/first-attribute-linebreak': 'off',
+      'vue/html-indent': 'off',
     },
   },
 ]

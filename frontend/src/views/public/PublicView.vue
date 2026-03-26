@@ -128,7 +128,7 @@ function handleRetry() {
       <div class="header-content">
         <h1 class="page-title">Tournament Matches</h1>
         <div class="header-actions">
-          <button @click="handleRefresh" class="refresh-btn" :disabled="publicStore.loading">
+          <button class="refresh-btn" :disabled="publicStore.loading" @click="handleRefresh">
             <svg
               class="refresh-icon"
               :class="{ spinning: publicStore.loading }"
@@ -193,7 +193,7 @@ function handleRetry() {
     <main class="content-area">
       <!-- Loading State -->
       <div v-if="publicStore.loading" class="loading-state">
-        <div class="spinner"></div>
+        <div class="spinner" />
         <p>Loading matches...</p>
       </div>
 
@@ -211,7 +211,7 @@ function handleRetry() {
           <line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
         <p>{{ publicStore.error }}</p>
-        <button @click="handleRetry" class="retry-btn">Try Again</button>
+        <button class="retry-btn" @click="handleRetry">Try Again</button>
       </div>
 
       <!-- Empty State -->
@@ -241,9 +241,11 @@ function handleRetry() {
         >
           <!-- Card Header: Title & Table -->
           <div class="card-header">
-            <h3 class="match-title">{{ match.title || match.event || 'Match' }}</h3>
-            <span class="table-badge" v-if="match.tableNumber"> T{{ match.tableNumber }} </span>
-            <span class="table-badge unassigned" v-else> -- </span>
+            <h3 class="match-title">
+              {{ match.title || match.event || 'Match' }}
+            </h3>
+            <span v-if="match.tableNumber" class="table-badge"> T{{ match.tableNumber }} </span>
+            <span v-else class="table-badge unassigned"> -- </span>
           </div>
 
           <!-- Teams Section -->
@@ -254,12 +256,12 @@ function handleRetry() {
                 <template v-if="match.team1 && match.team1.length > 0">
                   <div v-for="(player, idx) in match.team1" :key="idx" class="player">
                     <span class="player-name">{{ player.name }}</span>
-                    <span class="country-code" v-if="player.country">{{ player.country }}</span>
+                    <span v-if="player.country" class="country-code">{{ player.country }}</span>
                   </div>
                 </template>
                 <div v-else class="player tbd">TBD</div>
               </div>
-              <div class="team-score" v-if="activeTab === 'completed' || activeTab === 'live'">
+              <div v-if="activeTab === 'completed' || activeTab === 'live'" class="team-score">
                 <template v-if="getAggregateScore(match)">
                   {{ getAggregateScore(match).team1 }}
                 </template>
@@ -277,12 +279,12 @@ function handleRetry() {
                 <template v-if="match.team2 && match.team2.length > 0">
                   <div v-for="(player, idx) in match.team2" :key="idx" class="player">
                     <span class="player-name">{{ player.name }}</span>
-                    <span class="country-code" v-if="player.country">{{ player.country }}</span>
+                    <span v-if="player.country" class="country-code">{{ player.country }}</span>
                   </div>
                 </template>
                 <div v-else class="player tbd">TBD</div>
               </div>
-              <div class="team-score" v-if="activeTab === 'completed' || activeTab === 'live'">
+              <div v-if="activeTab === 'completed' || activeTab === 'live'" class="team-score">
                 <template v-if="getAggregateScore(match)">
                   {{ getAggregateScore(match).team2 }}
                 </template>
@@ -292,15 +294,15 @@ function handleRetry() {
 
           <!-- Game Scores -->
           <div
-            class="game-scores"
             v-if="(activeTab === 'completed' || activeTab === 'live') && getGameScores(match)"
+            class="game-scores"
           >
             <span class="scores-label">Games:</span>
             <span class="scores-value">{{ getGameScores(match) }}</span>
           </div>
 
           <!-- Scheduled Time -->
-          <div class="scheduled-time" v-if="activeTab === 'scheduled' && match.scheduledDate">
+          <div v-if="activeTab === 'scheduled' && match.scheduledDate" class="scheduled-time">
             <svg
               class="clock-icon"
               viewBox="0 0 24 24"
@@ -323,8 +325,8 @@ function handleRetry() {
           </div>
 
           <!-- Live Indicator -->
-          <div class="live-indicator" v-if="activeTab === 'live'">
-            <span class="live-dot"></span>
+          <div v-if="activeTab === 'live'" class="live-indicator">
+            <span class="live-dot" />
             <span>In Progress</span>
           </div>
         </div>

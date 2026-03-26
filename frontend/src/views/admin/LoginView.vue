@@ -32,7 +32,9 @@
           />
         </div>
 
-        <p v-if="error" class="login-error">{{ error }}</p>
+        <p v-if="error" class="login-error">
+          {{ error }}
+        </p>
 
         <button id="admin-login-btn" type="submit" class="login-btn" :disabled="loading">
           <span v-if="loading">Signing in…</span>
@@ -41,7 +43,7 @@
       </form>
 
       <div class="login-footer">
-        <router-link to="/umpire/match-list" class="back-link">← Back to Home</router-link>
+        <router-link to="/umpire/match-list" class="back-link"> ← Back to Home </router-link>
       </div>
     </div>
   </div>

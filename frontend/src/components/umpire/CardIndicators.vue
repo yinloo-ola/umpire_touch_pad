@@ -38,7 +38,7 @@ const hasAny = computed(
     </div>
 
     <!-- Row 2: Coach Track (Coach Yellow, Coach Red) -->
-    <div class="ci-row" v-if="coachCards.length > 0">
+    <div v-if="coachCards.length > 0" class="ci-row">
       <div
         v-for="(card, index) in coachCards"
         :key="'c' + index"
