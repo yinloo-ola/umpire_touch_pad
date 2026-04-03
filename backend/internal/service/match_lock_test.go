@@ -23,6 +23,8 @@ func matchTestDB(t *testing.T) *sql.DB {
 			status TEXT NOT NULL DEFAULT 'unstarted', current_game INTEGER NOT NULL DEFAULT 1,
 			team1_p1_name TEXT NOT NULL, team1_p2_name TEXT,
 			team2_p1_name TEXT NOT NULL, team2_p2_name TEXT,
+			team1_p1_country TEXT DEFAULT '', team1_p2_country TEXT DEFAULT '',
+			team2_p1_country TEXT DEFAULT '', team2_p2_country TEXT DEFAULT '',
 			best_of INTEGER NOT NULL DEFAULT 5,
 			created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
 			state_json TEXT, table_number INTEGER, remarks TEXT
@@ -56,7 +58,7 @@ func matchTestDB(t *testing.T) *sql.DB {
 	}
 
 	_, err = db.Exec(`INSERT INTO matches (id, title, scheduled_date, team1_p1_name, team2_p1_name)
-		VALUES ('match-1', 'Test Match', '2026-04-03', 'Alice', 'Bob')`)
+		VALUES ('match-1', 'Test Match', '2026-04-03T12:00:00', 'Alice', 'Bob')`)
 	if err != nil {
 		t.Fatalf("insert match: %v", err)
 	}

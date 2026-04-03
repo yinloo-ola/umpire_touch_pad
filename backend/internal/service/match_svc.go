@@ -412,7 +412,7 @@ func (s *MatchService) CreateMatch(ctx context.Context, m Match) (string, error)
 	return id, nil
 }
 
-func (s *MatchService) GetTodayMatches(ctx context.Context, history bool) ([]Match, error) {
+func (s *MatchService) GetTodayMatches(ctx context.Context, sessionID string, history bool) ([]Match, error) {
 	now := time.Now()
 	y, m, d := now.Date()
 	const naiveFmt = "2006-01-02T15:04:05"
@@ -512,6 +512,27 @@ func (s *MatchService) GetTodayMatches(ctx context.Context, history bool) ([]Mat
 			Remarks:     dbm.Remarks.String,
 		})
 	}
+
+	// Lock filtering: non-history mode, exclude matches locked by other sessions
+	if !history && sessionID != "" {
+		lockSvc := NewLockService(s.store)
+		_ = lockSvc.Prune()
+
+		var filtered []Match
+		for _, m := range results {
+			isLockedByOther := false
+			if lock, err := lockSvc.store.GetMatchLock(ctx, m.ID); err == nil {
+				if lock.SessionID != sessionID {
+					isLockedByOther = true
+				}
+			}
+			if !isLockedByOther {
+				filtered = append(filtered, m)
+			}
+		}
+		results = filtered
+	}
+
 	if results == nil {
 		results = []Match{}
 	}
