@@ -23,7 +23,8 @@ func (h *APIHandler) handleGetMatches(w http.ResponseWriter, r *http.Request) {
 	}
 
 	history := r.URL.Query().Get("history") == "true"
-	matches, err := h.svc.GetTodayMatches(r.Context(), history)
+	sessionID := r.Header.Get("X-Session-ID")
+	matches, err := h.svc.GetTodayMatches(r.Context(), sessionID, history)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -99,7 +100,13 @@ func (h *APIHandler) handleSyncMatch(w http.ResponseWriter, r *http.Request) {
 	}
 	req.MatchID = id // Ensure ID from path is used
 
-	if err := h.svc.SyncMatch(r.Context(), req); err != nil {
+	sessionID := r.Header.Get("X-Session-ID")
+
+	if err := h.svc.SyncMatch(r.Context(), sessionID, req); err != nil {
+		if err == service.ErrMatchLocked {
+			http.Error(w, err.Error(), http.StatusConflict)
+			return
+		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
