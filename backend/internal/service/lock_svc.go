@@ -5,11 +5,17 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"umpire-backend/internal/store"
 )
 
 var ErrMatchLocked = errors.New("match is being umpired on another device")
+
+// LockExpiry is the inactivity duration after which a match lock expires.
+// Must be kept in sync with the '-30 seconds' literal in query.sql
+// (AcquireMatchLock and PruneExpiredLocks queries).
+const LockExpiry = 30 * time.Second
 
 type LockService struct {
 	store store.Querier
