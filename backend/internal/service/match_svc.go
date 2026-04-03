@@ -254,18 +254,18 @@ func (s *MatchService) SyncMatch(ctx context.Context, sessionID string, req Sync
 
 	// --- Lock orchestration ---
 	lockSvc := NewLockService(qtx)
-	_ = lockSvc.Prune()
+	_ = lockSvc.Prune(ctx)
 
-	isLocked, lockErr := lockSvc.IsLockedBy(req.MatchID, sessionID)
+	isLocked, lockErr := lockSvc.IsLockedBy(ctx, req.MatchID, sessionID)
 	if lockErr != nil {
 		return lockErr
 	}
 
 	if isLocked {
-		_ = lockSvc.Touch(req.MatchID, sessionID)
+		_ = lockSvc.Touch(ctx, req.MatchID, sessionID)
 	} else {
 		if req.Status == "starting" || req.Status == "warming_up" || req.Status == "in_progress" {
-			if err := lockSvc.Acquire(req.MatchID, sessionID); err != nil {
+			if err := lockSvc.Acquire(ctx, req.MatchID, sessionID); err != nil {
 				return err
 			}
 		}
@@ -348,7 +348,7 @@ func (s *MatchService) SyncMatch(ctx context.Context, sessionID string, req Sync
 
 	// Release lock if match completed
 	if req.Status == "completed" {
-		_ = lockSvc.Release(req.MatchID)
+		_ = lockSvc.Release(ctx, req.MatchID)
 	}
 
 	return tx.Commit()
@@ -521,7 +521,7 @@ func (s *MatchService) GetTodayMatches(ctx context.Context, sessionID string, hi
 	// Lock filtering: non-history mode, exclude matches locked by other sessions
 	if !history && sessionID != "" {
 		lockSvc := NewLockService(s.store)
-		_ = lockSvc.Prune()
+		_ = lockSvc.Prune(ctx)
 
 		var filtered []Match
 		for _, m := range results {

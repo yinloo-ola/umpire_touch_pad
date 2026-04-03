@@ -110,7 +110,7 @@ func TestHandleGetMatches_FiltersLockedMatches(t *testing.T) {
 
 	// Acquire lock on match-1
 	lockSvc := service.NewLockService(store.New(db))
-	lockSvc.Acquire("match-1", "session-A")
+	lockSvc.Acquire(t.Context(), "match-1", "session-A")
 
 	// session-B should not see match-1
 	req := httptest.NewRequest("GET", "/api/matches", nil)

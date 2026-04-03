@@ -33,7 +33,7 @@ func TestAcquire_NewLock(t *testing.T) {
 	defer db.Close()
 	svc := NewLockService(store.New(db))
 
-	err := svc.Acquire("match-1", "session-A")
+	err := svc.Acquire(t.Context(), "match-1", "session-A")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -44,12 +44,12 @@ func TestAcquire_RejectsWhenActive(t *testing.T) {
 	defer db.Close()
 	svc := NewLockService(store.New(db))
 
-	err := svc.Acquire("match-1", "session-A")
+	err := svc.Acquire(t.Context(), "match-1", "session-A")
 	if err != nil {
 		t.Fatalf("first acquire: %v", err)
 	}
 
-	err = svc.Acquire("match-1", "session-B")
+	err = svc.Acquire(t.Context(), "match-1", "session-B")
 	if err != ErrMatchLocked {
 		t.Fatalf("expected ErrMatchLocked, got %v", err)
 	}
@@ -66,7 +66,7 @@ func TestAcquire_TakeoverAfterExpiry(t *testing.T) {
 		t.Fatalf("insert expired lock: %v", err)
 	}
 
-	err = svc.Acquire("match-1", "session-B")
+	err = svc.Acquire(t.Context(), "match-1", "session-B")
 	if err != nil {
 		t.Fatalf("expected takeover to succeed, got %v", err)
 	}
@@ -77,7 +77,7 @@ func TestIsLockedBy_NoLock(t *testing.T) {
 	defer db.Close()
 	svc := NewLockService(store.New(db))
 
-	locked, err := svc.IsLockedBy("match-1", "session-A")
+	locked, err := svc.IsLockedBy(t.Context(), "match-1", "session-A")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -91,9 +91,9 @@ func TestIsLockedBy_OwnLock(t *testing.T) {
 	defer db.Close()
 	svc := NewLockService(store.New(db))
 
-	svc.Acquire("match-1", "session-A")
+	svc.Acquire(t.Context(), "match-1", "session-A")
 
-	locked, err := svc.IsLockedBy("match-1", "session-A")
+	locked, err := svc.IsLockedBy(t.Context(), "match-1", "session-A")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -107,9 +107,9 @@ func TestIsLockedBy_OtherLock(t *testing.T) {
 	defer db.Close()
 	svc := NewLockService(store.New(db))
 
-	svc.Acquire("match-1", "session-A")
+	svc.Acquire(t.Context(), "match-1", "session-A")
 
-	locked, err := svc.IsLockedBy("match-1", "session-B")
+	locked, err := svc.IsLockedBy(t.Context(), "match-1", "session-B")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -123,9 +123,9 @@ func TestTouch_OwnLock(t *testing.T) {
 	defer db.Close()
 	svc := NewLockService(store.New(db))
 
-	svc.Acquire("match-1", "session-A")
+	svc.Acquire(t.Context(), "match-1", "session-A")
 
-	err := svc.Touch("match-1", "session-A")
+	err := svc.Touch(t.Context(), "match-1", "session-A")
 	if err != nil {
 		t.Fatalf("touch own lock: %v", err)
 	}
@@ -136,9 +136,9 @@ func TestTouch_WrongSession(t *testing.T) {
 	defer db.Close()
 	svc := NewLockService(store.New(db))
 
-	svc.Acquire("match-1", "session-A")
+	svc.Acquire(t.Context(), "match-1", "session-A")
 
-	err := svc.Touch("match-1", "session-B")
+	err := svc.Touch(t.Context(), "match-1", "session-B")
 	if err == nil {
 		t.Fatal("expected error when touching other session's lock")
 	}
@@ -149,14 +149,14 @@ func TestRelease(t *testing.T) {
 	defer db.Close()
 	svc := NewLockService(store.New(db))
 
-	svc.Acquire("match-1", "session-A")
+	svc.Acquire(t.Context(), "match-1", "session-A")
 
-	err := svc.Release("match-1")
+	err := svc.Release(t.Context(), "match-1")
 	if err != nil {
 		t.Fatalf("release: %v", err)
 	}
 
-	locked, _ := svc.IsLockedBy("match-1", "session-A")
+	locked, _ := svc.IsLockedBy(t.Context(), "match-1", "session-A")
 	if locked {
 		t.Fatal("expected lock to be released")
 	}
@@ -173,9 +173,9 @@ func TestPrune(t *testing.T) {
 		t.Fatalf("insert expired lock: %v", err)
 	}
 
-	svc.Prune()
+	svc.Prune(t.Context())
 
-	locked, _ := svc.IsLockedBy("match-1", "session-A")
+	locked, _ := svc.IsLockedBy(t.Context(), "match-1", "session-A")
 	if locked {
 		t.Fatal("expected expired lock to be pruned")
 	}

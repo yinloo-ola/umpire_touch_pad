@@ -21,7 +21,7 @@ func TestGetTodayMatches_FiltersLockedByOthers(t *testing.T) {
 	}
 
 	lockSvc := NewLockService(store.New(db))
-	lockSvc.Acquire("match-1", "session-A")
+	lockSvc.Acquire(t.Context(), "match-1", "session-A")
 
 	matches, err := svc.GetTodayMatches(t.Context(), "session-B", false)
 	if err != nil {
@@ -52,7 +52,7 @@ func TestGetTodayMatches_OwnLockVisible(t *testing.T) {
 	svc := newTestMatchService(t, db)
 
 	lockSvc := NewLockService(store.New(db))
-	lockSvc.Acquire("match-1", "session-A")
+	lockSvc.Acquire(t.Context(), "match-1", "session-A")
 
 	matches, err := svc.GetTodayMatches(t.Context(), "session-A", false)
 	if err != nil {
@@ -77,7 +77,7 @@ func TestGetTodayMatches_HistoryIncludesAll(t *testing.T) {
 	svc := newTestMatchService(t, db)
 
 	lockSvc := NewLockService(store.New(db))
-	lockSvc.Acquire("match-1", "session-A")
+	lockSvc.Acquire(t.Context(), "match-1", "session-A")
 
 	matches, err := svc.GetTodayMatches(t.Context(), "session-B", true)
 	if err != nil {

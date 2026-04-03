@@ -19,8 +19,7 @@ func NewLockService(q store.Querier) *LockService {
 	return &LockService{store: q}
 }
 
-func (s *LockService) Acquire(matchID, sessionID string) error {
-	ctx := context.Background()
+func (s *LockService) Acquire(ctx context.Context, matchID, sessionID string) error {
 	_ = s.store.PruneExpiredLocks(ctx)
 
 	res, err := s.store.AcquireMatchLock(ctx, store.AcquireMatchLockParams{
@@ -37,8 +36,7 @@ func (s *LockService) Acquire(matchID, sessionID string) error {
 	return nil
 }
 
-func (s *LockService) IsLockedBy(matchID, sessionID string) (bool, error) {
-	ctx := context.Background()
+func (s *LockService) IsLockedBy(ctx context.Context, matchID, sessionID string) (bool, error) {
 	lock, err := s.store.GetMatchLock(ctx, matchID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -49,8 +47,7 @@ func (s *LockService) IsLockedBy(matchID, sessionID string) (bool, error) {
 	return lock.SessionID == sessionID, nil
 }
 
-func (s *LockService) Touch(matchID, sessionID string) error {
-	ctx := context.Background()
+func (s *LockService) Touch(ctx context.Context, matchID, sessionID string) error {
 	res, err := s.store.TouchMatchLock(ctx, store.TouchMatchLockParams{
 		MatchID:   matchID,
 		SessionID: sessionID,
@@ -65,12 +62,10 @@ func (s *LockService) Touch(matchID, sessionID string) error {
 	return nil
 }
 
-func (s *LockService) Release(matchID string) error {
-	ctx := context.Background()
+func (s *LockService) Release(ctx context.Context, matchID string) error {
 	return s.store.ReleaseMatchLock(ctx, matchID)
 }
 
-func (s *LockService) Prune() error {
-	ctx := context.Background()
+func (s *LockService) Prune(ctx context.Context) error {
 	return s.store.PruneExpiredLocks(ctx)
 }

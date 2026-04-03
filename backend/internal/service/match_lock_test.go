@@ -26,7 +26,7 @@ func TestSyncMatch_AcquiresLockOnStarting(t *testing.T) {
 	}
 
 	lockSvc := NewLockService(store.New(db))
-	locked, err := lockSvc.IsLockedBy("match-1", "session-A")
+	locked, err := lockSvc.IsLockedBy(t.Context(), "match-1", "session-A")
 	if err != nil {
 		t.Fatalf("IsLockedBy: %v", err)
 	}
@@ -111,7 +111,7 @@ func TestSyncMatch_ReleasesLockOnCompleted(t *testing.T) {
 	}
 
 	lockSvc := NewLockService(store.New(db))
-	locked, _ := lockSvc.IsLockedBy("match-1", "session-A")
+	locked, _ := lockSvc.IsLockedBy(t.Context(), "match-1", "session-A")
 	if locked {
 		t.Fatal("expected lock to be released after completion")
 	}
@@ -124,7 +124,7 @@ func TestAdminUpdateMatch_ReleasesLockOnReset(t *testing.T) {
 	svc := newTestMatchService(t, db)
 
 	lockSvc := NewLockService(store.New(db))
-	lockSvc.Acquire("match-1", "session-A")
+	lockSvc.Acquire(t.Context(), "match-1", "session-A")
 
 	err := svc.AdminUpdateMatch(t.Context(), "match-1", AdminMatchUpdateRequest{
 		Status:  "unstarted",
@@ -138,7 +138,7 @@ func TestAdminUpdateMatch_ReleasesLockOnReset(t *testing.T) {
 		t.Fatalf("AdminUpdateMatch: %v", err)
 	}
 
-	locked, _ := lockSvc.IsLockedBy("match-1", "session-A")
+	locked, _ := lockSvc.IsLockedBy(t.Context(), "match-1", "session-A")
 	if locked {
 		t.Fatal("expected lock to be released when admin resets match to unstarted")
 	}
