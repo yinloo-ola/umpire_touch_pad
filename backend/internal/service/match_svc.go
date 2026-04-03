@@ -183,6 +183,11 @@ func (s *MatchService) AdminUpdateMatch(ctx context.Context, matchID string, req
 		return err
 	}
 
+	// Release lock if admin resets match to unstarted
+	if req.Status == "unstarted" {
+		_ = qtx.ReleaseMatchLock(ctx, matchID)
+	}
+
 	// 4. Clear and insert games
 	err = qtx.DeleteGamesForMatch(ctx, matchID)
 	if err != nil {

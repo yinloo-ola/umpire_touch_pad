@@ -177,3 +177,29 @@ func TestSyncMatch_ReleasesLockOnCompleted(t *testing.T) {
 		t.Fatal("expected lock to be released after completion")
 	}
 }
+
+func TestAdminUpdateMatch_ReleasesLockOnReset(t *testing.T) {
+	db := matchTestDB(t)
+	defer db.Close()
+	svc := newTestMatchService(t, db)
+
+	lockSvc := NewLockService(store.New(db))
+	lockSvc.Acquire("match-1", "session-A")
+
+	err := svc.AdminUpdateMatch(t.Context(), "match-1", AdminMatchUpdateRequest{
+		Status:  "unstarted",
+		Remarks: "",
+		Games: []SyncGameRequest{
+			{GameNumber: 1, Team1Score: 0, Team2Score: 0, Status: "unstarted"},
+		},
+		Cards: []SyncCardRequest{},
+	})
+	if err != nil {
+		t.Fatalf("AdminUpdateMatch: %v", err)
+	}
+
+	locked, _ := lockSvc.IsLockedBy("match-1", "session-A")
+	if locked {
+		t.Fatal("expected lock to be released when admin resets match to unstarted")
+	}
+}
