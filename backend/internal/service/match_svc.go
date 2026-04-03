@@ -262,7 +262,11 @@ func (s *MatchService) SyncMatch(ctx context.Context, sessionID string, req Sync
 	}
 
 	if isLocked {
-		_ = lockSvc.Touch(ctx, req.MatchID, sessionID)
+		if err := lockSvc.Touch(ctx, req.MatchID, sessionID); err != nil {
+			// Lock was pruned between IsLockedBy and Touch (race window).
+			// Re-acquire to keep the lock active.
+			_ = lockSvc.Acquire(ctx, req.MatchID, sessionID)
+		}
 	} else {
 		if req.Status == "starting" || req.Status == "warming_up" || req.Status == "in_progress" {
 			if err := lockSvc.Acquire(ctx, req.MatchID, sessionID); err != nil {
