@@ -51,3 +51,9 @@ type Match struct {
 	TableNumber    sql.NullInt64  `json:"table_number"`
 	Remarks        sql.NullString `json:"remarks"`
 }
+
+type MatchLock struct {
+	MatchID   string `json:"match_id"`
+	SessionID string `json:"session_id"`
+	LastSync  string `json:"last_sync"`
+}
