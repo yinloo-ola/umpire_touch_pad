@@ -28,7 +28,7 @@ type Querier interface {
 	GetMatchLock(ctx context.Context, matchID string) (MatchLock, error)
 	PruneExpiredLocks(ctx context.Context) error
 	ReleaseMatchLock(ctx context.Context, matchID string) error
-	TouchMatchLock(ctx context.Context, arg TouchMatchLockParams) error
+	TouchMatchLock(ctx context.Context, arg TouchMatchLockParams) (sql.Result, error)
 	UpdateMatchState(ctx context.Context, arg UpdateMatchStateParams) error
 	UpdateMatchStatus(ctx context.Context, arg UpdateMatchStatusParams) error
 	UpsertGame(ctx context.Context, arg UpsertGameParams) (string, error)

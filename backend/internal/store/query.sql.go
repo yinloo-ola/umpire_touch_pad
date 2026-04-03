@@ -565,7 +565,7 @@ func (q *Queries) ReleaseMatchLock(ctx context.Context, matchID string) error {
 	return err
 }
 
-const touchMatchLock = `-- name: TouchMatchLock :exec
+const touchMatchLock = `-- name: TouchMatchLock :execresult
 UPDATE match_locks SET last_sync = CURRENT_TIMESTAMP
 WHERE match_id = ? AND session_id = ?
 `
@@ -575,9 +575,8 @@ type TouchMatchLockParams struct {
 	SessionID string `json:"session_id"`
 }
 
-func (q *Queries) TouchMatchLock(ctx context.Context, arg TouchMatchLockParams) error {
-	_, err := q.db.ExecContext(ctx, touchMatchLock, arg.MatchID, arg.SessionID)
-	return err
+func (q *Queries) TouchMatchLock(ctx context.Context, arg TouchMatchLockParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, touchMatchLock, arg.MatchID, arg.SessionID)
 }
 
 const updateMatchState = `-- name: UpdateMatchState :exec

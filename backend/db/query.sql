@@ -98,7 +98,7 @@ WHERE match_locks.last_sync < datetime('now', '-30 seconds');
 -- name: GetMatchLock :one
 SELECT match_id, session_id, last_sync FROM match_locks WHERE match_id = ?;
 
--- name: TouchMatchLock :exec
+-- name: TouchMatchLock :execresult
 UPDATE match_locks SET last_sync = CURRENT_TIMESTAMP
 WHERE match_id = ? AND session_id = ?;
 
