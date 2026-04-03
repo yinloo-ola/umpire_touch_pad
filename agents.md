@@ -114,8 +114,11 @@ make lint                       # Lint both
 - **Mocking `window.alert`** — jsdom doesn't define it; use `globalThis.alert = vi.fn()`
 - **Test files** — colocated: `__tests__/` dirs next to source files
 
-### CORS
-Allowed origins: `localhost:5173`, `127.0.0.1:5173`, `localhost:5174`, `127.0.0.1:5174`. Allowed headers include `X-Session-ID` and `Authorization`.
+### Same-Origin
+
+All frontend API calls use relative paths (`/api/...`). In dev, Vite proxies `/api` to `:8080` (same-origin). In production, the Go server serves the static frontend build directly. No CORS middleware needed.
+
+If cross-origin access is ever required (e.g., embedding the scoreboard on an external site), re-add the `github.com/rs/cors` middleware.
 
 ## Match Locking
 
