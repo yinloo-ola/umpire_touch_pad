@@ -9,8 +9,9 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-// openTestDB creates an in-memory SQLite DB with the match_locks table only.
-func openTestDB(t *testing.T) *sql.DB {
+// lockOnlyTestDB creates an in-memory SQLite DB with only the match_locks table.
+// Used by LockService unit tests that don't need the full schema.
+func lockOnlyTestDB(t *testing.T) *sql.DB {
 	t.Helper()
 	db, err := sql.Open("sqlite", ":memory:")
 	if err != nil {
@@ -28,7 +29,7 @@ func openTestDB(t *testing.T) *sql.DB {
 }
 
 func TestAcquire_NewLock(t *testing.T) {
-	db := openTestDB(t)
+	db := lockOnlyTestDB(t)
 	defer db.Close()
 	svc := NewLockService(store.New(db))
 
@@ -39,7 +40,7 @@ func TestAcquire_NewLock(t *testing.T) {
 }
 
 func TestAcquire_RejectsWhenActive(t *testing.T) {
-	db := openTestDB(t)
+	db := lockOnlyTestDB(t)
 	defer db.Close()
 	svc := NewLockService(store.New(db))
 
@@ -55,7 +56,7 @@ func TestAcquire_RejectsWhenActive(t *testing.T) {
 }
 
 func TestAcquire_TakeoverAfterExpiry(t *testing.T) {
-	db := openTestDB(t)
+	db := lockOnlyTestDB(t)
 	defer db.Close()
 	svc := NewLockService(store.New(db))
 
@@ -72,7 +73,7 @@ func TestAcquire_TakeoverAfterExpiry(t *testing.T) {
 }
 
 func TestIsLockedBy_NoLock(t *testing.T) {
-	db := openTestDB(t)
+	db := lockOnlyTestDB(t)
 	defer db.Close()
 	svc := NewLockService(store.New(db))
 
@@ -86,7 +87,7 @@ func TestIsLockedBy_NoLock(t *testing.T) {
 }
 
 func TestIsLockedBy_OwnLock(t *testing.T) {
-	db := openTestDB(t)
+	db := lockOnlyTestDB(t)
 	defer db.Close()
 	svc := NewLockService(store.New(db))
 
@@ -102,7 +103,7 @@ func TestIsLockedBy_OwnLock(t *testing.T) {
 }
 
 func TestIsLockedBy_OtherLock(t *testing.T) {
-	db := openTestDB(t)
+	db := lockOnlyTestDB(t)
 	defer db.Close()
 	svc := NewLockService(store.New(db))
 
@@ -118,7 +119,7 @@ func TestIsLockedBy_OtherLock(t *testing.T) {
 }
 
 func TestTouch_OwnLock(t *testing.T) {
-	db := openTestDB(t)
+	db := lockOnlyTestDB(t)
 	defer db.Close()
 	svc := NewLockService(store.New(db))
 
@@ -131,7 +132,7 @@ func TestTouch_OwnLock(t *testing.T) {
 }
 
 func TestTouch_WrongSession(t *testing.T) {
-	db := openTestDB(t)
+	db := lockOnlyTestDB(t)
 	defer db.Close()
 	svc := NewLockService(store.New(db))
 
@@ -144,7 +145,7 @@ func TestTouch_WrongSession(t *testing.T) {
 }
 
 func TestRelease(t *testing.T) {
-	db := openTestDB(t)
+	db := lockOnlyTestDB(t)
 	defer db.Close()
 	svc := NewLockService(store.New(db))
 
@@ -162,7 +163,7 @@ func TestRelease(t *testing.T) {
 }
 
 func TestPrune(t *testing.T) {
-	db := openTestDB(t)
+	db := lockOnlyTestDB(t)
 	defer db.Close()
 	svc := NewLockService(store.New(db))
 

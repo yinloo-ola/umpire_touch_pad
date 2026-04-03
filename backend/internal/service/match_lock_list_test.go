@@ -2,17 +2,20 @@ package service
 
 import (
 	"testing"
+	"time"
 
 	"umpire-backend/internal/store"
 )
 
 func TestGetTodayMatches_FiltersLockedByOthers(t *testing.T) {
-	db := matchTestDB(t)
+	db := openTestDB(t)
 	defer db.Close()
+	seedTestMatch(t, db)
 	svc := newTestMatchService(t, db)
 
+	now := time.Now().Format("2006-01-02T15:04:05")
 	_, err := db.Exec(`INSERT INTO matches (id, title, scheduled_date, team1_p1_name, team2_p1_name)
-		VALUES ('match-2', 'Test Match 2', '2026-04-03T12:00:00', 'Carol', 'Dave')`)
+		VALUES ('match-2', 'Test Match 2', ?, 'Carol', 'Dave')`, now)
 	if err != nil {
 		t.Fatalf("insert match-2: %v", err)
 	}
@@ -43,8 +46,9 @@ func TestGetTodayMatches_FiltersLockedByOthers(t *testing.T) {
 }
 
 func TestGetTodayMatches_OwnLockVisible(t *testing.T) {
-	db := matchTestDB(t)
+	db := openTestDB(t)
 	defer db.Close()
+	seedTestMatch(t, db)
 	svc := newTestMatchService(t, db)
 
 	lockSvc := NewLockService(store.New(db))
@@ -67,8 +71,9 @@ func TestGetTodayMatches_OwnLockVisible(t *testing.T) {
 }
 
 func TestGetTodayMatches_HistoryIncludesAll(t *testing.T) {
-	db := matchTestDB(t)
+	db := openTestDB(t)
 	defer db.Close()
+	seedTestMatch(t, db)
 	svc := newTestMatchService(t, db)
 
 	lockSvc := NewLockService(store.New(db))
