@@ -237,7 +237,7 @@ func (s *MatchService) AdminUpdateMatch(ctx context.Context, matchID string, req
 	return nil
 }
 
-func (s *MatchService) SyncMatch(ctx context.Context, req SyncMatchRequest) error {
+func (s *MatchService) SyncMatch(ctx context.Context, sessionID string, req SyncMatchRequest) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -246,6 +246,26 @@ func (s *MatchService) SyncMatch(ctx context.Context, req SyncMatchRequest) erro
 
 	// qtx allows using the generated store methods within a transaction
 	qtx := store.New(tx)
+
+	// --- Lock orchestration ---
+	lockSvc := NewLockService(qtx)
+	_ = lockSvc.Prune()
+
+	isLocked, lockErr := lockSvc.IsLockedBy(req.MatchID, sessionID)
+	if lockErr != nil {
+		return lockErr
+	}
+
+	if isLocked {
+		_ = lockSvc.Touch(req.MatchID, sessionID)
+	} else {
+		if req.Status == "starting" || req.Status == "warming_up" || req.Status == "in_progress" {
+			if err := lockSvc.Acquire(req.MatchID, sessionID); err != nil {
+				return err
+			}
+		}
+	}
+	// --- End lock orchestration ---
 
 	// 1. Update Match Status & State
 	if req.StateJson != "" {
@@ -319,6 +339,11 @@ func (s *MatchService) SyncMatch(ctx context.Context, req SyncMatchRequest) erro
 		if err != nil {
 			return err
 		}
+	}
+
+	// Release lock if match completed
+	if req.Status == "completed" {
+		_ = lockSvc.Release(req.MatchID)
 	}
 
 	return tx.Commit()
