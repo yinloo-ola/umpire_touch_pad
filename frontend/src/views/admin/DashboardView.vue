@@ -171,9 +171,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAdminStore } from '../../stores/adminStore'
+
+function formatStatus(status) {
+  if (!status) return 'Unstarted'
+  return status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')
+}
 
 const adminStore = useAdminStore()
 const router = useRouter()
@@ -203,8 +208,6 @@ async function toggleHistory() {
   selectedMatches.value = []
   await load()
 }
-
-import { computed } from 'vue'
 
 const isAllSelected = computed(() => {
   return (
@@ -276,11 +279,6 @@ function formatTime(timeStr) {
 function formatTeam(players) {
   if (!players || players.length === 0) return '—'
   return players.map((p) => p.name).join(' / ')
-}
-
-function formatStatus(status) {
-  if (!status) return 'Unstarted'
-  return status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')
 }
 
 onMounted(load)

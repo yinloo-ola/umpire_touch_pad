@@ -1,5 +1,28 @@
 import { defineStore } from 'pinia'
 
+// Shared helper: computes the doubles serve rotation components from match state.
+// Returns { A, X, B, Y, servesPassed } for use in any serve-cycle calculation.
+function computeDoublesRotation(state) {
+  const A = state.doublesInitialServer
+  const X = state.doublesInitialReceiver
+  const B = { team: A.team, player: 1 - A.player }
+  const Y = { team: X.team, player: 1 - X.player }
+  const total = state.p1Score + state.p2Score
+  const servesPassed =
+    state.p1Score >= 10 && state.p2Score >= 10 ? 10 + (total - 20) : Math.floor(total / 2)
+  return { A, X, B, Y, servesPassed }
+}
+
+// Shared helper: computes which player (1 or 2) is currently serving in singles.
+function computeSinglesServer(p1Score, p2Score, initialServer) {
+  const totalPoints = p1Score + p2Score
+  const servesPassed =
+    p1Score >= 10 && p2Score >= 10
+      ? 10 + Math.max(0, totalPoints - 20)
+      : Math.floor(totalPoints / 2)
+  return servesPassed % 2 === 0 ? initialServer : initialServer === 1 ? 2 : 1
+}
+
 export const useMatchStore = defineStore('match', {
   state: () => ({
     currentMatch: null,
@@ -163,19 +186,7 @@ export const useMatchStore = defineStore('match', {
 
     // Doubles: computed current server and receiver derived from formula
     doublesCurrentPair: (state) => {
-      const A = state.doublesInitialServer
-      const X = state.doublesInitialReceiver
-      const B = { team: A.team, player: 1 - A.player }
-      const Y = { team: X.team, player: 1 - X.player }
-
-      const total = state.p1Score + state.p2Score
-      let servesPassed
-      if (state.p1Score >= 10 && state.p2Score >= 10) {
-        servesPassed = 10 + (total - 20)
-      } else {
-        servesPassed = Math.floor(total / 2)
-      }
-
+      const { A, X, B, Y, servesPassed } = computeDoublesRotation(state)
       const cycle = [
         { server: A, receiver: X },
         { server: X, receiver: B },
@@ -187,15 +198,7 @@ export const useMatchStore = defineStore('match', {
 
     // Doubles: is the current server's team on the LEFT side (considering swappedSides)?
     isLeftDoublesServer: (state) => {
-      // doublesCurrentPair is another getter — but in (state)=> form we can't
-      // call other getters with 'this'. Inline the calc instead.
-      const A = state.doublesInitialServer
-      const X = state.doublesInitialReceiver
-      const B = { team: A.team, player: 1 - A.player }
-      const Y = { team: X.team, player: 1 - X.player }
-      const total = state.p1Score + state.p2Score
-      let servesPassed =
-        state.p1Score >= 10 && state.p2Score >= 10 ? 10 + (total - 20) : Math.floor(total / 2)
+      const { A, X, B, Y, servesPassed } = computeDoublesRotation(state)
       const cycle = [
         { server: A, receiver: X },
         { server: X, receiver: B },
@@ -203,7 +206,6 @@ export const useMatchStore = defineStore('match', {
         { server: Y, receiver: A },
       ]
       const serverTeam = cycle[servesPassed % 4].server.team
-      // leftTeam is team1 when NOT swapped, team2 when swapped
       const leftTeam = state.swappedSides ? 2 : 1
       return serverTeam === leftTeam
     },
@@ -211,13 +213,7 @@ export const useMatchStore = defineStore('match', {
     // Doubles: name of the current server's player (for display in serve indicator)
     doublesServerName: (state) => {
       if (!state.currentMatch) return ''
-      const A = state.doublesInitialServer
-      const X = state.doublesInitialReceiver
-      const B = { team: A.team, player: 1 - A.player }
-      const Y = { team: X.team, player: 1 - X.player }
-      const total = state.p1Score + state.p2Score
-      let servesPassed =
-        state.p1Score >= 10 && state.p2Score >= 10 ? 10 + (total - 20) : Math.floor(total / 2)
+      const { A, X, B, Y, servesPassed } = computeDoublesRotation(state)
       const cycle = [{ server: A }, { server: X }, { server: B }, { server: Y }]
       const sv = cycle[servesPassed % 4].server
       const team = sv.team === 1 ? state.currentMatch.team1 : state.currentMatch.team2
@@ -227,13 +223,7 @@ export const useMatchStore = defineStore('match', {
     // Doubles: name of the current receiver's player
     doublesReceiverName: (state) => {
       if (!state.currentMatch) return ''
-      const A = state.doublesInitialServer
-      const X = state.doublesInitialReceiver
-      const B = { team: A.team, player: 1 - A.player }
-      const Y = { team: X.team, player: 1 - X.player }
-      const total = state.p1Score + state.p2Score
-      let servesPassed =
-        state.p1Score >= 10 && state.p2Score >= 10 ? 10 + (total - 20) : Math.floor(total / 2)
+      const { A, X, B, Y, servesPassed } = computeDoublesRotation(state)
       const cycle = [{ receiver: X }, { receiver: B }, { receiver: Y }, { receiver: A }]
       const rv = cycle[servesPassed % 4].receiver
       const team = rv.team === 1 ? state.currentMatch.team1 : state.currentMatch.team2
@@ -348,20 +338,7 @@ export const useMatchStore = defineStore('match', {
 
     setServerFromScore() {
       if (!this.currentMatch || this.currentMatch.type === 'doubles') return
-
-      const totalPoints = this.p1Score + this.p2Score
-      let servesPassed = 0
-      if (this.p1Score >= 10 && this.p2Score >= 10) {
-        servesPassed = 10 + Math.max(0, totalPoints - 20)
-      } else {
-        servesPassed = Math.floor(totalPoints / 2)
-      }
-
-      if (servesPassed % 2 === 0) {
-        this.server = this.initialServer
-      } else {
-        this.server = this.initialServer === 1 ? 2 : 1
-      }
+      this.server = computeSinglesServer(this.p1Score, this.p2Score, this.initialServer)
     },
 
     resetMatchState() {
@@ -620,9 +597,7 @@ export const useMatchStore = defineStore('match', {
         receiverPlayerIdx = leftActiveIdx
       }
 
-      const total = this.p1Score + this.p2Score
-      let servesPassed =
-        this.p1Score >= 10 && this.p2Score >= 10 ? 10 + (total - 20) : Math.floor(total / 2)
+      const { servesPassed } = computeDoublesRotation(this.$state)
       const cyclePos = servesPassed % 4
 
       const desiredS = { team: serverTeamNum, player: serverPlayerIdx }
@@ -630,23 +605,15 @@ export const useMatchStore = defineStore('match', {
       const partnerS = { team: desiredS.team, player: 1 - desiredS.player }
       const partnerR = { team: desiredR.team, player: 1 - desiredR.player }
 
-      let A, X
-      if (cyclePos === 0) {
-        A = desiredS
-        X = desiredR
-      } else if (cyclePos === 1) {
-        X = desiredS
-        A = partnerR
-      } else if (cyclePos === 2) {
-        A = partnerS
-        X = partnerR
-      } else if (cyclePos === 3) {
-        X = partnerS
-        A = desiredR
+      const backMap = {
+        0: { A: desiredS, X: desiredR },
+        1: { A: partnerR, X: desiredS },
+        2: { A: partnerS, X: partnerR },
+        3: { A: desiredR, X: partnerS },
       }
 
-      this.doublesInitialServer = A
-      this.doublesInitialReceiver = X
+      this.doublesInitialServer = backMap[cyclePos].A
+      this.doublesInitialReceiver = backMap[cyclePos].X
       this.syncMatch()
     },
 
@@ -710,22 +677,14 @@ export const useMatchStore = defineStore('match', {
 
     setServer(s) {
       this.server = s
-      // Calibrate initialServer based on current serve rotation parity,
-      // so future auto-rotation (every 2 pts) continues correctly from s.
+      // Calibrate initialServer based on current serve rotation parity.
+      // At even servesPassed, initialServer IS the server; at odd, it's the other.
       const totalPoints = this.p1Score + this.p2Score
-      let servesPassed = 0
-      if (this.p1Score >= 10 && this.p2Score >= 10) {
-        servesPassed = 10 + Math.max(0, totalPoints - 20)
-      } else {
-        servesPassed = Math.floor(totalPoints / 2)
-      }
-      // handleScore computes: even servesPassed → initialServer, odd → opposite.
-      // Working backwards: if we want server = s now...
-      if (servesPassed % 2 === 0) {
-        this.initialServer = s // at even, initialServer IS the server
-      } else {
-        this.initialServer = s === 1 ? 2 : 1 // at odd, initialServer is the OTHER player
-      }
+      const servesPassed =
+        this.p1Score >= 10 && this.p2Score >= 10
+          ? 10 + Math.max(0, totalPoints - 20)
+          : Math.floor(totalPoints / 2)
+      this.initialServer = servesPassed % 2 === 0 ? s : s === 1 ? 2 : 1
       this.syncMatch()
     },
 
@@ -733,74 +692,37 @@ export const useMatchStore = defineStore('match', {
     // Recalibrates doublesInitialServer/Receiver so the formula produces this
     // player as server at the CURRENT score.
     setDoublesServer(serverTeam, serverPlayerIdx) {
-      const total = this.p1Score + this.p2Score
-      let servesPassed
-      if (this.p1Score >= 10 && this.p2Score >= 10) {
-        servesPassed = 10 + (total - 20)
-      } else {
-        servesPassed = Math.floor(total / 2)
-      }
+      const { servesPassed } = computeDoublesRotation(this.$state)
       const cyclePos = servesPassed % 4
 
-      // The desired server at cyclePos. We need to find doublesInitialServer such that
-      // cycle[cyclePos].server === { team: serverTeam, player: serverPlayerIdx }.
-      //
-      // The cycle relative to A (initial server) and X (initial receiver):
-      // pos 0: server=A  pos 1: server=X  pos 2: server=B(partner of A)  pos 3: server=Y(partner of X)
-      //
-      // Working backwards from cyclePos to what A and X must be:
       const desired = { team: serverTeam, player: serverPlayerIdx }
       const partnerOfDesired = { team: serverTeam, player: 1 - serverPlayerIdx }
-
-      // Other team
       const otherTeam = serverTeam === 1 ? 2 : 1
-      // The receiver at cyclePos is determined by the cycle:
-      // pos 0: receiver=X  pos 1: receiver=B  pos 2: receiver=Y  pos 3: receiver=A
-      // So X's team and partner relationships:
+
+      // Helper to keep the other team's current player index when back-solving
+      const otherTeamReceiverIdx =
+        this.doublesInitialReceiver.team === otherTeam ? this.doublesInitialReceiver.player : 0
+      const otherTeamServerIdx =
+        this.doublesInitialServer.team === otherTeam ? this.doublesInitialServer.player : 0
+
       let newInitialServer, newInitialReceiver
 
       switch (cyclePos) {
         case 0:
-          // server=A=desired, receiver=X (other team, we don't know which player; keep current receiver player)
           newInitialServer = desired
-          newInitialReceiver = {
-            team: otherTeam,
-            player:
-              this.doublesInitialReceiver.team === otherTeam
-                ? this.doublesInitialReceiver.player
-                : 0,
-          }
+          newInitialReceiver = { team: otherTeam, player: otherTeamReceiverIdx }
           break
         case 1:
-          // server=X=desired → A is on other team, B=partner of A
-          // receiver=B → B's team is A's team = otherTeam → partner of A
-          // X=desired, so X.team=serverTeam. A's team=otherTeam.
-          newInitialReceiver = desired // X is initial receiver
-          newInitialServer = {
-            team: otherTeam,
-            player:
-              this.doublesInitialServer.team === otherTeam ? this.doublesInitialServer.player : 0,
-          }
+          newInitialReceiver = desired
+          newInitialServer = { team: otherTeam, player: otherTeamServerIdx }
           break
         case 2:
-          // server=B=desired → B is partner of A → A=partnerOfDesired (same team)
           newInitialServer = partnerOfDesired
-          newInitialReceiver = {
-            team: otherTeam,
-            player:
-              this.doublesInitialReceiver.team === otherTeam
-                ? this.doublesInitialReceiver.player
-                : 0,
-          }
+          newInitialReceiver = { team: otherTeam, player: otherTeamReceiverIdx }
           break
         case 3:
-          // server=Y=desired → Y is partner of X → X=partnerOfDesired (same team)
-          newInitialReceiver = partnerOfDesired // X = partner of Y
-          newInitialServer = {
-            team: otherTeam,
-            player:
-              this.doublesInitialServer.team === otherTeam ? this.doublesInitialServer.player : 0,
-          }
+          newInitialReceiver = partnerOfDesired
+          newInitialServer = { team: otherTeam, player: otherTeamServerIdx }
           break
       }
       this.doublesInitialServer = newInitialServer
@@ -825,34 +747,23 @@ export const useMatchStore = defineStore('match', {
       const newServerPlayerIdx = teamNum === 1 ? t1Active : t2Active
       const newReceiverPlayerIdx = teamNum === 1 ? t2Active : t1Active
 
-      const total = this.p1Score + this.p2Score
-      let servesPassed =
-        this.p1Score >= 10 && this.p2Score >= 10 ? 10 + (total - 20) : Math.floor(total / 2)
+      const { servesPassed } = computeDoublesRotation(this.$state)
       const cyclePos = servesPassed % 4
 
       const desiredS = { team: teamNum, player: newServerPlayerIdx }
       const desiredR = { team: teamNum === 1 ? 2 : 1, player: newReceiverPlayerIdx }
-
       const partnerS = { team: desiredS.team, player: 1 - desiredS.player }
       const partnerR = { team: desiredR.team, player: 1 - desiredR.player }
 
-      let A, X
-      if (cyclePos === 0) {
-        A = desiredS
-        X = desiredR
-      } else if (cyclePos === 1) {
-        X = desiredS
-        A = partnerR
-      } else if (cyclePos === 2) {
-        A = partnerS
-        X = partnerR
-      } else if (cyclePos === 3) {
-        X = partnerS
-        A = desiredR
+      const backMap = {
+        0: { A: desiredS, X: desiredR },
+        1: { A: partnerR, X: desiredS },
+        2: { A: partnerS, X: partnerR },
+        3: { A: desiredR, X: partnerS },
       }
 
-      this.doublesInitialServer = A
-      this.doublesInitialReceiver = X
+      this.doublesInitialServer = backMap[cyclePos].A
+      this.doublesInitialReceiver = backMap[cyclePos].X
       this.syncDoublesQuadrants()
       this.syncMatch()
     },
@@ -1020,18 +931,7 @@ export const useMatchStore = defineStore('match', {
 
       // Recalculate Server (singles only — doubles uses getter-based formula)
       if (this.currentMatch?.type !== 'doubles') {
-        const totalPoints = this.p1Score + this.p2Score
-        let servesPassed = 0
-        if (this.p1Score >= 10 && this.p2Score >= 10) {
-          servesPassed = 10 + Math.max(0, totalPoints - 20)
-        } else {
-          servesPassed = Math.floor(totalPoints / 2)
-        }
-        if (servesPassed % 2 === 0) {
-          this.server = this.initialServer
-        } else {
-          this.server = this.initialServer === 1 ? 2 : 1
-        }
+        this.server = computeSinglesServer(this.p1Score, this.p2Score, this.initialServer)
       }
 
       // Check Game End
@@ -1100,14 +1000,7 @@ export const useMatchStore = defineStore('match', {
 
       // Update singles server rotation
       if (this.currentMatch?.type !== 'doubles') {
-        const totalPoints = this.p1Score + this.p2Score
-        let servesPassed = 0
-        if (this.p1Score >= 10 && this.p2Score >= 10) {
-          servesPassed = 10 + Math.max(0, totalPoints - 20)
-        } else {
-          servesPassed = Math.floor(totalPoints / 2)
-        }
-        this.server = servesPassed % 2 === 0 ? this.initialServer : this.initialServer === 1 ? 2 : 1
+        this.server = computeSinglesServer(this.p1Score, this.p2Score, this.initialServer)
       }
 
       const isDecidingGame = this.game === (this.currentMatch?.bestOf ?? 5)
@@ -1172,14 +1065,7 @@ export const useMatchStore = defineStore('match', {
 
       // Update singles server rotation
       if (this.currentMatch?.type !== 'doubles') {
-        const totalPoints = this.p1Score + this.p2Score
-        let servesPassed = 0
-        if (this.p1Score >= 10 && this.p2Score >= 10) {
-          servesPassed = 10 + Math.max(0, totalPoints - 20)
-        } else {
-          servesPassed = Math.floor(totalPoints / 2)
-        }
-        this.server = servesPassed % 2 === 0 ? this.initialServer : this.initialServer === 1 ? 2 : 1
+        this.server = computeSinglesServer(this.p1Score, this.p2Score, this.initialServer)
       }
 
       const isDecidingGame = this.game === (this.currentMatch?.bestOf ?? 5)
@@ -1316,24 +1202,32 @@ export const useMatchStore = defineStore('match', {
       this.syncStatus = 'syncing'
 
       // Flatten and format cards for the backend
-      const cards = []
-
-      // Team 1 Player Cards
-      this.team1Cards.forEach((c) => {
-        cards.push({ teamIndex: 1, playerIndex: 0, cardType: c.type, gameNumber: c.game })
-      })
-      // Team 2 Player Cards
-      this.team2Cards.forEach((c) => {
-        cards.push({ teamIndex: 2, playerIndex: 0, cardType: c.type, gameNumber: c.game })
-      })
-      // Team 1 Coach Cards
-      this.team1CoachCards.forEach((c) => {
-        cards.push({ teamIndex: 1, playerIndex: -1, cardType: c.type, gameNumber: c.game })
-      })
-      // Team 2 Coach Cards
-      this.team2CoachCards.forEach((c) => {
-        cards.push({ teamIndex: 2, playerIndex: -1, cardType: c.type, gameNumber: c.game })
-      })
+      const cards = [
+        ...this.team1Cards.map((c) => ({
+          teamIndex: 1,
+          playerIndex: 0,
+          cardType: c.type,
+          gameNumber: c.game,
+        })),
+        ...this.team2Cards.map((c) => ({
+          teamIndex: 2,
+          playerIndex: 0,
+          cardType: c.type,
+          gameNumber: c.game,
+        })),
+        ...this.team1CoachCards.map((c) => ({
+          teamIndex: 1,
+          playerIndex: -1,
+          cardType: c.type,
+          gameNumber: c.game,
+        })),
+        ...this.team2CoachCards.map((c) => ({
+          teamIndex: 2,
+          playerIndex: -1,
+          cardType: c.type,
+          gameNumber: c.game,
+        })),
+      ]
 
       // Timeouts as Cards
       if (this.team1Timeout && this.team1TimeoutGame) {
