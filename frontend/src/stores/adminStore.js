@@ -36,6 +36,7 @@ export const useAdminStore = defineStore('admin', () => {
     const url = history ? `/api/matches?history=true` : `/api/matches`
     const res = await fetch(url, {
       credentials: 'include',
+      headers: { 'X-Session-ID': window.__umpireSessionId },
     })
     if (!res.ok) {
       throw new Error('Failed to fetch matches')
@@ -47,7 +48,7 @@ export const useAdminStore = defineStore('admin', () => {
     const res = await fetch(`/api/match`, {
       method: 'POST',
       credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Session-ID': window.__umpireSessionId },
       body: JSON.stringify(payload),
     })
     if (!res.ok) {
@@ -84,6 +85,7 @@ export const useAdminStore = defineStore('admin', () => {
     const res = await fetch(`/api/matches/${id}`, {
       method: 'DELETE',
       credentials: 'include',
+      headers: { 'X-Session-ID': window.__umpireSessionId },
     })
     if (!res.ok) {
       const text = await res.text()
@@ -95,7 +97,7 @@ export const useAdminStore = defineStore('admin', () => {
     const res = await fetch(`/api/matches/bulk-delete`, {
       method: 'POST',
       credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Session-ID': window.__umpireSessionId },
       body: JSON.stringify({ ids }),
     })
     if (!res.ok) {
