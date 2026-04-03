@@ -245,6 +245,9 @@ export const useMatchStore = defineStore('match', {
       try {
         const resp = await fetch(`/api/matches/${id}`, {
           credentials: 'include',
+          headers: {
+            'X-Session-ID': window.__umpireSessionId,
+          },
         })
         if (!resp.ok) throw new Error('Failed to fetch match state')
         const data = await resp.json()
@@ -1285,9 +1288,17 @@ export const useMatchStore = defineStore('match', {
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
+            'X-Session-ID': window.__umpireSessionId,
           },
           body: JSON.stringify(payload),
         })
+
+        if (resp.status === 409) {
+          alert('This match is being umpired on another device.')
+          this.$router?.push('/')
+          this.syncStatus = 'error'
+          return
+        }
 
         if (!resp.ok) throw new Error('Sync failed')
         this.syncStatus = 'synced'

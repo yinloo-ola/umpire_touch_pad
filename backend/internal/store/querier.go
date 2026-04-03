@@ -6,9 +6,11 @@ package store
 
 import (
 	"context"
+	"database/sql"
 )
 
 type Querier interface {
+	AcquireMatchLock(ctx context.Context, arg AcquireMatchLockParams) (sql.Result, error)
 	AdminUpdateMatch(ctx context.Context, arg AdminUpdateMatchParams) error
 	ClearCardsForMatch(ctx context.Context, matchID string) error
 	CreateCard(ctx context.Context, arg CreateCardParams) error
@@ -23,6 +25,10 @@ type Querier interface {
 	GetGamesForMatch(ctx context.Context, matchID string) ([]Game, error)
 	GetIncompleteMatchesForPeriod(ctx context.Context, arg GetIncompleteMatchesForPeriodParams) ([]GetIncompleteMatchesForPeriodRow, error)
 	GetMatch(ctx context.Context, id string) (GetMatchRow, error)
+	GetMatchLock(ctx context.Context, matchID string) (MatchLock, error)
+	PruneExpiredLocks(ctx context.Context) error
+	ReleaseMatchLock(ctx context.Context, matchID string) error
+	TouchMatchLock(ctx context.Context, arg TouchMatchLockParams) (sql.Result, error)
 	UpdateMatchState(ctx context.Context, arg UpdateMatchStateParams) error
 	UpdateMatchStatus(ctx context.Context, arg UpdateMatchStatusParams) error
 	UpsertGame(ctx context.Context, arg UpsertGameParams) (string, error)

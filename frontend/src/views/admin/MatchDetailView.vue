@@ -401,6 +401,7 @@ async function saveChanges() {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
+        'X-Session-ID': window.__umpireSessionId,
       },
       body: JSON.stringify({
         status: editForm.value.status,
@@ -450,6 +451,7 @@ async function load() {
   try {
     const resp = await fetch(`/api/matches/${route.params.id}`, {
       credentials: 'include',
+      headers: { 'X-Session-ID': window.__umpireSessionId },
     })
     if (!resp.ok) throw new Error('Match detail not found')
     matchData.value = await resp.json()

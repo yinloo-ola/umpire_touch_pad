@@ -11,6 +11,24 @@ import (
 	"strings"
 )
 
+const acquireMatchLock = `-- name: AcquireMatchLock :execresult
+INSERT INTO match_locks (match_id, session_id, last_sync)
+VALUES (?, ?, CURRENT_TIMESTAMP)
+ON CONFLICT(match_id) DO UPDATE SET
+    session_id = excluded.session_id,
+    last_sync = excluded.last_sync
+WHERE match_locks.last_sync < datetime('now', '-30 seconds')
+`
+
+type AcquireMatchLockParams struct {
+	MatchID   string `json:"match_id"`
+	SessionID string `json:"session_id"`
+}
+
+func (q *Queries) AcquireMatchLock(ctx context.Context, arg AcquireMatchLockParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, acquireMatchLock, arg.MatchID, arg.SessionID)
+}
+
 const adminUpdateMatch = `-- name: AdminUpdateMatch :exec
 UPDATE matches SET status = ?, remarks = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?
 `
@@ -516,6 +534,49 @@ func (q *Queries) GetMatch(ctx context.Context, id string) (GetMatchRow, error) 
 		&i.Remarks,
 	)
 	return i, err
+}
+
+const getMatchLock = `-- name: GetMatchLock :one
+SELECT match_id, session_id, last_sync FROM match_locks WHERE match_id = ?
+`
+
+func (q *Queries) GetMatchLock(ctx context.Context, matchID string) (MatchLock, error) {
+	row := q.db.QueryRowContext(ctx, getMatchLock, matchID)
+	var i MatchLock
+	err := row.Scan(&i.MatchID, &i.SessionID, &i.LastSync)
+	return i, err
+}
+
+const pruneExpiredLocks = `-- name: PruneExpiredLocks :exec
+DELETE FROM match_locks WHERE last_sync < datetime('now', '-30 seconds')
+`
+
+func (q *Queries) PruneExpiredLocks(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, pruneExpiredLocks)
+	return err
+}
+
+const releaseMatchLock = `-- name: ReleaseMatchLock :exec
+DELETE FROM match_locks WHERE match_id = ?
+`
+
+func (q *Queries) ReleaseMatchLock(ctx context.Context, matchID string) error {
+	_, err := q.db.ExecContext(ctx, releaseMatchLock, matchID)
+	return err
+}
+
+const touchMatchLock = `-- name: TouchMatchLock :execresult
+UPDATE match_locks SET last_sync = CURRENT_TIMESTAMP
+WHERE match_id = ? AND session_id = ?
+`
+
+type TouchMatchLockParams struct {
+	MatchID   string `json:"match_id"`
+	SessionID string `json:"session_id"`
+}
+
+func (q *Queries) TouchMatchLock(ctx context.Context, arg TouchMatchLockParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, touchMatchLock, arg.MatchID, arg.SessionID)
 }
 
 const updateMatchState = `-- name: UpdateMatchState :exec

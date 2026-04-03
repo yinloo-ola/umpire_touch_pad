@@ -183,6 +183,11 @@ func (s *MatchService) AdminUpdateMatch(ctx context.Context, matchID string, req
 		return err
 	}
 
+	// Release lock if admin resets match to unstarted
+	if req.Status == "unstarted" {
+		_ = qtx.ReleaseMatchLock(ctx, matchID)
+	}
+
 	// 4. Clear and insert games
 	err = qtx.DeleteGamesForMatch(ctx, matchID)
 	if err != nil {
@@ -237,7 +242,7 @@ func (s *MatchService) AdminUpdateMatch(ctx context.Context, matchID string, req
 	return nil
 }
 
-func (s *MatchService) SyncMatch(ctx context.Context, req SyncMatchRequest) error {
+func (s *MatchService) SyncMatch(ctx context.Context, sessionID string, req SyncMatchRequest) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -246,6 +251,30 @@ func (s *MatchService) SyncMatch(ctx context.Context, req SyncMatchRequest) erro
 
 	// qtx allows using the generated store methods within a transaction
 	qtx := store.New(tx)
+
+	// --- Lock orchestration ---
+	lockSvc := NewLockService(qtx)
+	_ = lockSvc.Prune(ctx)
+
+	isLocked, lockErr := lockSvc.IsLockedBy(ctx, req.MatchID, sessionID)
+	if lockErr != nil {
+		return lockErr
+	}
+
+	if isLocked {
+		if err := lockSvc.Touch(ctx, req.MatchID, sessionID); err != nil {
+			// Lock was pruned between IsLockedBy and Touch (race window).
+			// Re-acquire to keep the lock active.
+			_ = lockSvc.Acquire(ctx, req.MatchID, sessionID)
+		}
+	} else {
+		if req.Status == "starting" || req.Status == "warming_up" || req.Status == "in_progress" {
+			if err := lockSvc.Acquire(ctx, req.MatchID, sessionID); err != nil {
+				return err
+			}
+		}
+	}
+	// --- End lock orchestration ---
 
 	// 1. Update Match Status & State
 	if req.StateJson != "" {
@@ -321,6 +350,11 @@ func (s *MatchService) SyncMatch(ctx context.Context, req SyncMatchRequest) erro
 		}
 	}
 
+	// Release lock if match completed
+	if req.Status == "completed" {
+		_ = lockSvc.Release(ctx, req.MatchID)
+	}
+
 	return tx.Commit()
 }
 
@@ -387,7 +421,7 @@ func (s *MatchService) CreateMatch(ctx context.Context, m Match) (string, error)
 	return id, nil
 }
 
-func (s *MatchService) GetTodayMatches(ctx context.Context, history bool) ([]Match, error) {
+func (s *MatchService) GetTodayMatches(ctx context.Context, sessionID string, history bool) ([]Match, error) {
 	now := time.Now()
 	y, m, d := now.Date()
 	const naiveFmt = "2006-01-02T15:04:05"
@@ -487,6 +521,27 @@ func (s *MatchService) GetTodayMatches(ctx context.Context, history bool) ([]Mat
 			Remarks:     dbm.Remarks.String,
 		})
 	}
+
+	// Lock filtering: non-history mode, exclude matches locked by other sessions
+	if !history && sessionID != "" {
+		lockSvc := NewLockService(s.store)
+		_ = lockSvc.Prune(ctx)
+
+		var filtered []Match
+		for _, m := range results {
+			isLockedByOther := false
+			if lock, err := lockSvc.store.GetMatchLock(ctx, m.ID); err == nil {
+				if lock.SessionID != sessionID {
+					isLockedByOther = true
+				}
+			}
+			if !isLockedByOther {
+				filtered = append(filtered, m)
+			}
+		}
+		results = filtered
+	}
+
 	if results == nil {
 		results = []Match{}
 	}
