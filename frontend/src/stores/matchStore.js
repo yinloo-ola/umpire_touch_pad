@@ -1295,7 +1295,7 @@ export const useMatchStore = defineStore('match', {
 
         if (resp.status === 409) {
           alert('This match is being umpired on another device.')
-          this.$router?.push('/')
+          this.router?.push('/')
           this.syncStatus = 'error'
           return
         }

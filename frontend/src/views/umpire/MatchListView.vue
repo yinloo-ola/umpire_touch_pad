@@ -45,7 +45,7 @@ const closeMatchConfirm = () => {
 const startMatch = async () => {
   if (selectedMatch.value) {
     if (selectedMatch.value.status === 'unstarted' || !selectedMatch.value.status) {
-      matchStore.selectMatch(selectedMatch.value)
+      await matchStore.selectMatch(selectedMatch.value)
       router.push(`/umpire/setup/${selectedMatch.value.id}`)
     } else {
       loading.value = true

@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"umpire-backend/internal/service"
@@ -24,6 +25,7 @@ func (h *APIHandler) handleGetMatches(w http.ResponseWriter, r *http.Request) {
 
 	history := r.URL.Query().Get("history") == "true"
 	sessionID := r.Header.Get("X-Session-ID")
+	log.Printf("[handleGetMatches] history=%v, sessionID=%q", history, sessionID)
 	matches, err := h.svc.GetTodayMatches(r.Context(), sessionID, history)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

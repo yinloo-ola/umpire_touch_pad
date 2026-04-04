@@ -61,7 +61,7 @@ func TestAcquire_TakeoverAfterExpiry(t *testing.T) {
 	svc := NewLockService(store.New(db))
 
 	_, err := db.Exec(`INSERT INTO match_locks (match_id, session_id, last_sync)
-		VALUES (?, ?, datetime('now', '-60 seconds'))`, "match-1", "session-A")
+		VALUES (?, ?, datetime('now', '-601 seconds'))`, "match-1", "session-A")
 	if err != nil {
 		t.Fatalf("insert expired lock: %v", err)
 	}
@@ -168,7 +168,7 @@ func TestPrune(t *testing.T) {
 	svc := NewLockService(store.New(db))
 
 	_, err := db.Exec(`INSERT INTO match_locks (match_id, session_id, last_sync)
-		VALUES (?, ?, datetime('now', '-60 seconds'))`, "match-1", "session-A")
+		VALUES (?, ?, datetime('now', '-601 seconds'))`, "match-1", "session-A")
 	if err != nil {
 		t.Fatalf("insert expired lock: %v", err)
 	}

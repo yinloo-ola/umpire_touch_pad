@@ -17,7 +17,7 @@ VALUES (?, ?, CURRENT_TIMESTAMP)
 ON CONFLICT(match_id) DO UPDATE SET
     session_id = excluded.session_id,
     last_sync = excluded.last_sync
-WHERE match_locks.last_sync < datetime('now', '-30 seconds')
+WHERE match_locks.last_sync < datetime('now', '-600 seconds')
 `
 
 type AcquireMatchLockParams struct {
@@ -25,6 +25,7 @@ type AcquireMatchLockParams struct {
 	SessionID string `json:"session_id"`
 }
 
+// LockExpiry = 600s (see service.LockExpiry constant)
 func (q *Queries) AcquireMatchLock(ctx context.Context, arg AcquireMatchLockParams) (sql.Result, error) {
 	return q.db.ExecContext(ctx, acquireMatchLock, arg.MatchID, arg.SessionID)
 }
@@ -548,9 +549,10 @@ func (q *Queries) GetMatchLock(ctx context.Context, matchID string) (MatchLock, 
 }
 
 const pruneExpiredLocks = `-- name: PruneExpiredLocks :exec
-DELETE FROM match_locks WHERE last_sync < datetime('now', '-30 seconds')
+DELETE FROM match_locks WHERE last_sync < datetime('now', '-600 seconds')
 `
 
+// LockExpiry = 600s (see service.LockExpiry constant)
 func (q *Queries) PruneExpiredLocks(ctx context.Context) error {
 	_, err := q.db.ExecContext(ctx, pruneExpiredLocks)
 	return err

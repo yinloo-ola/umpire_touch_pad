@@ -88,13 +88,13 @@ LEFT JOIN games g ON m.id = g.match_id
 ORDER BY m.scheduled_date ASC, g.game_number ASC;
 
 -- name: AcquireMatchLock :execresult
--- LockExpiry = 30s (see service.LockExpiry constant)
+-- LockExpiry = 600s (see service.LockExpiry constant)
 INSERT INTO match_locks (match_id, session_id, last_sync)
 VALUES (?, ?, CURRENT_TIMESTAMP)
 ON CONFLICT(match_id) DO UPDATE SET
     session_id = excluded.session_id,
     last_sync = excluded.last_sync
-WHERE match_locks.last_sync < datetime('now', '-30 seconds');
+WHERE match_locks.last_sync < datetime('now', '-600 seconds');
 
 -- name: GetMatchLock :one
 SELECT match_id, session_id, last_sync FROM match_locks WHERE match_id = ?;
@@ -107,5 +107,5 @@ WHERE match_id = ? AND session_id = ?;
 DELETE FROM match_locks WHERE match_id = ?;
 
 -- name: PruneExpiredLocks :exec
--- LockExpiry = 30s (see service.LockExpiry constant)
-DELETE FROM match_locks WHERE last_sync < datetime('now', '-30 seconds');
+-- LockExpiry = 600s (see service.LockExpiry constant)
+DELETE FROM match_locks WHERE last_sync < datetime('now', '-600 seconds');

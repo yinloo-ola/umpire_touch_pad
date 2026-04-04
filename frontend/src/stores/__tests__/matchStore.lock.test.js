@@ -64,7 +64,7 @@ describe('matchStore - syncMatch handles 409 Conflict', () => {
     const alertSpy = vi.fn()
     globalThis.alert = alertSpy
     const pushMock = vi.fn()
-    store.$router = { push: pushMock }
+    store.router = { push: pushMock }
 
     await store.syncMatch()
 

@@ -10,6 +10,7 @@ import (
 )
 
 type Querier interface {
+	// LockExpiry = 600s (see service.LockExpiry constant)
 	AcquireMatchLock(ctx context.Context, arg AcquireMatchLockParams) (sql.Result, error)
 	AdminUpdateMatch(ctx context.Context, arg AdminUpdateMatchParams) error
 	ClearCardsForMatch(ctx context.Context, matchID string) error
@@ -26,6 +27,7 @@ type Querier interface {
 	GetIncompleteMatchesForPeriod(ctx context.Context, arg GetIncompleteMatchesForPeriodParams) ([]GetIncompleteMatchesForPeriodRow, error)
 	GetMatch(ctx context.Context, id string) (GetMatchRow, error)
 	GetMatchLock(ctx context.Context, matchID string) (MatchLock, error)
+	// LockExpiry = 600s (see service.LockExpiry constant)
 	PruneExpiredLocks(ctx context.Context) error
 	ReleaseMatchLock(ctx context.Context, matchID string) error
 	TouchMatchLock(ctx context.Context, arg TouchMatchLockParams) (sql.Result, error)

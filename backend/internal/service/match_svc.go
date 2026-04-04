@@ -453,6 +453,7 @@ func (s *MatchService) GetTodayMatches(ctx context.Context, sessionID string, hi
 					Team2P2Country: r.Team2P2Country,
 					StateJson:      r.StateJson,
 					TableNumber:    r.TableNumber,
+					Remarks:        r.Remarks,
 				})
 			}
 		}
@@ -481,6 +482,7 @@ func (s *MatchService) GetTodayMatches(ctx context.Context, sessionID string, hi
 					Team2P2Country: r.Team2P2Country,
 					StateJson:      r.StateJson,
 					TableNumber:    r.TableNumber,
+					Remarks:        r.Remarks,
 				})
 			}
 		}
@@ -523,7 +525,7 @@ func (s *MatchService) GetTodayMatches(ctx context.Context, sessionID string, hi
 	}
 
 	// Lock filtering: non-history mode, exclude matches locked by other sessions
-	if !history && sessionID != "" {
+	if !history {
 		lockSvc := NewLockService(s.store)
 		_ = lockSvc.Prune(ctx)
 
@@ -531,7 +533,8 @@ func (s *MatchService) GetTodayMatches(ctx context.Context, sessionID string, hi
 		for _, m := range results {
 			isLockedByOther := false
 			if lock, err := lockSvc.store.GetMatchLock(ctx, m.ID); err == nil {
-				if lock.SessionID != sessionID {
+				// If sessionID is empty, any existing lock is "other"
+				if sessionID == "" || lock.SessionID != sessionID {
 					isLockedByOther = true
 				}
 			}
