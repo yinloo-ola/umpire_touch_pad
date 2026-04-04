@@ -6,7 +6,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
 	github.com/pressly/goose/v3 v3.24.1
-	github.com/tursodatabase/libsql-client-go v0.0.0-20240902231107-85af5b9d094d
+	github.com/tursodatabase/libsql-client-go v0.0.0-20251219100830-236aa1ff8acc
 	modernc.org/sqlite v1.46.1
 )
 
