@@ -82,6 +82,30 @@ make test                       # Frontend tests only
 make lint                       # Lint both
 ```
 
+## Deployment (Cloud Run + Turso)
+
+The application is deployed to Google Cloud Run and uses Turso for storage.
+
+### Environment Variables
+
+- `TURSO_DATABASE_URL`: Turso connection string (`libsql://...` or `https://...`)
+- `TURSO_AUTH_TOKEN`: Turso auth token
+- `PORT`: (Managed by Cloud Run, default 8080)
+
+### GitHub Actions Secrets
+
+- `GCP_PROJECT_ID`: Your Google Cloud Project ID
+- `GCP_WIF_PROVIDER`: Workload Identity Provider ID
+- `GCP_WIF_SA_EMAIL`: Service Account Email for WIF
+- `TURSO_DATABASE_URL`: Production Turso URL
+- `TURSO_AUTH_TOKEN`: Production Turso Auth Token
+
+### Manual Build
+
+```bash
+docker build -t umpire-touch-pad .
+```
+
 ## Data Layer (sqlc)
 
 **Workflow:** Edit `backend/db/query.sql` → run `cd backend && sqlc generate` → generated code appears in `backend/internal/store/`.

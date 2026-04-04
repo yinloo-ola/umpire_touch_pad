@@ -6,12 +6,15 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
+	"umpire-backend"
 	"umpire-backend/db/migrations"
 	"umpire-backend/internal/api"
 	"umpire-backend/internal/service"
 	"umpire-backend/internal/store"
 
 	"github.com/pressly/goose/v3"
+	_ "github.com/tursodatabase/libsql-client-go/libsql"
 	_ "modernc.org/sqlite"
 )
 
@@ -21,9 +24,9 @@ func healthCheck(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	dbPath := os.Getenv("DB_PATH")
-	if dbPath == "" {
-		dbPath = "sqlite.db"
+	dbURL := os.Getenv("TURSO_DATABASE_URL")
+	if dbURL == "" {
+		dbURL = "file:sqlite.db"
 	}
 
 	port := os.Getenv("PORT")
@@ -31,7 +34,16 @@ func main() {
 		port = "8080"
 	}
 
-	db, err := sql.Open("sqlite", dbPath)
+	driver := "sqlite"
+	if strings.HasPrefix(dbURL, "libsql://") || strings.HasPrefix(dbURL, "http://") || strings.HasPrefix(dbURL, "https://") {
+		driver = "libsql"
+		authToken := os.Getenv("TURSO_AUTH_TOKEN")
+		if authToken != "" {
+			dbURL = fmt.Sprintf("%s?authToken=%s", dbURL, authToken)
+		}
+	}
+
+	db, err := sql.Open(driver, dbURL)
 	if err != nil {
 		log.Fatalf("failed to open database: %v", err)
 	}
@@ -61,6 +73,10 @@ func main() {
 	svc := service.NewMatchService(querier, db)
 	authSvc := service.NewAuthService()
 	api.SetupRoutes(mux, svc, authSvc)
+
+	// Serve static files
+	api.StaticFS = backend.DistFS
+	api.RegisterStaticRoutes(mux)
 
 	handler := mux
 
