@@ -32,14 +32,9 @@
 - **Optional chaining for `$router`**: `this.$router?.push('/')` — Pinia stores
   don't always have `$router` injected (depends on how the store is created).
 
-### Architecture
+### 2026-04-04: Cloud Run + Turso Infrastructure (PR #3)
 
-- **Context propagation**: Pass `ctx context.Context` through service methods
-  rather than creating `context.Background()` internally. Enables proper
-  cancellation and timeout propagation.
-
-- **Lock expiry in SQL**: SQLite can't reference Go constants, so lock expiry
-  (30s) is embedded as `'-30 seconds'` in `query.sql`. Mitigate with:
-  - A Go `const LockExpiry` documenting the value
-  - SQL comments cross-referencing the constant
-  - Keep both in sync manually
+- **Go 1.24 `embed` with directories**: Embedding a directory (`//go:embed dist`) requires `fs.Sub(StaticFS, "dist")` if you want to serve its content from the root (`/`). This ensures path prefixing works correctly for static file serving.
+- **LibSQL for Go**: The `libsql` driver is mostly compatible with `sqlite` driver logic. However, when appending the `authToken` to the `dbURL`, care must be taken if the URL already contains existing query parameters. Using `strings.Contains(dbURL, "?")` to choose between `?` or `&` is a simple fix, but `net/url` is more robust.
+- **WIF for Deployment**: Using Google Cloud Workload Identity Federation (WIF) for GitHub Actions is the modern, secure alternative to long-lived service account keys. It provides short-lived tokens and eliminates the need to manage secret key files in CI/CD.
+- **Multi-stage Docker Builds**: Combining Node.js (Frontend) and Go (Backend) builds into a single multi-stage Dockerfile is highly efficient for single-binary deployments. The final image should be a minimal runtime (like `debian:bookworm-slim` or `alpine`) for production readiness.
