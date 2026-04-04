@@ -32,6 +32,18 @@
 - **Optional chaining for `$router`**: `this.$router?.push('/')` — Pinia stores
   don't always have `$router` injected (depends on how the store is created).
 
+### Architecture
+
+- **Context propagation**: Pass `ctx context.Context` through service methods
+  rather than creating `context.Background()` internally. Enables proper
+  cancellation and timeout propagation.
+
+- **Lock expiry in SQL**: SQLite can't reference Go constants, so lock expiry
+  (30s) is embedded as `'-30 seconds'` in `query.sql`. Mitigate with:
+  - A Go `const LockExpiry` documenting the value
+  - SQL references to this constant
+  - Manual sync between Go/SQL
+
 ### 2026-04-04: Cloud Run + Turso Infrastructure (PR #3)
 
 - **Go 1.24 `embed` with directories**: Embedding a directory (`//go:embed dist`) requires `fs.Sub(StaticFS, "dist")` if you want to serve its content from the root (`/`). This ensures path prefixing works correctly for static file serving.
