@@ -662,6 +662,23 @@ func (s *MatchService) DeleteMatches(ctx context.Context, ids []string) error {
 	return s.store.DeleteMatches(ctx, ids)
 }
 
+func (s *MatchService) ReleaseMatchLock(ctx context.Context, matchID, sessionID string) error {
+	lockSvc := NewLockService(s.store)
+	_ = lockSvc.Prune(ctx)
+
+	isLocked, err := lockSvc.IsLockedBy(ctx, matchID, sessionID)
+	if err != nil {
+		return err
+	}
+	if !isLocked {
+		// Either not locked, or locked by someone else. 
+		// If locked by someone else, we shouldn't be able to release it anyway.
+		return nil
+	}
+
+	return lockSvc.Release(ctx, matchID)
+}
+
 // PublicMatchResponse is the response shape for the public API
 type PublicMatchResponse struct {
 	Completed []PublicMatch `json:"completed"`

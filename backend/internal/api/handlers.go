@@ -116,6 +116,27 @@ func (h *APIHandler) handleSyncMatch(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func (h *APIHandler) handleReleaseMatch(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	id := r.PathValue("id")
+	if id == "" {
+		http.Error(w, "Match ID required", http.StatusBadRequest)
+		return
+	}
+
+	sessionID := r.Header.Get("X-Session-ID")
+	if err := h.svc.ReleaseMatchLock(r.Context(), id, sessionID); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func (h *APIHandler) handleAdminUpdateMatch(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -208,6 +229,7 @@ func SetupRoutes(mux *http.ServeMux, svc *service.MatchService, authSvc *service
 	mux.HandleFunc("GET /api/matches/{id}", RequireAuth(authSvc, "", handler.handleGetMatchState))
 	mux.HandleFunc("/api/match", RequireAuth(authSvc, "admin", handler.handleCreateMatch))
 	mux.HandleFunc("PUT /api/matches/{id}/sync", RequireAuth(authSvc, "", handler.handleSyncMatch))
+	mux.HandleFunc("POST /api/matches/{id}/release", RequireAuth(authSvc, "", handler.handleReleaseMatch))
 	mux.HandleFunc("PUT /api/admin/matches/{id}", RequireAuth(authSvc, "admin", handler.handleAdminUpdateMatch))
 	mux.HandleFunc("DELETE /api/matches/{id}", RequireAuth(authSvc, "admin", handler.handleDeleteMatch))
 	mux.HandleFunc("POST /api/matches/bulk-delete", RequireAuth(authSvc, "admin", handler.handleBulkDeleteMatches))

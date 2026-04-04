@@ -116,8 +116,8 @@ const games = computed(() => {
 // Actions
 const goBack = () => router.push(`/umpire/setup/${matchStore.currentMatch?.id || ''}`)
 
-const quitMatch = () => {
-  matchStore.resetMatchState()
+const quitMatch = async () => {
+  await matchStore.releaseMatch()
   router.push('/umpire/match-list')
 }
 

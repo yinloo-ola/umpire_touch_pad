@@ -73,7 +73,10 @@ const onLeftIndicatorClick = () => matchStore.calibrateServeStateFromUI('left')
 const onRightIndicatorClick = () => matchStore.calibrateServeStateFromUI('right')
 
 // ── Shared actions ───────────────────────────────────────────────────────────
-const goBack = () => router.push('/umpire/match-list')
+const goBack = async () => {
+  await matchStore.releaseMatch()
+  router.push('/umpire/match-list')
+}
 const toggleSwap = () => matchStore.toggleSwapSides()
 
 const promptWarmup = () => {

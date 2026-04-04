@@ -83,6 +83,32 @@ describe('matchStore - syncMatch handles 409 Conflict', () => {
   })
 })
 
+describe('matchStore - releaseMatch sends POST request', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    vi.restoreAllMocks()
+  })
+
+  it('calls the release endpoint and resets state', async () => {
+    const store = makeStoreWithMatch()
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, status: 204 })
+
+    await store.releaseMatch()
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/matches/match-1/release',
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({
+          'X-Session-ID': 'test-session-123',
+        }),
+      }),
+    )
+    expect(store.currentMatch).toBeNull()
+    expect(store.matchStatus).toBe('unstarted')
+  })
+})
+
 describe('matchStore - fetchMatchState sends X-Session-ID header', () => {
   beforeEach(() => {
     setActivePinia(createPinia())

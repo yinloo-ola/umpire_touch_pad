@@ -1199,6 +1199,23 @@ export const useMatchStore = defineStore('match', {
       this.resetMatchState()
     },
 
+    async releaseMatch() {
+      if (!this.currentMatch) return
+      try {
+        await fetch(`/api/matches/${this.currentMatch.id}/release`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'X-Session-ID': window.__umpireSessionId,
+          },
+        })
+      } catch (err) {
+        console.error('Failed to release match:', err)
+      }
+      this.currentMatch = null
+      this.resetMatchState()
+    },
+
     async syncMatch() {
       if (!this.currentMatch) return
 
