@@ -7,6 +7,9 @@ import (
 	"umpire-backend/internal/service"
 )
 
+// maxRequestBodySize is 1 MB — more than enough for match data.
+const maxRequestBodySize int64 = 1 << 20
+
 type APIHandler struct {
 	svc     *service.MatchService
 	authSvc *service.AuthService
@@ -63,7 +66,7 @@ func (h *APIHandler) handleCreateMatch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var match service.Match
-	if err := json.NewDecoder(r.Body).Decode(&match); err != nil {
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, maxRequestBodySize)).Decode(&match); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -94,7 +97,7 @@ func (h *APIHandler) handleSyncMatch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req service.SyncMatchRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, maxRequestBodySize)).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -148,7 +151,7 @@ func (h *APIHandler) handleAdminUpdateMatch(w http.ResponseWriter, r *http.Reque
 	}
 
 	var req service.AdminMatchUpdateRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, maxRequestBodySize)).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -190,7 +193,7 @@ func (h *APIHandler) handleBulkDeleteMatches(w http.ResponseWriter, r *http.Requ
 	var req struct {
 		IDs []string `json:"ids"`
 	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, maxRequestBodySize)).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}

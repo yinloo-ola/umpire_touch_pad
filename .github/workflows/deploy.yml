@@ -53,4 +53,5 @@ jobs:
             ADMIN_USERNAME=${{ secrets.ADMIN_USERNAME }},
             ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }},
             UMPIRE_USERNAME=${{ secrets.UMPIRE_USERNAME }},
-            UMPIRE_PASSWORD=${{ secrets.UMPIRE_PASSWORD }}
+            UMPIRE_PASSWORD=${{ secrets.UMPIRE_PASSWORD }},
+            JWT_SECRET=${{ secrets.JWT_SECRET }}

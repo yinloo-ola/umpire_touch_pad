@@ -153,10 +153,10 @@ Per-match exclusive lock prevents two devices from scoring simultaneously.
 - Lock acquired on first `SyncMatch` with status `starting`/`warming_up`/`in_progress`
 - Lock touched on subsequent syncs from the same session
 - Lock released when match reaches `completed`, or admin resets to `unstarted`
-- Lock expires after 30 seconds of inactivity (pruned on each lock operation)
+- Lock expires after 10 minutes of inactivity (pruned on each lock operation)
 - `GetTodayMatches` filters out matches locked by other sessions (non-history mode)
 - 409 Conflict returned when a different session tries to sync a locked match
-- Lock expiry is `30s` — defined as Go `const LockExpiry` in `lock_svc.go` and as `'-30 seconds'` in `query.sql`. Keep in sync.
+- Lock expiry is `600s` — defined as Go `const LockExpiry` in `lock_svc.go` and as `'-600 seconds'` in `query.sql`. Keep in sync.
 
 ## Test Counts
 

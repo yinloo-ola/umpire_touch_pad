@@ -37,7 +37,7 @@ func handleLogin(authSvc *service.AuthService) http.HandlerFunc {
 		}
 
 		var req loginRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, maxRequestBodySize)).Decode(&req); err != nil {
 			http.Error(w, "Invalid request body", http.StatusBadRequest)
 			return
 		}

@@ -321,7 +321,7 @@ export const useMatchStore = defineStore('match', {
 
         if (data.cards) {
           data.cards.forEach((c) => {
-            const cardObj = { type: c.cardType, game: c.gameNumber }
+            const cardObj = { type: c.cardType, game: c.gameNumber, playerIndex: c.playerIndex }
             if (c.playerIndex === -1) {
               if (c.teamIndex === 1) this.team1CoachCards.push(cardObj)
               else this.team2CoachCards.push(cardObj)
@@ -1224,13 +1224,13 @@ export const useMatchStore = defineStore('match', {
       const cards = [
         ...this.team1Cards.map((c) => ({
           teamIndex: 1,
-          playerIndex: 0,
+          playerIndex: c.playerIndex,
           cardType: c.type,
           gameNumber: c.game,
         })),
         ...this.team2Cards.map((c) => ({
           teamIndex: 2,
-          playerIndex: 0,
+          playerIndex: c.playerIndex,
           cardType: c.type,
           gameNumber: c.game,
         })),
