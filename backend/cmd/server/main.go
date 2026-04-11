@@ -26,7 +26,7 @@ func healthCheck(w http.ResponseWriter, r *http.Request) {
 func main() {
 	dbURL := os.Getenv("TURSO_DATABASE_URL")
 	if dbURL == "" {
-		dbURL = "file:sqlite.db"
+		log.Fatal("TURSO_DATABASE_URL is not set. Run 'turso dev' and set TURSO_DATABASE_URL=http://127.0.0.1:8080")
 	}
 
 	port := os.Getenv("PORT")
@@ -42,6 +42,9 @@ func main() {
 			dbURL = fmt.Sprintf("%s?authToken=%s", dbURL, authToken)
 		}
 	}
+
+	log.Printf("Using database: %s (driver: %s)", dbURL, driver)
+
 
 	db, err := sql.Open(driver, dbURL)
 	if err != nil {
