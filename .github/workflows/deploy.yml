@@ -49,4 +49,8 @@ jobs:
           region: ${{ env.REGION }}
           env_vars: >-
             TURSO_DATABASE_URL=${{ secrets.TURSO_DATABASE_URL }},
-            TURSO_AUTH_TOKEN=${{ secrets.TURSO_AUTH_TOKEN }}
+            TURSO_AUTH_TOKEN=${{ secrets.TURSO_AUTH_TOKEN }},
+            ADMIN_USERNAME=${{ secrets.ADMIN_USERNAME }},
+            ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }},
+            UMPIRE_USERNAME=${{ secrets.UMPIRE_USERNAME }},
+            UMPIRE_PASSWORD=${{ secrets.UMPIRE_PASSWORD }}
