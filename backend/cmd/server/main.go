@@ -26,7 +26,7 @@ func healthCheck(w http.ResponseWriter, r *http.Request) {
 func main() {
 	dbURL := os.Getenv("TURSO_DATABASE_URL")
 	if dbURL == "" {
-		log.Fatal("TURSO_DATABASE_URL is not set. Run 'turso dev' and set TURSO_DATABASE_URL=http://127.0.0.1:8080")
+		log.Fatal("TURSO_DATABASE_URL is not set. Run 'turso dev' and set TURSO_DATABASE_URL=http://127.0.0.1:8081")
 	}
 
 	port := os.Getenv("PORT")
