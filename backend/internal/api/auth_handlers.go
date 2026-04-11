@@ -81,7 +81,7 @@ func handleLogout() http.HandlerFunc {
 	}
 }
 
-// handleMe validates the JWT and returns the current user's role.
+// handleMe validates the JWT cookie and returns the current user's role.
 // Used by the frontend to rehydrate auth state after a page refresh.
 func handleMe(authSvc *service.AuthService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -90,13 +90,13 @@ func handleMe(authSvc *service.AuthService) http.HandlerFunc {
 			return
 		}
 
-		tokenStr := extractToken(r)
-		if tokenStr == "" {
+		cookie, err := r.Cookie("jwt")
+		if err != nil {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
-		claims, err := authSvc.ValidateToken(tokenStr)
+		claims, err := authSvc.ValidateToken(cookie.Value)
 		if err != nil {
 			http.Error(w, "Unauthorized: "+err.Error(), http.StatusUnauthorized)
 			return
