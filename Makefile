@@ -6,12 +6,13 @@
 
 # ── Turso Dev ───────────────────────────────────────────────────────────────
 TURSO_URL      := http://127.0.0.1:8081
+TURSO_DB_FILE  := .turso-dev.db
 TURSO_PID_FILE := .turso-dev.pid
 
 ## Start local Turso dev database server
 turso-dev:
 	@echo "▶ Starting turso dev…"
-	@turso dev --port 8081 & echo $$! > $(TURSO_PID_FILE)
+	@turso dev --port 8081 --db-file $(TURSO_DB_FILE) & echo $$! > $(TURSO_PID_FILE)
 	@for i in 1 2 3 4 5 6 7 8 9 10; do \
 		if curl -s $(TURSO_URL) > /dev/null 2>&1; then \
 			echo "✓ turso dev is ready on $(TURSO_URL)"; \
