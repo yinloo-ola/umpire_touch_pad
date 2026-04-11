@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"umpire-backend/internal/service"
 )
@@ -15,6 +14,18 @@ type loginRequest struct {
 
 type loginResponse struct {
 	Role string `json:"role"`
+}
+
+func jwtCookie(name, value string, maxAge int) *http.Cookie {
+	return &http.Cookie{
+		Name:     name,
+		Value:    value,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+		MaxAge:   maxAge,
+	}
 }
 
 // handleLogin authenticates the user and sets an HttpOnly JWT cookie.
@@ -43,15 +54,7 @@ func handleLogin(authSvc *service.AuthService) http.HandlerFunc {
 			return
 		}
 
-		http.SetCookie(w, &http.Cookie{
-			Name:     "jwt",
-			Value:    token,
-			HttpOnly: true,
-			Secure:   true,
-			SameSite: http.SameSiteLaxMode,
-			Path:     "/",
-			MaxAge:   86400, // 24 hours
-		})
+		http.SetCookie(w, jwtCookie("jwt", token, 86400))
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(loginResponse{Role: role})
@@ -66,16 +69,7 @@ func handleLogout() http.HandlerFunc {
 			return
 		}
 
-		http.SetCookie(w, &http.Cookie{
-			Name:     "jwt",
-			Value:    "",
-			HttpOnly: true,
-			Secure:   true,
-			SameSite: http.SameSiteLaxMode,
-			Path:     "/",
-			Expires:  time.Unix(0, 0),
-			MaxAge:   -1,
-		})
+		http.SetCookie(w, jwtCookie("jwt", "", -1))
 
 		w.WriteHeader(http.StatusOK)
 	}
