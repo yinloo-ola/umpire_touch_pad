@@ -47,7 +47,8 @@ func handleLogin(authSvc *service.AuthService) http.HandlerFunc {
 			Name:     "jwt",
 			Value:    token,
 			HttpOnly: true,
-			SameSite: http.SameSiteStrictMode,
+			Secure:   true,
+			SameSite: http.SameSiteLaxMode,
 			Path:     "/",
 			MaxAge:   86400, // 24 hours
 		})
@@ -69,7 +70,8 @@ func handleLogout() http.HandlerFunc {
 			Name:     "jwt",
 			Value:    "",
 			HttpOnly: true,
-			SameSite: http.SameSiteStrictMode,
+			Secure:   true,
+			SameSite: http.SameSiteLaxMode,
 			Path:     "/",
 			Expires:  time.Unix(0, 0),
 			MaxAge:   -1,
