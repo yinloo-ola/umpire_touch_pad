@@ -18,6 +18,16 @@ type Player struct {
 	Country string `json:"country"`
 }
 
+// buildTeam constructs a player slice from nullable DB row fields.
+// p1Name is always present; p2 fields are optional (for doubles).
+func buildTeam(p1Name string, p2Name, p1Country, p2Country sql.NullString) []Player {
+	team := []Player{{Name: p1Name, Country: p1Country.String}}
+	if p2Name.Valid && p2Name.String != "" {
+		team = append(team, Player{Name: p2Name.String, Country: p2Country.String})
+	}
+	return team
+}
+
 type Match struct {
 	ID          string   `json:"id"`
 	Type        string   `json:"type"`
@@ -494,15 +504,8 @@ func (s *MatchService) GetTodayMatches(ctx context.Context, sessionID string, hi
 
 	var results []Match
 	for _, dbm := range dbMatches {
-		t1 := []Player{{Name: dbm.Team1P1Name, Country: dbm.Team1P1Country.String}}
-		if dbm.Team1P2Name.Valid && dbm.Team1P2Name.String != "" {
-			t1 = append(t1, Player{Name: dbm.Team1P2Name.String, Country: dbm.Team1P2Country.String})
-		}
-
-		t2 := []Player{{Name: dbm.Team2P1Name, Country: dbm.Team2P1Country.String}}
-		if dbm.Team2P2Name.Valid && dbm.Team2P2Name.String != "" {
-			t2 = append(t2, Player{Name: dbm.Team2P2Name.String, Country: dbm.Team2P2Country.String})
-		}
+		t1 := buildTeam(dbm.Team1P1Name, dbm.Team1P2Name, dbm.Team1P1Country, dbm.Team1P2Country)
+		t2 := buildTeam(dbm.Team2P1Name, dbm.Team2P2Name, dbm.Team2P1Country, dbm.Team2P2Country)
 
 		matchType := "singles"
 		if len(t1) > 1 {
@@ -578,15 +581,8 @@ func (s *MatchService) GetMatchState(ctx context.Context, id string) (*MatchFull
 		return nil, err
 	}
 
-	t1 := []Player{{Name: dbm.Team1P1Name, Country: dbm.Team1P1Country.String}}
-	if dbm.Team1P2Name.Valid && dbm.Team1P2Name.String != "" {
-		t1 = append(t1, Player{Name: dbm.Team1P2Name.String, Country: dbm.Team1P2Country.String})
-	}
-
-	t2 := []Player{{Name: dbm.Team2P1Name, Country: dbm.Team2P1Country.String}}
-	if dbm.Team2P2Name.Valid && dbm.Team2P2Name.String != "" {
-		t2 = append(t2, Player{Name: dbm.Team2P2Name.String, Country: dbm.Team2P2Country.String})
-	}
+	t1 := buildTeam(dbm.Team1P1Name, dbm.Team1P2Name, dbm.Team1P1Country, dbm.Team1P2Country)
+	t2 := buildTeam(dbm.Team2P1Name, dbm.Team2P2Name, dbm.Team2P1Country, dbm.Team2P2Country)
 
 	matchType := "singles"
 	if len(t1) > 1 {
@@ -686,30 +682,24 @@ type PublicMatchResponse struct {
 	Live      []PublicMatch `json:"live"`
 }
 
-// PublicMatch represents a match for public display (no internal fields)
-type PublicMatch struct {
-	ID            string         `json:"id"`
-	Title         string         `json:"title"`
-	ScheduledDate string         `json:"scheduledDate"`
-	Status        string         `json:"status"`
-	TableNumber   int            `json:"tableNumber"`
-	Team1         []PublicPlayer `json:"team1"`
-	Team2         []PublicPlayer `json:"team2"`
-	Games         []PublicGame   `json:"games"`
-}
-
-// PublicPlayer represents a player for public display
-type PublicPlayer struct {
-	Name    string `json:"name"`
-	Country string `json:"country"`
-}
-
 // PublicGame represents a game for public display
 type PublicGame struct {
 	GameNumber int    `json:"gameNumber"`
 	Team1Score int    `json:"team1Score"`
 	Team2Score int    `json:"team2Score"`
 	Status     string `json:"status"`
+}
+
+// PublicMatch represents a match for public display (no internal fields)
+type PublicMatch struct {
+	ID            string      `json:"id"`
+	Title         string      `json:"title"`
+	ScheduledDate string      `json:"scheduledDate"`
+	Status        string      `json:"status"`
+	TableNumber   int         `json:"tableNumber"`
+	Team1         []Player    `json:"team1"`
+	Team2         []Player    `json:"team2"`
+	Games         []PublicGame `json:"games"`
 }
 
 // GetPublicMatches returns all matches grouped by status for public display
@@ -728,15 +718,8 @@ func (s *MatchService) GetPublicMatches(ctx context.Context) (*PublicMatchRespon
 
 	for _, dbm := range rows {
 		// Build teams
-		t1 := []PublicPlayer{{Name: dbm.Team1P1Name, Country: dbm.Team1P1Country.String}}
-		if dbm.Team1P2Name.Valid && dbm.Team1P2Name.String != "" {
-			t1 = append(t1, PublicPlayer{Name: dbm.Team1P2Name.String, Country: dbm.Team1P2Country.String})
-		}
-
-		t2 := []PublicPlayer{{Name: dbm.Team2P1Name, Country: dbm.Team2P1Country.String}}
-		if dbm.Team2P2Name.Valid && dbm.Team2P2Name.String != "" {
-			t2 = append(t2, PublicPlayer{Name: dbm.Team2P2Name.String, Country: dbm.Team2P2Country.String})
-		}
+		t1 := buildTeam(dbm.Team1P1Name, dbm.Team1P2Name, dbm.Team1P1Country, dbm.Team1P2Country)
+		t2 := buildTeam(dbm.Team2P1Name, dbm.Team2P2Name, dbm.Team2P1Country, dbm.Team2P2Country)
 
 		// Get games for this match
 		dbGames, err := s.store.GetGamesForMatch(ctx, dbm.ID)

@@ -23,6 +23,19 @@ function computeSinglesServer(p1Score, p2Score, initialServer) {
   return servesPassed % 2 === 0 ? initialServer : initialServer === 1 ? 2 : 1
 }
 
+// Builds the cycle-to-AB mapping used to back-solve doublesInitialServer/Receiver
+// from a desired server/receiver pair at a given position in the 4-step rotation.
+function buildBackMap(desiredS, desiredR) {
+  const partnerS = { team: desiredS.team, player: 1 - desiredS.player }
+  const partnerR = { team: desiredR.team, player: 1 - desiredR.player }
+  return {
+    0: { A: desiredS, X: desiredR },
+    1: { A: partnerR, X: desiredS },
+    2: { A: partnerS, X: partnerR },
+    3: { A: desiredR, X: partnerS },
+  }
+}
+
 export const useMatchStore = defineStore('match', {
   state: () => ({
     currentMatch: null,
@@ -605,15 +618,8 @@ export const useMatchStore = defineStore('match', {
 
       const desiredS = { team: serverTeamNum, player: serverPlayerIdx }
       const desiredR = { team: serverTeamNum === 1 ? 2 : 1, player: receiverPlayerIdx }
-      const partnerS = { team: desiredS.team, player: 1 - desiredS.player }
-      const partnerR = { team: desiredR.team, player: 1 - desiredR.player }
 
-      const backMap = {
-        0: { A: desiredS, X: desiredR },
-        1: { A: partnerR, X: desiredS },
-        2: { A: partnerS, X: partnerR },
-        3: { A: desiredR, X: partnerS },
-      }
+      const backMap = buildBackMap(desiredS, desiredR)
 
       this.doublesInitialServer = backMap[cyclePos].A
       this.doublesInitialReceiver = backMap[cyclePos].X
@@ -755,15 +761,8 @@ export const useMatchStore = defineStore('match', {
 
       const desiredS = { team: teamNum, player: newServerPlayerIdx }
       const desiredR = { team: teamNum === 1 ? 2 : 1, player: newReceiverPlayerIdx }
-      const partnerS = { team: desiredS.team, player: 1 - desiredS.player }
-      const partnerR = { team: desiredR.team, player: 1 - desiredR.player }
 
-      const backMap = {
-        0: { A: desiredS, X: desiredR },
-        1: { A: partnerR, X: desiredS },
-        2: { A: partnerS, X: partnerR },
-        3: { A: desiredR, X: partnerS },
-      }
+      const backMap = buildBackMap(desiredS, desiredR)
 
       this.doublesInitialServer = backMap[cyclePos].A
       this.doublesInitialReceiver = backMap[cyclePos].X

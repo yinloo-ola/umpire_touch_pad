@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 )
 
@@ -16,15 +15,10 @@ func (h *APIHandler) handleGetPublicMatches(w http.ResponseWriter, r *http.Reque
 
 	response, err := h.svc.GetPublicMatches(r.Context())
 	if err != nil {
-		log.Printf("[handleGetPublicMatches] Error: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	log.Printf("[handleGetPublicMatches] GET /api/public/matches - completed=%d, scheduled=%d, live=%d",
-		len(response.Completed), len(response.Scheduled), len(response.Live))
-
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	json.NewEncoder(w).Encode(response)
 }

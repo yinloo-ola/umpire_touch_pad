@@ -16,6 +16,13 @@ func NewAuthService() *AuthService {
 }
 
 // jwtSecret returns the signing key from env, with a fallback for local dev.
+func envOrDefault(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
+}
+
 func jwtSecret() []byte {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
@@ -27,24 +34,10 @@ func jwtSecret() []byte {
 // ValidateCredentials checks username/password against env vars.
 // Returns the role ("admin" or "umpire") or an error.
 func (a *AuthService) ValidateCredentials(username, password string) (string, error) {
-	adminUser := os.Getenv("ADMIN_USERNAME")
-	adminPass := os.Getenv("ADMIN_PASSWORD")
-	umpireUser := os.Getenv("UMPIRE_USERNAME")
-	umpirePass := os.Getenv("UMPIRE_PASSWORD")
-
-	// Fall back to dev defaults if env vars are not set
-	if adminUser == "" {
-		adminUser = "admin"
-	}
-	if adminPass == "" {
-		adminPass = "admin123"
-	}
-	if umpireUser == "" {
-		umpireUser = "umpire"
-	}
-	if umpirePass == "" {
-		umpirePass = "umpire123"
-	}
+	adminUser := envOrDefault("ADMIN_USERNAME", "admin")
+	adminPass := envOrDefault("ADMIN_PASSWORD", "admin123")
+	umpireUser := envOrDefault("UMPIRE_USERNAME", "umpire")
+	umpirePass := envOrDefault("UMPIRE_PASSWORD", "umpire123")
 
 	if username == adminUser && password == adminPass {
 		return "admin", nil

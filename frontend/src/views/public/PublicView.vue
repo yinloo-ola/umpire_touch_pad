@@ -81,7 +81,7 @@ const formattedLastUpdated = computed(() => {
 
 // Handle refresh
 function handleRefresh() {
-  publicStore.refresh()
+  publicStore.fetchPublicMatches()
 }
 
 // Format score for display

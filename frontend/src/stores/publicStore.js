@@ -24,21 +24,12 @@ export const usePublicStore = defineStore('public', () => {
       scheduled.value = data.scheduled || []
       live.value = data.live || []
       lastUpdated.value = new Date()
-      console.log('[publicStore] Fetched matches:', {
-        completed: completed.value.length,
-        scheduled: scheduled.value.length,
-        live: live.value.length,
-      })
     } catch (err) {
       console.error('[publicStore] Fetch failed:', err)
       error.value = err.message || 'Failed to load matches'
     } finally {
       loading.value = false
     }
-  }
-
-  function refresh() {
-    return fetchPublicMatches()
   }
 
   return {
@@ -49,6 +40,5 @@ export const usePublicStore = defineStore('public', () => {
     error,
     lastUpdated,
     fetchPublicMatches,
-    refresh,
   }
 })
