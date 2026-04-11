@@ -1,0 +1,15 @@
+{
+  "hosting": {
+    "site": "umpire-touch-pad-stta",
+    "public": ".",
+    "rewrites": [
+      {
+        "source": "**",
+        "run": {
+          "serviceId": "umpire-touch-pad",
+          "region": "europe-west1"
+        }
+      }
+    ]
+  }
+}
