@@ -56,6 +56,8 @@ frontend/                 # Vue 3 + Vite
 
 ## Commands
 
+**Prerequisites:** Install the Turso CLI (`brew install tursodatabase/tap/turso`). Local dev requires `turso dev` to be running — use `make dev` which starts it automatically.
+
 All commands must run from the correct subdirectory. **The Go module is in `backend/`, not the repo root.**
 
 ```bash
@@ -171,3 +173,4 @@ Per-match exclusive lock prevents two devices from scoring simultaneously.
 3. **Hardcoded dates in tests** — will break after midnight. Use `time.Now()` or `t.Context()` deadlines.
 4. **Forgetting `X-Session-ID` header** on new API calls — the backend won't filter locks correctly.
 5. **SQLite `:exec` vs `:execresult`** — use `:execresult` when you need to know if rows were affected.
+6. **Starting the backend without `turso dev`** — The server will exit with an error if `TURSO_DATABASE_URL` is not set. Use `make dev` which starts `turso dev` automatically, or run `turso dev` manually and set the env var.
