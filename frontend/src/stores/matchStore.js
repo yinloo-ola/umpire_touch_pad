@@ -1,5 +1,10 @@
 import { defineStore } from 'pinia'
 
+function getAuthHeaders() {
+  const token = sessionStorage.getItem('jwt')
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
+
 // Shared helper: computes the doubles serve rotation components from match state.
 // Returns { A, X, B, Y, servesPassed } for use in any serve-cycle calculation.
 function computeDoublesRotation(state) {
@@ -247,6 +252,7 @@ export const useMatchStore = defineStore('match', {
           credentials: 'include',
           headers: {
             'X-Session-ID': window.__umpireSessionId,
+            ...getAuthHeaders(),
           },
         })
         if (!resp.ok) throw new Error('Failed to fetch match state')
@@ -1207,6 +1213,7 @@ export const useMatchStore = defineStore('match', {
           credentials: 'include',
           headers: {
             'X-Session-ID': window.__umpireSessionId,
+            ...getAuthHeaders(),
           },
         })
       } catch (err) {
@@ -1306,6 +1313,7 @@ export const useMatchStore = defineStore('match', {
           headers: {
             'Content-Type': 'application/json',
             'X-Session-ID': window.__umpireSessionId,
+            ...getAuthHeaders(),
           },
           body: JSON.stringify(payload),
         })

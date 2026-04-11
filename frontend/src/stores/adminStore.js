@@ -6,6 +6,11 @@ export const useAdminStore = defineStore('admin', () => {
   const role = ref('')
   const matches = ref([])
 
+  function authHeaders() {
+    const token = sessionStorage.getItem('jwt')
+    return token ? { Authorization: `Bearer ${token}` } : {}
+  }
+
   async function login(username, password) {
     const res = await fetch(`/api/login`, {
       method: 'POST',
@@ -19,6 +24,12 @@ export const useAdminStore = defineStore('admin', () => {
     const data = await res.json()
     role.value = data.role
     isAuthenticated.value = true
+    // Store the JWT for Authorization header (needed when cookies are stripped by proxy)
+    const setCookieHeader = res.headers.get('set-cookie') || ''
+    const match = setCookieHeader.match(/jwt=([^;]+)/)
+    if (match) {
+      sessionStorage.setItem('jwt', match[1])
+    }
     return data.role
   }
 
@@ -26,7 +37,9 @@ export const useAdminStore = defineStore('admin', () => {
     await fetch(`/api/logout`, {
       method: 'POST',
       credentials: 'include',
+      headers: authHeaders(),
     })
+    sessionStorage.removeItem('jwt')
     isAuthenticated.value = false
     role.value = ''
     matches.value = []
@@ -36,7 +49,7 @@ export const useAdminStore = defineStore('admin', () => {
     const url = history ? `/api/matches?history=true` : `/api/matches`
     const res = await fetch(url, {
       credentials: 'include',
-      headers: { 'X-Session-ID': window.__umpireSessionId },
+      headers: { 'X-Session-ID': window.__umpireSessionId, ...authHeaders() },
     })
     if (!res.ok) {
       throw new Error('Failed to fetch matches')
@@ -48,7 +61,7 @@ export const useAdminStore = defineStore('admin', () => {
     const res = await fetch(`/api/match`, {
       method: 'POST',
       credentials: 'include',
-      headers: { 'Content-Type': 'application/json', 'X-Session-ID': window.__umpireSessionId },
+      headers: { 'Content-Type': 'application/json', 'X-Session-ID': window.__umpireSessionId, ...authHeaders() },
       body: JSON.stringify(payload),
     })
     if (!res.ok) {
@@ -66,6 +79,7 @@ export const useAdminStore = defineStore('admin', () => {
     try {
       const res = await fetch(`/api/me`, {
         credentials: 'include',
+        headers: authHeaders(),
       })
       if (!res.ok) {
         isAuthenticated.value = false
@@ -85,7 +99,7 @@ export const useAdminStore = defineStore('admin', () => {
     const res = await fetch(`/api/matches/${id}`, {
       method: 'DELETE',
       credentials: 'include',
-      headers: { 'X-Session-ID': window.__umpireSessionId },
+      headers: { 'X-Session-ID': window.__umpireSessionId, ...authHeaders() },
     })
     if (!res.ok) {
       const text = await res.text()
@@ -97,7 +111,7 @@ export const useAdminStore = defineStore('admin', () => {
     const res = await fetch(`/api/matches/bulk-delete`, {
       method: 'POST',
       credentials: 'include',
-      headers: { 'Content-Type': 'application/json', 'X-Session-ID': window.__umpireSessionId },
+      headers: { 'Content-Type': 'application/json', 'X-Session-ID': window.__umpireSessionId, ...authHeaders() },
       body: JSON.stringify({ ids }),
     })
     if (!res.ok) {
