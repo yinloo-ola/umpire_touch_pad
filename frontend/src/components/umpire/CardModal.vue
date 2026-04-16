@@ -22,14 +22,15 @@ const teamLabel = computed(() => {
 // Card visual state: 'locked' | 'available' | 'issued'
 const cardState = (track, type) => {
   const arr = track === 'coach' ? coachCards.value : playerCards.value
+  const cardTypes = arr.map((c) => c.type)
   const playerOrder = ['Yellow', 'YR1', 'YR2']
   const coachOrder = ['Yellow', 'Red']
   const order = track === 'coach' ? coachOrder : playerOrder
   const idx = order.indexOf(type)
 
-  if (arr.includes(type)) return 'issued'
-  if (idx === 0 && arr.length === 0) return 'available'
-  if (idx > 0 && arr[idx - 1] === order[idx - 1]) return 'available'
+  if (cardTypes.includes(type)) return 'issued'
+  if (idx === 0 && cardTypes.length === 0) return 'available'
+  if (idx > 0 && cardTypes[idx - 1] === order[idx - 1]) return 'available'
   return 'locked'
 }
 
