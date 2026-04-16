@@ -37,10 +37,11 @@ const cardState = (track, type) => {
 // Tap handler: issue or LIFO-revert, then dismiss
 const issueOrRevert = (track, type) => {
   const arr = track === 'coach' ? coachCards.value : playerCards.value
-  if (arr.length > 0 && arr[arr.length - 1] === type) {
+  const lastType = arr.length > 0 ? arr[arr.length - 1].type : null
+  if (lastType === type) {
     matchStore.revertLastCard(props.teamNum, track)
     emit('close')
-  } else if (!arr.includes(type)) {
+  } else if (!arr.some((c) => c.type === type)) {
     matchStore.issueCard(props.teamNum, type, track)
     emit('close')
   }
