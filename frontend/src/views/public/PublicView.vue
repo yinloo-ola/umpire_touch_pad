@@ -95,6 +95,7 @@ function getAggregateScore(match) {
   let team1Wins = 0
   let team2Wins = 0
   for (const game of match.games) {
+    if (game.status !== 'completed') continue
     if (game.team1Score > game.team2Score) team1Wins++
     else if (game.team2Score > game.team1Score) team2Wins++
   }
