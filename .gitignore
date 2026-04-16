@@ -1,6 +1,8 @@
 node_modules/
 backend/sqlite.db
 .turso-dev.pid
+.turso-dev.db-shm
+.turso-dev.db-wal
 backend/umpire_backend
 cookies.txt
 .vscode/
